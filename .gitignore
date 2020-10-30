@@ -1,0 +1,5 @@
+/*build*/
+.*
+!/.gitignore
+*.pdf
+/ext_lib/googletest/
