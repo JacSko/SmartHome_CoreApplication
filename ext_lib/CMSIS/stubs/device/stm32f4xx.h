@@ -12045,6 +12045,11 @@ typedef struct
 
 #define MODIFY_REG(REG, CLEARMASK, SETMASK)  WRITE_REG((REG), (((READ_REG(REG)) & (~(CLEARMASK))) | (SETMASK)))
 
+
+/* UT definitions */
+GPIO_TypeDef* GPIOC;
+
+
 /**
   * @}
   */
@@ -12062,5 +12067,4 @@ typedef struct
   /**
   * @}
   */
-
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

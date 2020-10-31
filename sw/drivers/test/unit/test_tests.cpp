@@ -12,7 +12,7 @@ TEST(test1, test1)
 {
 	stm_stub_init();
 	add2(1,1);
-	EXPECT_EQ(GPIOC->IDR, 0x00);
+	EXPECT_EQ(GPIOC->IDR, 0xFF);
 	stm_stub_deinit();
 }
 

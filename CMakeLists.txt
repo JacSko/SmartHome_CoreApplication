@@ -113,11 +113,23 @@ if(NOT UNIT_TESTS)
 	endif(NOT ST_FLASH)
 else()
 	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+	set(CMAKE_CXX_FLAGS "-g -O0 -Wall -fprofile-arcs -ftest-coverage -fPIC")
 	include_directories(ext_lib/googletest/googletest/include 
 						ext_lib/googletest/googlemock/include
 						)
+						
+	set(GCOVR_EXCLUDE_REGEXP "'.*(T|t)est(s?)/'")
+	add_custom_target(coverage
+			COMMAND make
+			COMMAND make test
+			COMMAND gcovr -f ../sw/ -e=${GCOVR_EXCLUDE_REGEXP} --html-details html/test.html
+		)
 	enable_testing()
 endif()
 
 	add_subdirectory(sw/drivers)
 	add_subdirectory(ext_lib)
+	
+	
+# COVERAGE:
+# gcovr -f ../sw/ -e='.*(T|t)est(s?)/' --html-details html/test.html

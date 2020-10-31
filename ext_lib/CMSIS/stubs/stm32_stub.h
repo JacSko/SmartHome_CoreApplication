@@ -5,8 +5,6 @@
 
 #include "stm32f4xx.h"
 
-GPIO_TypeDef* GPIOC;
-
 void stm_stub_init()
 {
 	GPIOC = new GPIO_TypeDef();
