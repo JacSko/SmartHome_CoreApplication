@@ -7,5 +7,9 @@ uint8_t add1 (uint8_t arg1, uint8_t arg2)
 
 uint8_t add2 (uint8_t arg1, uint8_t arg2)
 {
-	GPIOC->IDR = 0xFF;
+	if (arg1>arg2)
+	{
+		GPIOC->IDR = 0xFF;
+	}
+
 }
