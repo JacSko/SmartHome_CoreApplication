@@ -115,10 +115,6 @@ else()
 	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 	set(CMAKE_CXX_FLAGS "-g -O0 -Wall -fprofile-arcs -ftest-coverage -fPIC")
 
-	set(GCOVR_EXCLUDE_REGEXP "'.*(T|t)est(s?)/'")
-	add_custom_target(coverage
-			COMMAND gcovr -f ../sw/ -e=${GCOVR_EXCLUDE_REGEXP} --branches -b --exclude-unreachable-branches --html-details html/test.html
-		)
 	enable_testing()
 endif()
 
