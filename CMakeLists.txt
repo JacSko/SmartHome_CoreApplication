@@ -64,7 +64,6 @@ if(NOT UNIT_TESTS)
 	add_executable(${PROJECT_NAME}.elf ${SOURCES})
 	
 	target_link_libraries(${PROJECT_NAME}.elf PUBLIC
-		math_lib
 		STM_HEADERS
 	)
 	
@@ -118,6 +117,9 @@ else()
 	enable_testing()
 endif()
 
+    include_directories(sw/common_types)
 	add_subdirectory(sw/drivers)
+	add_subdirectory(sw/gpio_lib)
+	add_subdirectory(sw/logger)
 	add_subdirectory(ext_lib)
 	
