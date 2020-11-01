@@ -2,10 +2,14 @@ add_executable(uart_engine_tests
             unit/uart_engine_tests.cpp
 )
 
-target_link_libraries(uart_engine_tests PRIVATE
+target_include_directories(uart_engine_tests PUBLIC
+        ../include
+)
+target_link_libraries(uart_engine_tests PUBLIC
         gtest_main
         gmock_main
-        uart_engine
+        gpio_configIf
+        gpio_configMocks
         STM_HEADERS
 )
 
