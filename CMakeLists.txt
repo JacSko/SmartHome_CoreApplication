@@ -120,6 +120,5 @@ endif()
     include_directories(sw/common_types)
 	add_subdirectory(sw/drivers)
 	add_subdirectory(sw/gpio_lib)
-	add_subdirectory(sw/logger)
 	add_subdirectory(ext_lib)
 	
