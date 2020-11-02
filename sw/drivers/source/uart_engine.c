@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 #include "stm32f4xx.h"
+#include "core_cmFunc.h"
 #include "uart_engine.h"
 #include "gpio_lib.h"
 #include "return_codes.h"
@@ -86,7 +87,9 @@ RET_CODE uartengine_send_string(const char * buffer)
 	{
 		return RETURN_ERROR;
 	}
+
 	char c;
+	__disable_irq();
 	while (*buffer)
 	{
 		c = *buffer;
@@ -98,6 +101,7 @@ RET_CODE uartengine_send_string(const char * buffer)
 		}
 		buffer++;
 	}
+	__enable_irq();
 	start_sending();
 	return RETURN_OK;
 

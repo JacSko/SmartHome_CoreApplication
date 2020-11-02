@@ -13,6 +13,7 @@ void stm_stub_init()
 	RCC = (RCC_TypeDef*) malloc(sizeof(RCC_TypeDef));
 	USART1 = (USART_TypeDef*) malloc(sizeof(USART_TypeDef));
 	NVIC = (NVIC_Type*) malloc(sizeof(NVIC_Type));
+
 	for (uint8_t i = 0; i < irq_arr_size; i++)
 	{
 		active_irq[i] = 0x00;
