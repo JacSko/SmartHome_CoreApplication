@@ -47,6 +47,7 @@ if(NOT UNIT_TESTS)
 	        -mthumb
 	        -mfpu=fpv4-sp-d16
 	        -mfloat-abi=hard
+	        -specs=nosys.specs
 	        -specs=nano.specs
 	        -lc
 	        -lm
@@ -65,6 +66,7 @@ if(NOT UNIT_TESTS)
 	
 	target_link_libraries(${PROJECT_NAME}.elf PUBLIC
 		STM_HEADERS
+		uart_engine
 	)
 	
 #	target_include_directories(${PROJECT_NAME}.elf PUBLIC ext_lib/CMSIS/device

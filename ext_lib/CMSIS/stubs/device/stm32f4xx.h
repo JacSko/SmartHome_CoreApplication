@@ -1,5 +1,5 @@
-#ifndef __STM32F4xx_H
-#define __STM32F4xx_H
+#ifndef __STM32F4xx_FAKE__H
+#define __STM32F4xx_FAKE__H
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -157,6 +157,17 @@ typedef struct
 #define  USART_CR2_STOP                      ((uint16_t)0x3000)            /*!<STOP[1:0] bits (STOP bits) */
 #define  USART_CR2_STOP_0                    ((uint16_t)0x1000)            /*!<Bit 0 */
 #define  USART_CR2_STOP_1                    ((uint16_t)0x2000)            /*!<Bit 1 */
+#define  USART_SR_PE                         ((uint16_t)0x0001)            /*!<Parity Error                 */
+#define  USART_SR_FE                         ((uint16_t)0x0002)            /*!<Framing Error                */
+#define  USART_SR_NE                         ((uint16_t)0x0004)            /*!<Noise Error Flag             */
+#define  USART_SR_ORE                        ((uint16_t)0x0008)            /*!<OverRun Error                */
+#define  USART_SR_IDLE                       ((uint16_t)0x0010)            /*!<IDLE line detected           */
+#define  USART_SR_RXNE                       ((uint16_t)0x0020)            /*!<Read Data Register Not Empty */
+#define  USART_SR_TC                         ((uint16_t)0x0040)            /*!<Transmission Complete        */
+#define  USART_SR_TXE                        ((uint16_t)0x0080)            /*!<Transmit Data Register Empty */
+#define  USART_SR_LBD                        ((uint16_t)0x0100)            /*!<LIN Break Detection Flag     */
+#define  USART_SR_CTS
+
 
 #define SET_BIT(REG, BIT)     ((REG) |= (BIT))
 #define CLEAR_BIT(REG, BIT)   ((REG) &= ~(BIT))
@@ -216,6 +227,7 @@ NVIC_Type* NVIC;
 void stm_stub_init();
 void stm_stub_deinit();
 void NVIC_EnableIRQ(IRQn_Type IRQn);
+uint8_t stm_stub_check_irq(IRQn_Type IRQn, uint8_t active);
 void __DSB(void);
 
 #endif /* _STM32_STUB_H_ */
