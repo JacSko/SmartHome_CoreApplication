@@ -31,7 +31,8 @@ if(NOT UNIT_TESTS)
 	set(CMAKE_OBJCOPY "arm-none-eabi-objcopy")
 	
 	set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
-	set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
+	set(CMAKE_SHARED_LIBRA
+	RY_LINK_CXX_FLAGS "")
 	add_compile_options(
 	        -mcpu=cortex-m3
 	        -mthumb
@@ -39,7 +40,8 @@ if(NOT UNIT_TESTS)
 	        -mfloat-abi=hard
 	        -ffunction-sections
 	        -Wall
-	        -Og
+	        -O0
+	        -g3
 	        )
 	add_link_options(
 	        -T${CMAKE_SOURCE_DIR}/ext_lib/LinkerScript.ld

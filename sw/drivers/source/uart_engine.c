@@ -45,7 +45,7 @@ RET_CODE uartengine_initialize(UART_Config* cfg)
 	__DSB();
 
 	USART1->CR1 |= USART_CR1_UE | USART_CR1_RXNEIE | USART_CR1_RE | USART_CR1_TE;
-	USART1->BRR = (50000000/config.baudrate);
+	USART1->BRR = (100000000/config.baudrate);
 	gpio_pin_cfg(GPIOA, PA10, gpio_mode_AF7_OD_PD_LS);
 	gpio_pin_cfg(GPIOA, PA9, gpio_mode_AF7_PP_LS);
 
@@ -199,16 +199,21 @@ void stop_sending()
 void USART1_IRQHandler (void)
 {
 	if (USART1->SR & USART_SR_RXNE){
-		rx_buf.buf[rx_buf.head] = USART1->DR;
-		rx_buf.head++;
-		if (USART1->DR == config.delimiter)
+		char c = USART1->DR;
+		if (c != '\r')
 		{
-			rx_buf.string_cnt++;
+			rx_buf.buf[rx_buf.head] = USART1->DR;
+			rx_buf.head++;
+			if (USART1->DR == config.delimiter)
+			{
+				rx_buf.string_cnt++;
+			}
+			if (rx_buf.head == config.buffer_size)
+			{
+				rx_buf.head = 0;
+			}
 		}
-		if (rx_buf.head == config.buffer_size)
-		{
-			rx_buf.head = 0;
-		}
+
 	}
 
 	if (USART1->SR & USART_SR_TXE){
