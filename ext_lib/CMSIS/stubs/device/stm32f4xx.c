@@ -73,6 +73,10 @@ uint8_t stm_stub_check_irq(IRQn_Type IRQn, uint8_t active)
 	return result;
 }
 
+void SysTick_Config(uint32_t ticks)
+{
+
+}
 
 void __DSB(void)
 {
