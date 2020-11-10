@@ -1,12 +1,12 @@
-add_library(time STATIC
+add_library(time_counter STATIC
         source/time_counter.c
 )
 
-target_include_directories(time PUBLIC
+target_include_directories(time_counter PUBLIC
         include
 )
 
-target_link_libraries(time PUBLIC
+target_link_libraries(time_counter PUBLIC
         STM_HEADERS
 )
 

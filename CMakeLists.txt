@@ -16,9 +16,6 @@ add_definitions(
 
 if(NOT UNIT_TESTS)
 	enable_language(C ASM)
-	set(CMAKE_C_STANDARD 99)
-	set(CMAKE_C_STANDARD_REQUIRED ON)
-	set(CMAKE_C_EXTENSIONS OFF)
 	
 	set(CMAKE_SYSTEM_NAME Generic)
 	set(CMAKE_SYSTEM_PROCESSOR arm)
@@ -34,7 +31,7 @@ if(NOT UNIT_TESTS)
 	set(CMAKE_SHARED_LIBRA
 	RY_LINK_CXX_FLAGS "")
 	add_compile_options(
-	        -mcpu=cortex-m3
+	        -mcpu=cortex-m4
 	        -mthumb
 	        -mfpu=fpv4-sp-d16
 	        -mfloat-abi=hard
@@ -47,13 +44,10 @@ if(NOT UNIT_TESTS)
 	        -T${CMAKE_SOURCE_DIR}/ext_lib/LinkerScript.ld
 	        -mcpu=cortex-m4
 	        -mthumb
-	        -mfpu=fpv4-sp-d16
 	        -mfloat-abi=hard
-	        -specs=nosys.specs
-	        -specs=nano.specs
-	        -lc
+	        -mfpu=fpv4-sp-d16
+	        #-lc
 	        -lm
-	        -lnosys
 	        -Wl,-Map=${PROJECT_NAME}.map,--cref
 	        -Wl,--gc-sections
 	        )	
@@ -62,6 +56,7 @@ if(NOT UNIT_TESTS)
 		main.c
 		ext_lib/startup_stm32.s
 		ext_lib/system_stm32f4xx.c
+		ext_lib/syscalls.c
 	)
 	
 	add_executable(${PROJECT_NAME}.elf ${SOURCES})
@@ -121,9 +116,11 @@ else()
 	enable_testing()
 endif()
 
-    include_directories(sw/common_types)
+    include_directories(sw/utilities/include)
 	add_subdirectory(sw/drivers)
 	add_subdirectory(sw/gpio_lib)
 	add_subdirectory(sw/time)
+	add_subdirectory(sw/task_scheduler)
+	add_subdirectory(sw/utilities)
 	add_subdirectory(ext_lib)
 	
