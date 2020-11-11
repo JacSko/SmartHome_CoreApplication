@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include "time_counter.h"
 
-
 #define TIME_CNT_CALLBACK_MAX_SIZE 10
 #define TIME_BASETIME_MS 10
 
@@ -20,7 +19,6 @@ void time_init()
 	timestamp.minute = 0;
 	timestamp.second = 0;
 	timestamp.msecond = 0;
-
 	/* systick_value = F_CPU/(100/PERIOD[ms]) */
 	SysTick_Config(100000000/(1000/TIME_BASETIME_MS));
 
@@ -37,7 +35,7 @@ RET_CODE is_time_ok(TimeItem* item)
 	result &= item->hour <= 23;
 	result &= item->minute <= 59;
 	result &= item->second <= 59;
-	result &= item->msecond <= 99 && (item->msecond%10) == 0;
+	result &= item->msecond <= 990 && (item->msecond%10) == 0;
 
 	return result? RETURN_OK : RETURN_NOK;
 
@@ -106,10 +104,10 @@ RET_CODE is_leap_year()
 void increment_time()
 {
 	timestamp.msecond += TIME_BASETIME_MS;
-	if (timestamp.msecond >= 100)
+	if (timestamp.msecond >= 1000)
 	{
 		timestamp.second++;
-		timestamp.msecond %= 100;
+		timestamp.msecond %= 1000;
 	}
 	if (timestamp.second == 60)
 	{

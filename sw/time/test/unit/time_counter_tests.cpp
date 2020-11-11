@@ -81,7 +81,7 @@ TEST_F(timeFixture, time_increment_test)
 	 * @<b>expected<\b>: Correct time.
 	 */
 
-	for (uint8_t i = 0; i < 9; i++)
+	for (uint8_t i = 0; i < 99; i++)
 	{
 		SysTick_Handler();
 		time_watcher();
@@ -102,7 +102,7 @@ TEST_F(timeFixture, time_increment_test)
 	 */
 
 	t.second = 59;
-	t.msecond = 90;
+	t.msecond = 990;
 
 	time_set(&t);
 
@@ -125,7 +125,7 @@ TEST_F(timeFixture, time_increment_test)
 
 	t.minute = 59;
 	t.second = 59;
-	t.msecond = 90;
+	t.msecond = 990;
 
 	time_set(&t);
 
@@ -149,7 +149,7 @@ TEST_F(timeFixture, time_increment_test)
 	t.hour = 23;
 	t.minute = 59;
 	t.second = 59;
-	t.msecond = 90;
+	t.msecond = 990;
 
 	time_set(&t);
 
@@ -175,7 +175,7 @@ TEST_F(timeFixture, time_increment_test)
 	t.hour = 23;
 	t.minute = 59;
 	t.second = 59;
-	t.msecond = 90;
+	t.msecond = 990;
 
 	time_set(&t);
 
@@ -201,7 +201,7 @@ TEST_F(timeFixture, time_increment_test)
 	t.hour = 23;
 	t.minute = 59;
 	t.second = 59;
-	t.msecond = 90;
+	t.msecond = 990;
 
 	time_set(&t);
 
@@ -228,7 +228,7 @@ TEST_F(timeFixture, time_increment_test)
 	t.hour = 23;
 	t.minute = 59;
 	t.second = 59;
-	t.msecond = 90;
+	t.msecond = 990;
 
 	time_set(&t);
 
@@ -528,7 +528,7 @@ TEST_F(timeFixture, set_get_time)
 	t.hour = 23;
 	t.minute = 59;
 	t.second = 59;
-	t.msecond = 100;
+	t.msecond = 1000;
 
 	EXPECT_EQ(RETURN_NOK, time_set(&t));
 

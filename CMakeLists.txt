@@ -64,6 +64,7 @@ if(NOT UNIT_TESTS)
 	target_link_libraries(${PROJECT_NAME}.elf PUBLIC
 		STM_HEADERS
 		uart_engine
+		time_counter
 	)
 	
 #	target_include_directories(${PROJECT_NAME}.elf PUBLIC ext_lib/CMSIS/device

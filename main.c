@@ -1,6 +1,7 @@
 
 #include "stm32f4xx.h"
 #include "uart_engine.h"
+#include "time_counter.h"
 
 /**
  * 	System config:
@@ -34,10 +35,12 @@ int main(void)
 	uartengine_initialize(&config);
 	uartengine_register_callback(&callback);
 
-	uartengine_send_string("test\n");
+	time_init();
+
 	/*simple uart echo*/
 	while (1)
 	{
 		uartengine_string_watcher();
+		time_watcher();
 	}
 }
