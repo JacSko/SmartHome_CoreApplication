@@ -9,7 +9,6 @@ target_include_directories(task_scheduler PUBLIC
 target_link_libraries(task_scheduler PUBLIC
         STM_HEADERS
         time_counter
-        list_generic
 )
 
 ##############################################################

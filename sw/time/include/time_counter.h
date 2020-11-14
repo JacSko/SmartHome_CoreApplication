@@ -53,6 +53,11 @@ RET_CODE time_unregister_callback(void(*callback)(TimeItem*));
 */
 void time_watcher();
 
+/*
+ * Returns current time base
+*/
+uint16_t time_get_basetime();
+
 
 
 #endif

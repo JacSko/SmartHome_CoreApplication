@@ -122,6 +122,5 @@ endif()
 	add_subdirectory(sw/gpio_lib)
 	add_subdirectory(sw/time)
 	add_subdirectory(sw/task_scheduler)
-	add_subdirectory(sw/utilities)
 	add_subdirectory(ext_lib)
 	

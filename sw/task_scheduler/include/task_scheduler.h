@@ -6,14 +6,18 @@
 
 typedef enum SchTaskType
 {
-	SCH_TASK_ONCE,
-	SCH_TASK_PERIODIC
+	TASKTYPE_TRIGGER,
+	TASKTYPE_PERIODIC,
+	TASKTYPE_ONCE,
+	TASKTYPE_UNKNOWN,
 }SchTaskType;
 
 typedef enum SchTaskState
 {
-	TASK_RUNNING,
-	TASK_STOPPED
+	TASKSTATE_EMPTY = 0x00,
+	TASKSTATE_RUNNING,
+	TASKSTATE_STOPPED,
+	TASKSTATE_UNKNOWN,
 } SchTaskState;
 
 typedef uint16_t TASK_PERIOD;
@@ -27,7 +31,10 @@ typedef void(*TASK) ();
 void sch_initialize ();
 
 /*
- * Subscribe task to scheduler.
+ * Subscribe permanent task to scheduler.
+ * Permanent means, that even if task became inactive (task type ONCE)
+ * it is not removed from internal list ready to become active.
+ *
  * set_task_period, set_task_state and set_task_type shall be called afterwards.
  * Return:
  * RETURN_OK - when subscription made correctly.
@@ -37,7 +44,7 @@ void sch_initialize ();
 RET_CODE sch_subscribe (TASK task);
 
 /*
- * Remove subscription from scheduler.
+ * Remove subscription of permanent task from scheduler.
  *
  * Return:
  * RETURN_OK - when subscription removed correctly.
@@ -46,13 +53,23 @@ RET_CODE sch_subscribe (TASK task);
 RET_CODE sch_unsubscribe (TASK task);
 
 /*
+ * Add temporary task to scheduler.
+ * Task is removed from scheduler just after first call.
+ *
+ * Return:
+ * RETURN_OK - when added correctly.
+ * RETURN_NOK - when task not added.
+ */
+RET_CODE sch_schedule_task (TASK task, TASK_PERIOD period);
+
+/*
  * Set period for task.
  * Period range: 10ms - 60s
  * Return:
  * RETURN_OK - period changed.
  * RETURN_NOK - period cannot be changed (e.g. task not exist or invalid period).
  */
-RET_CODE sch_set_task_period (TASK_PERIOD period);
+RET_CODE sch_set_task_period (TASK task, TASK_PERIOD period);
 
 /*
  * Set state for task.
@@ -99,6 +116,12 @@ SchTaskType sch_get_task_type (TASK task);
  * To be called in main function - responsible for scheduling
  */
 void sch_task_watcher ();
+
+/*
+ * Deinitialize task scheduler.
+ * This means e.g. freeing allocated memory.
+ */
+void sch_deinitialize();
 
 
 

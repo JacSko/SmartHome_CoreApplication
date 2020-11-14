@@ -9,4 +9,5 @@ then
     mkdir html
 fi
 
-gcovr -f ../sw/ -e='.*(T|t)est(s?)/' --branches -b --exclude-unreachable-branches --html-details html/test.html
+gcovr -f ../sw/ --root=. -e /.*/test/.* -e /.*/tests/.* --html --html-details --output=html/coverage.html --exclude-unreachable-branches
+firefox html/coverage.html

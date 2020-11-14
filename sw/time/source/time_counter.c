@@ -159,6 +159,10 @@ void time_watcher()
 		call_callbacks();
 	}
 }
+uint16_t time_get_basetime()
+{
+	return TIME_BASETIME_MS;
+}
 
 void SysTick_Handler(void)
 {
