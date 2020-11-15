@@ -390,7 +390,7 @@ TEST_F(timeFixture, three_tasks_handling)
 
 TEST_F(timeFixture, dynamic_tasks_handling)
 {
-TimeItem item = {};
+	TimeItem item = {};
 
 	EXPECT_CALL(*time_cnt_mock, time_register_callback(_));
 	EXPECT_CALL(*time_cnt_mock, time_get_basetime()).WillRepeatedly(Return(10));
@@ -447,7 +447,69 @@ TimeItem item = {};
 }
 
 
+TEST_F(timeFixture, negative_cases)
+{
 
+	EXPECT_CALL(*time_cnt_mock, time_register_callback(_));
+	EXPECT_CALL(*time_cnt_mock, time_get_basetime()).WillRepeatedly(Return(10));
+	sch_initialize();
+
+	/**
+	 * @<b>scenario<\b>: Subscribe invalid task.
+	 * @<b>expected<\b>: False returned.
+	 */
+
+	EXPECT_EQ(RETURN_NOK, sch_subscribe(NULL));
+
+	/**
+	 * @<b>scenario<\b>: Unsubscribe not existing task.
+	 * @<b>expected<\b>: False returned.
+	 */
+
+	EXPECT_EQ(RETURN_NOK, sch_unsubscribe(&fake_callback1));
+
+	/**
+	 * @<b>scenario<\b>: Schedule task with invalid period.
+	 * @<b>expected<\b>: False returned.
+	 */
+
+	EXPECT_EQ(RETURN_NOK, sch_schedule_task(&fake_callback2, 1));
+	EXPECT_EQ(items_list.size, 0);
+
+	/**
+	 * @<b>scenario<\b>: Set/Get period for not existing task.
+	 * @<b>expected<\b>: False returned.
+	 */
+
+	EXPECT_EQ(RETURN_NOK, sch_set_task_period(&fake_callback1, 100));
+	EXPECT_EQ(0, sch_get_task_period(&fake_callback1));
+
+	/**
+	 * @<b>scenario<\b>: Set/Get task state for not existing task.
+	 * @<b>expected<\b>: False returned.
+	 */
+
+	EXPECT_EQ(RETURN_NOK, sch_set_task_state(&fake_callback1, TASKSTATE_RUNNING));
+	EXPECT_EQ(TASKSTATE_UNKNOWN, sch_get_task_state(&fake_callback1));
+
+	/**
+	 * @<b>scenario<\b>: Set incorrect task state for existing task.
+	 * @<b>expected<\b>: False returned.
+	 */
+
+	EXPECT_EQ(RETURN_OK, sch_subscribe(&fake_callback1));
+	EXPECT_EQ(RETURN_NOK, sch_set_task_state(&fake_callback1, TASKSTATE_UNKNOWN));
+	EXPECT_EQ(RETURN_OK, sch_unsubscribe(&fake_callback1));
+
+	/**
+	 * @<b>scenario<\b>: Set/Get task type for non existing task.
+	 * @<b>expected<\b>: False returned.
+	 */
+
+	EXPECT_EQ(RETURN_NOK, sch_set_task_type(&fake_callback1, TASKTYPE_PERIODIC));
+	EXPECT_EQ(TASKTYPE_UNKNOWN, sch_get_task_type(&fake_callback1));
+
+}
 
 
 

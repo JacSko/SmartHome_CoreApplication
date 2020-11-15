@@ -47,33 +47,39 @@ void sch_initialize ()
 }
 RET_CODE sch_subscribe (TASK task)
 {
-	if (items_list.size == items_list.capacity)
+	RET_CODE result = RETURN_OK;
+	if (task)
 	{
-		SchItem* new_loc = (SchItem*) calloc((items_list.size + DEFAULT_TASK_INCR), sizeof(SchItem));
-		if (!new_loc)
+		if (items_list.size == items_list.capacity)
 		{
-			return RETURN_NOK;
+			SchItem* new_loc = (SchItem*) calloc((items_list.size + DEFAULT_TASK_INCR), sizeof(SchItem));
+			if (!new_loc)
+			{
+				return RETURN_NOK;
+			}
+			sch_realloc_data(items_list.list, new_loc);
+			items_list.list = new_loc;
+			items_list.capacity = items_list.size + DEFAULT_TASK_INCR;
 		}
-		sch_realloc_data(items_list.list, new_loc);
-		items_list.list = new_loc;
-		items_list.capacity = items_list.size + DEFAULT_TASK_INCR;
-	}
 
-	for (uint8_t i = 0; i < items_list.capacity; i++)
+		for (uint8_t i = 0; i < items_list.capacity; i++)
+		{
+			if (items_list.list[i].state == TASKSTATE_EMPTY)
+			{
+				items_list.list[i].callback = task;
+				items_list.list[i].count = 0;
+				items_list.list[i].period = 0;
+				items_list.list[i].state = TASKSTATE_STOPPED;
+				items_list.size++;
+				break;
+			}
+		}
+	}
+	else
 	{
-		if (items_list.list[i].state == TASKSTATE_EMPTY)
-		{
-			items_list.list[i].callback = task;
-			items_list.list[i].count = 0;
-			items_list.list[i].period = 0;
-			items_list.list[i].state = TASKSTATE_STOPPED;
-			items_list.size++;
-			break;
-		}
+		result = RETURN_NOK;
 	}
-
-	return RETURN_OK;
-
+	return result;
 }
 RET_CODE sch_unsubscribe (TASK task)
 {
@@ -102,6 +108,8 @@ RET_CODE sch_schedule_task (TASK task, TASK_PERIOD period)
 		}
 		else
 		{
+			sch_unsubscribe(task);
+			result = RETURN_NOK;
 			//cannot set task period
 		}
 	}
