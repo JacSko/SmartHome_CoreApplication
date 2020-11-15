@@ -79,6 +79,11 @@ void uartengine_deinitialize()
 	tx_buf.buf = NULL;
 	rx_buf.buf = NULL;
 	rx_string = NULL;
+	for (uint8_t i = 0; i < UART_ENGINE_CALLBACK_SIZE; i++)
+	{
+		CALLBACKS[i] = NULL;
+	}
+
 }
 
 RET_CODE uartengine_send_string(const char * buffer)
@@ -108,6 +113,7 @@ RET_CODE uartengine_send_string(const char * buffer)
 }
 uint8_t uartengine_get_string(char* buffer)
 {
+
 	uint8_t result = 0;
 	if (!rx_buf.buf || rx_buf.string_cnt == 0 || !buffer)
 	{
@@ -183,7 +189,10 @@ void uartengine_string_watcher()
 	if (rx_buf.string_cnt > 0)
 	{
 		uartengine_get_string(rx_string);
-		uartengine_notify_callbacks();
+		if (strlen(rx_string) != 0)
+		{
+			uartengine_notify_callbacks();
+		}
 	}
 }
 

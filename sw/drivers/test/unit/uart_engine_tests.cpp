@@ -531,6 +531,95 @@ TEST_F(uartengineFixture, callback_add_remove)
 	EXPECT_EQ(RETURN_OK, uartengine_register_callback(&fake_callback));
 	EXPECT_CALL(*callMock, callback(_)).Times(3);
 	uartengine_notify_callbacks();
+
+	for (uint8_t i = 0; i < UART_ENGINE_CALLBACK_SIZE; i++)
+	{
+		CALLBACKS[i] = NULL;
+	}
 }
 
-/*callback register / unregister*/
+/**
+ * @test Reading string from UART when unexpected line endings (CR, LF) occurs.
+ */
+TEST_F(uartengineFixture, string_read_special_data)
+{
+	/**
+	 * @<b>scenario<\b>: CRLF sequence received on begin and end of the string.
+	 * @<b>expected<\b>: CRLF sequences shall be filtered out.
+	 */
+	UART_Config cfg = {115200, '\n', 20, 15};
+	EXPECT_CALL(*gpio_lib_mock, gpio_pin_cfg(_,_,_)).Times(2);
+	uartengine_initialize(&cfg);
+	uartengine_register_callback(&fake_callback);
+
+	USART1->SR |= USART_SR_RXNE;
+
+	USART1->DR = '\r';
+	USART1_IRQHandler();
+	EXPECT_EQ(rx_buf.head, 0);
+	USART1->DR = '\n';
+	USART1_IRQHandler();
+	EXPECT_EQ(rx_buf.head, 1);
+	USART1->DR = 'O';
+	USART1_IRQHandler();
+	EXPECT_EQ(rx_buf.head, 2);
+	USART1->DR = 'K';
+	USART1_IRQHandler();
+	EXPECT_EQ(rx_buf.head, 3);
+	USART1->DR = '\r';
+	USART1_IRQHandler();
+	EXPECT_EQ(rx_buf.head, 3);
+	USART1->DR = '\n';
+	USART1_IRQHandler();
+	EXPECT_EQ(rx_buf.head, 4);
+	EXPECT_EQ(rx_buf.tail, 0);
+	EXPECT_EQ(rx_buf.string_cnt, 2);
+
+	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](const char* buf)
+			{
+				EXPECT_EQ(buf[0], 'O');
+				EXPECT_EQ(buf[1], 'K');
+				EXPECT_EQ(buf[2], '\0');
+			}));
+
+	uartengine_string_watcher(); //shouldn't call callback, because first string is empty
+	uartengine_string_watcher();
+	EXPECT_EQ(rx_buf.head, rx_buf.tail);
+	EXPECT_EQ(rx_buf.string_cnt, 0);
+
+	USART1->DR = '\n';
+	USART1_IRQHandler();
+	EXPECT_EQ(rx_buf.head, 5);
+	USART1->DR = '\r';
+	USART1_IRQHandler();
+	EXPECT_EQ(rx_buf.head, 5);
+	USART1->DR = 'O';
+	USART1_IRQHandler();
+	EXPECT_EQ(rx_buf.head, 6);
+	USART1->DR = 'K';
+	USART1_IRQHandler();
+	EXPECT_EQ(rx_buf.head, 7);
+	USART1->DR = '\n';
+	USART1_IRQHandler();
+	EXPECT_EQ(rx_buf.head, 8);
+	USART1->DR = '\r';
+	USART1_IRQHandler();
+	EXPECT_EQ(rx_buf.head, 8);
+	EXPECT_EQ(rx_buf.tail, 4);
+	EXPECT_EQ(rx_buf.string_cnt, 2);
+
+	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](const char* buf)
+			{
+				EXPECT_EQ(buf[0], 'O');
+				EXPECT_EQ(buf[1], 'K');
+				EXPECT_EQ(buf[2], '\0');
+			}));
+
+	uartengine_string_watcher(); //shouldn't call callback, because first string is empty
+	uartengine_string_watcher();
+	EXPECT_EQ(rx_buf.head, rx_buf.tail);
+	EXPECT_EQ(rx_buf.string_cnt, 0);
+
+	uartengine_deinitialize();
+
+}
