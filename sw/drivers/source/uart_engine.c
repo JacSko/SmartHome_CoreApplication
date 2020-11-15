@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "stm32f4xx.h"
 #include "core_cmFunc.h"
