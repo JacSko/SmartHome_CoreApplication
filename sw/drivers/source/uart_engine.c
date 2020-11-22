@@ -17,7 +17,6 @@
 void start_sending();
 void stop_sending();
 void uartengine_notify_callbacks();
-
 #define UART_ENGINE_CALLBACK_SIZE 5
 
 typedef struct
@@ -29,8 +28,8 @@ typedef struct
 }BUFFER;
 
 UART_Config config;
-BUFFER tx_buf;
-BUFFER rx_buf;
+volatile BUFFER tx_buf;
+volatile BUFFER rx_buf;
 char* rx_string;
 
 void (*CALLBACKS[UART_ENGINE_CALLBACK_SIZE])(const char *);
@@ -110,15 +109,19 @@ RET_CODE uartengine_send_string(const char * buffer)
 	__enable_irq();
 	start_sending();
 	return RETURN_OK;
-
 }
-uint8_t uartengine_get_string(char* buffer)
-{
 
-	uint8_t result = 0;
+RET_CODE uartengine_can_read_string()
+{
+	return rx_buf.string_cnt > 0? RETURN_OK : RETURN_NOK;
+}
+
+const char* uartengine_get_string()
+{
+	char* buffer = rx_string;
 	if (!rx_buf.buf || rx_buf.string_cnt == 0 || !buffer)
 	{
-		return result;
+		return NULL;
 	}
 
 	char c;
@@ -136,11 +139,10 @@ uint8_t uartengine_get_string(char* buffer)
 			*buffer = 0x00;
 			break;
 		}
-		result++;
 		buffer++;
 	}
 	rx_buf.string_cnt--;
-	return result;
+	return rx_string;
 
 }
 
@@ -187,13 +189,10 @@ void uartengine_notify_callbacks()
 
 void uartengine_string_watcher()
 {
-	if (rx_buf.string_cnt > 0)
+	if (uartengine_can_read_string())
 	{
-		uartengine_get_string(rx_string);
-		if (strlen(rx_string) != 0)
-		{
-			uartengine_notify_callbacks();
-		}
+		uartengine_get_string();
+		uartengine_notify_callbacks();
 	}
 }
 
@@ -213,11 +212,19 @@ void USART1_IRQHandler (void)
 		if (c != '\r')
 		{
 			rx_buf.buf[rx_buf.head] = USART1->DR;
-			rx_buf.head++;
-			if (USART1->DR == config.delimiter)
+			if (c == config.delimiter && rx_buf.tail == rx_buf.head)
 			{
-				rx_buf.string_cnt++;
+				rx_buf.buf[rx_buf.head] = 0;
 			}
+			else
+			{
+				rx_buf.head++;
+				if (c == config.delimiter)
+				{
+					rx_buf.string_cnt++;
+				}
+			}
+
 			if (rx_buf.head == config.buffer_size)
 			{
 				rx_buf.head = 0;

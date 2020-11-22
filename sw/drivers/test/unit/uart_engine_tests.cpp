@@ -559,21 +559,21 @@ TEST_F(uartengineFixture, string_read_special_data)
 	EXPECT_EQ(rx_buf.head, 0);
 	USART1->DR = '\n';
 	USART1_IRQHandler();
-	EXPECT_EQ(rx_buf.head, 1);
+	EXPECT_EQ(rx_buf.head, 0);
 	USART1->DR = 'O';
 	USART1_IRQHandler();
-	EXPECT_EQ(rx_buf.head, 2);
+	EXPECT_EQ(rx_buf.head, 1);
 	USART1->DR = 'K';
 	USART1_IRQHandler();
-	EXPECT_EQ(rx_buf.head, 3);
+	EXPECT_EQ(rx_buf.head, 2);
 	USART1->DR = '\r';
 	USART1_IRQHandler();
-	EXPECT_EQ(rx_buf.head, 3);
+	EXPECT_EQ(rx_buf.head, 2);
 	USART1->DR = '\n';
 	USART1_IRQHandler();
-	EXPECT_EQ(rx_buf.head, 4);
+	EXPECT_EQ(rx_buf.head, 3);
 	EXPECT_EQ(rx_buf.tail, 0);
-	EXPECT_EQ(rx_buf.string_cnt, 2);
+	EXPECT_EQ(rx_buf.string_cnt, 1);
 
 	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](const char* buf)
 			{
@@ -589,24 +589,24 @@ TEST_F(uartengineFixture, string_read_special_data)
 
 	USART1->DR = '\n';
 	USART1_IRQHandler();
-	EXPECT_EQ(rx_buf.head, 5);
+	EXPECT_EQ(rx_buf.head, 3);
 	USART1->DR = '\r';
 	USART1_IRQHandler();
-	EXPECT_EQ(rx_buf.head, 5);
+	EXPECT_EQ(rx_buf.head, 3);
 	USART1->DR = 'O';
 	USART1_IRQHandler();
-	EXPECT_EQ(rx_buf.head, 6);
+	EXPECT_EQ(rx_buf.head, 4);
 	USART1->DR = 'K';
 	USART1_IRQHandler();
-	EXPECT_EQ(rx_buf.head, 7);
+	EXPECT_EQ(rx_buf.head, 5);
 	USART1->DR = '\n';
 	USART1_IRQHandler();
-	EXPECT_EQ(rx_buf.head, 8);
+	EXPECT_EQ(rx_buf.head, 6);
 	USART1->DR = '\r';
 	USART1_IRQHandler();
-	EXPECT_EQ(rx_buf.head, 8);
-	EXPECT_EQ(rx_buf.tail, 4);
-	EXPECT_EQ(rx_buf.string_cnt, 2);
+	EXPECT_EQ(rx_buf.head, 6);
+	EXPECT_EQ(rx_buf.tail, 3);
+	EXPECT_EQ(rx_buf.string_cnt, 1);
 
 	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](const char* buf)
 			{

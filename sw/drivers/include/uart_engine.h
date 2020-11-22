@@ -35,10 +35,15 @@ void uartengine_deinitialize();
 RET_CODE uartengine_send_string(const char *);
 
 /**
- * 	Fills up provided buffer with received string.
- * 	Provided buffer has to have enough capacity.
+ *  Returns RETURN_OK if there is at least one string ready to read
  */
-uint8_t uartengine_get_string(char *);
+RET_CODE uartengine_can_read_string();
+
+/**
+ * 	Returns pointer to received string if string can be read.
+ * 	If there is no string in buffer, NULL is returned.
+ */
+const char* uartengine_get_string();
 
 /**
  * 	Watcher responsible for calling callbacks - to be called in main program loop.
