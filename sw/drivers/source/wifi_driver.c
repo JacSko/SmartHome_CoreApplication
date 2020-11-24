@@ -1,8 +1,8 @@
 #include <string.h>
-#include <stdio.h>
 
 #include "wifi_driver.h"
 #include "uart_engine.h"
+#include "string_formatter.h"
 #include "../../time/include/time_counter.h"
 
 const uint16_t DEFAULT_REPLY_TIMEOUT_MS = 1000;
@@ -42,7 +42,7 @@ RET_CODE wifi_initialize()
 RET_CODE wifi_test()
 {
 	RET_CODE result = RETURN_NOK;
-	snprintf(TX_BUFFER, TX_BUF_SIZE, "AT\r\n");
+	string_format(TX_BUFFER, "AT\r\n");
 	result = wifi_send_and_wait(DEFAULT_REPLY_TIMEOUT_MS);
 	if (result == RETURN_OK)
 	{
@@ -144,7 +144,7 @@ RET_CODE wifi_connect_to_network(const char* ssid, const char* password)
 {
 	RET_CODE result = RETURN_NOK;
 	if (!ssid || !password) return RETURN_ERROR;
-	snprintf(TX_BUFFER, TX_BUF_SIZE, "AT+CWJAP_CUR=\"%s\",\"%s\"\r\n", ssid, password);
+	string_format(TX_BUFFER, "AT+CWJAP_CUR=\"%s\",\"%s\"\r\n", ssid, password);
 	if (wifi_send_command() == RETURN_OK)
 	{
 		/* wait for response WIFI CONNECTED*/
@@ -164,31 +164,31 @@ RET_CODE wifi_connect_to_network(const char* ssid, const char* password)
 
 RET_CODE wifi_disconnect_from_network()
 {
-	snprintf(TX_BUFFER, TX_BUF_SIZE, "AT+CWQAP\r\n");
+	string_format(TX_BUFFER, "AT+CWQAP\r\n");
 	return wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS);
 }
 
 RET_CODE wifi_set_mac_address(const char* mac)
 {
 	if (!mac) return RETURN_ERROR;
-	snprintf(TX_BUFFER, TX_BUF_SIZE, "AT+CIPSTAMAC_CUR=\"%s\"\r\n", mac);
+	string_format(TX_BUFFER, "AT+CIPSTAMAC_CUR=\"%s\"\r\n", mac);
 	return wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS);
 }
 
 RET_CODE wifi_set_max_server_clients(uint8_t count)
 {
-	snprintf(TX_BUFFER, TX_BUF_SIZE, "AT+CIPSERVERMAXCONN=%d\r\n", count);
+	string_format(TX_BUFFER, "AT+CIPSERVERMAXCONN=%d\r\n", count);
 	return wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS);
 }
 
 RET_CODE wifi_open_udp_server(uint16_t port)
 {
-	snprintf(TX_BUFFER, TX_BUF_SIZE, "AT+CIPSERVER=1,%d\r\n", port);
+	string_format(TX_BUFFER, "AT+CIPSERVER=1,%d\r\n", port);
 	return wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS);
 }
 RET_CODE wifi_close_udp_server()
 {
-	snprintf(TX_BUFFER, TX_BUF_SIZE, "AT+CIPSERVER=0\r\n");
+	string_format(TX_BUFFER, "AT+CIPSERVER=0\r\n");
 	return wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS);
 }
 

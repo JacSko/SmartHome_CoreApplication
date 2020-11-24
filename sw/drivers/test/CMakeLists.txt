@@ -30,6 +30,7 @@ target_link_libraries(wifi_driver_tests PUBLIC
         driversMock
         time_counterIf
         time_counterMock
+        string_formatter
 )
 
 add_test(NAME wifi_driver_tests COMMAND wifi_driver_tests)

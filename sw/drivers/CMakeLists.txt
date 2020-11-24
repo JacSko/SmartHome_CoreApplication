@@ -24,6 +24,7 @@ target_include_directories(wifi_driver PUBLIC
 target_link_libraries(wifi_driver PUBLIC
         time_counter
         uart_engine
+        string_formatter
 )
 
 ##############################################################
