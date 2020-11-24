@@ -14,3 +14,24 @@ target_link_libraries(uart_engine_tests PUBLIC
 )
 
 add_test(NAME uart_engine_tests COMMAND uart_engine_tests)
+
+###########################################################
+
+add_executable(wifi_driver_tests
+            unit/wifi_driver_tests.cpp
+)
+
+target_include_directories(wifi_driver_tests PUBLIC
+        ../include
+)
+target_link_libraries(wifi_driver_tests PUBLIC
+        gtest_main
+        gmock_main
+        driversMock
+        time_counterIf
+        time_counterMock
+)
+
+add_test(NAME wifi_driver_tests COMMAND wifi_driver_tests)
+
+###########################################################

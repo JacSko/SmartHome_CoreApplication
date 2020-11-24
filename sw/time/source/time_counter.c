@@ -55,15 +55,9 @@ RET_CODE time_set(TimeItem* item)
 	return result;
 }
 
-RET_CODE time_get(TimeItem* item)
+TimeItem* time_get()
 {
-	RET_CODE result = RETURN_NOK;
-	if (item)
-	{
-		*item = timestamp;
-		result = RETURN_OK;
-	}
-	return result;
+	return &timestamp;
 }
 
 RET_CODE time_register_callback(void(*callback)(TimeItem*))
@@ -103,6 +97,7 @@ RET_CODE is_leap_year()
 
 void increment_time()
 {
+	timestamp.time_raw += TIME_BASETIME_MS;
 	timestamp.msecond += TIME_BASETIME_MS;
 	if (timestamp.msecond >= 1000)
 	{
@@ -154,7 +149,6 @@ void time_watcher()
 {
 	if (time_changed)
 	{
-		increment_time();
 		time_changed = 0;
 		call_callbacks();
 	}
@@ -166,6 +160,7 @@ uint16_t time_get_basetime()
 
 void SysTick_Handler(void)
 {
+	increment_time();
 	time_changed++;
 }
 

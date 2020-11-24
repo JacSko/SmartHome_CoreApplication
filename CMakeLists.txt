@@ -65,6 +65,7 @@ if(NOT UNIT_TESTS)
 		STM_HEADERS
 		uart_engine
 		time_counter
+		wifi_driver
 	)
 	
 #	target_include_directories(${PROJECT_NAME}.elf PUBLIC ext_lib/CMSIS/device

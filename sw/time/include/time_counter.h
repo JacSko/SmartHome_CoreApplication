@@ -20,6 +20,7 @@ typedef struct
 	uint8_t minute;
 	uint8_t second;
 	uint16_t msecond;
+	uint32_t time_raw;
 }TimeItem;
 
 
@@ -36,7 +37,7 @@ RET_CODE time_set(TimeItem* item);
 /*
  * Get current time
 */
-RET_CODE time_get(TimeItem* item);
+TimeItem* time_get();
 
 /*
  * Register callback for time notifications

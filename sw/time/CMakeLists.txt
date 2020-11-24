@@ -23,7 +23,8 @@ if (UNIT_TESTS)
     target_include_directories(time_counterMock INTERFACE
                 test/mocks
     )
-
-
+	target_link_libraries(time_counterMock INTERFACE
+	        STM_HEADERS
+	)
     add_subdirectory(test)
 endif()

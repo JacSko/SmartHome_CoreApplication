@@ -65,16 +65,15 @@ TEST_F(timeFixture, time_increment_test)
 	SysTick_Handler();
 	time_watcher();
 
-	TimeItem t;
-	EXPECT_EQ(RETURN_OK, time_get(&t));
+	TimeItem* t = time_get();
 
-	EXPECT_EQ(t.day, 1);
-	EXPECT_EQ(t.month, 1);
-	EXPECT_EQ(t.year, 2000);
-	EXPECT_EQ(t.hour, 0);
-	EXPECT_EQ(t.minute, 0);
-	EXPECT_EQ(t.second, 0);
-	EXPECT_EQ(t.msecond, 10);
+	EXPECT_EQ(t->day, 1);
+	EXPECT_EQ(t->month, 1);
+	EXPECT_EQ(t->year, 2000);
+	EXPECT_EQ(t->hour, 0);
+	EXPECT_EQ(t->minute, 0);
+	EXPECT_EQ(t->second, 0);
+	EXPECT_EQ(t->msecond, 10);
 
 	/**
 	 * @<b>scenario<\b>: Switching from msecond to seconds.
@@ -87,162 +86,143 @@ TEST_F(timeFixture, time_increment_test)
 		time_watcher();
 	}
 
-	EXPECT_EQ(RETURN_OK, time_get(&t));
-	EXPECT_EQ(t.day, 1);
-	EXPECT_EQ(t.month, 1);
-	EXPECT_EQ(t.year, 2000);
-	EXPECT_EQ(t.hour, 0);
-	EXPECT_EQ(t.minute, 0);
-	EXPECT_EQ(t.second, 1);
-	EXPECT_EQ(t.msecond, 0);
+	EXPECT_EQ(t->day, 1);
+	EXPECT_EQ(t->month, 1);
+	EXPECT_EQ(t->year, 2000);
+	EXPECT_EQ(t->hour, 0);
+	EXPECT_EQ(t->minute, 0);
+	EXPECT_EQ(t->second, 1);
+	EXPECT_EQ(t->msecond, 0);
 
 	/**
 	 * @<b>scenario<\b>: Switching from seconds to minutes.
 	 * @<b>expected<\b>: Correct time.
 	 */
 
-	t.second = 59;
-	t.msecond = 990;
-
-	time_set(&t);
+	t->second = 59;
+	t->msecond = 990;
 
 	SysTick_Handler();
 	time_watcher();
 
-	EXPECT_EQ(RETURN_OK, time_get(&t));
-	EXPECT_EQ(t.day, 1);
-	EXPECT_EQ(t.month, 1);
-	EXPECT_EQ(t.year, 2000);
-	EXPECT_EQ(t.hour, 0);
-	EXPECT_EQ(t.minute, 1);
-	EXPECT_EQ(t.second, 0);
-	EXPECT_EQ(t.msecond, 0);
+	EXPECT_EQ(t->day, 1);
+	EXPECT_EQ(t->month, 1);
+	EXPECT_EQ(t->year, 2000);
+	EXPECT_EQ(t->hour, 0);
+	EXPECT_EQ(t->minute, 1);
+	EXPECT_EQ(t->second, 0);
+	EXPECT_EQ(t->msecond, 0);
 
 	/**
 	 * @<b>scenario<\b>: Switching from minutes to hours.
 	 * @<b>expected<\b>: Correct time.
 	 */
 
-	t.minute = 59;
-	t.second = 59;
-	t.msecond = 990;
-
-	time_set(&t);
+	t->minute = 59;
+	t->second = 59;
+	t->msecond = 990;
 
 	SysTick_Handler();
 	time_watcher();
 
-	EXPECT_EQ(RETURN_OK, time_get(&t));
-	EXPECT_EQ(t.day, 1);
-	EXPECT_EQ(t.month, 1);
-	EXPECT_EQ(t.year, 2000);
-	EXPECT_EQ(t.hour, 1);
-	EXPECT_EQ(t.minute, 0);
-	EXPECT_EQ(t.second, 0);
-	EXPECT_EQ(t.msecond, 0);
+	EXPECT_EQ(t->day, 1);
+	EXPECT_EQ(t->month, 1);
+	EXPECT_EQ(t->year, 2000);
+	EXPECT_EQ(t->hour, 1);
+	EXPECT_EQ(t->minute, 0);
+	EXPECT_EQ(t->second, 0);
+	EXPECT_EQ(t->msecond, 0);
 
 	/**
 	 * @<b>scenario<\b>: Switching from hours to days.
 	 * @<b>expected<\b>: Correct time.
 	 */
 
-	t.hour = 23;
-	t.minute = 59;
-	t.second = 59;
-	t.msecond = 990;
-
-	time_set(&t);
+	t->hour = 23;
+	t->minute = 59;
+	t->second = 59;
+	t->msecond = 990;
 
 	SysTick_Handler();
 	time_watcher();
 
-	EXPECT_EQ(RETURN_OK, time_get(&t));
-	EXPECT_EQ(t.day, 2);
-	EXPECT_EQ(t.month, 1);
-	EXPECT_EQ(t.year, 2000);
-	EXPECT_EQ(t.hour, 0);
-	EXPECT_EQ(t.minute, 0);
-	EXPECT_EQ(t.second, 0);
-	EXPECT_EQ(t.msecond, 0);
+	EXPECT_EQ(t->day, 2);
+	EXPECT_EQ(t->month, 1);
+	EXPECT_EQ(t->year, 2000);
+	EXPECT_EQ(t->hour, 0);
+	EXPECT_EQ(t->minute, 0);
+	EXPECT_EQ(t->second, 0);
+	EXPECT_EQ(t->msecond, 0);
 
 	/**
 	 * @<b>scenario<\b>: Switching from days to months.
 	 * @<b>expected<\b>: Correct time.
 	 */
 
-	t.day = 31;
-	t.month = 1;
-	t.hour = 23;
-	t.minute = 59;
-	t.second = 59;
-	t.msecond = 990;
-
-	time_set(&t);
+	t->day = 31;
+	t->month = 1;
+	t->hour = 23;
+	t->minute = 59;
+	t->second = 59;
+	t->msecond = 990;
 
 	SysTick_Handler();
 	time_watcher();
 
-	EXPECT_EQ(RETURN_OK, time_get(&t));
-	EXPECT_EQ(t.day, 1);
-	EXPECT_EQ(t.month, 2);
-	EXPECT_EQ(t.year, 2000);
-	EXPECT_EQ(t.hour, 0);
-	EXPECT_EQ(t.minute, 0);
-	EXPECT_EQ(t.second, 0);
-	EXPECT_EQ(t.msecond, 0);
+	EXPECT_EQ(t->day, 1);
+	EXPECT_EQ(t->month, 2);
+	EXPECT_EQ(t->year, 2000);
+	EXPECT_EQ(t->hour, 0);
+	EXPECT_EQ(t->minute, 0);
+	EXPECT_EQ(t->second, 0);
+	EXPECT_EQ(t->msecond, 0);
 
 	/**
 	 * @<b>scenario<\b>: Switching from months to years.
 	 * @<b>expected<\b>: Correct time.
 	 */
 
-	t.day = 31;
-	t.month = 12;
-	t.hour = 23;
-	t.minute = 59;
-	t.second = 59;
-	t.msecond = 990;
-
-	time_set(&t);
+	t->day = 31;
+	t->month = 12;
+	t->hour = 23;
+	t->minute = 59;
+	t->second = 59;
+	t->msecond = 990;
 
 	SysTick_Handler();
 	time_watcher();
 
-	EXPECT_EQ(RETURN_OK, time_get(&t));
-	EXPECT_EQ(t.day, 1);
-	EXPECT_EQ(t.month, 1);
-	EXPECT_EQ(t.year, 2001);
-	EXPECT_EQ(t.hour, 0);
-	EXPECT_EQ(t.minute, 0);
-	EXPECT_EQ(t.second, 0);
-	EXPECT_EQ(t.msecond, 0);
+	EXPECT_EQ(t->day, 1);
+	EXPECT_EQ(t->month, 1);
+	EXPECT_EQ(t->year, 2001);
+	EXPECT_EQ(t->hour, 0);
+	EXPECT_EQ(t->minute, 0);
+	EXPECT_EQ(t->second, 0);
+	EXPECT_EQ(t->msecond, 0);
 
 	/**
 	 * @<b>scenario<\b>: Switching from days to month - non-leap year.
 	 * @<b>expected<\b>: Correct time.
 	 */
 
-	t.day = 28;
-	t.month = 2;
-	t.year = 2019;
-	t.hour = 23;
-	t.minute = 59;
-	t.second = 59;
-	t.msecond = 990;
-
-	time_set(&t);
+	t->day = 28;
+	t->month = 2;
+	t->year = 2019;
+	t->hour = 23;
+	t->minute = 59;
+	t->second = 59;
+	t->msecond = 990;
 
 	SysTick_Handler();
 	time_watcher();
 
-	EXPECT_EQ(RETURN_OK, time_get(&t));
-	EXPECT_EQ(t.day, 1);
-	EXPECT_EQ(t.month, 3);
-	EXPECT_EQ(t.year, 2019);
-	EXPECT_EQ(t.hour, 0);
-	EXPECT_EQ(t.minute, 0);
-	EXPECT_EQ(t.second, 0);
-	EXPECT_EQ(t.msecond, 0);
+	EXPECT_EQ(t->day, 1);
+	EXPECT_EQ(t->month, 3);
+	EXPECT_EQ(t->year, 2019);
+	EXPECT_EQ(t->hour, 0);
+	EXPECT_EQ(t->minute, 0);
+	EXPECT_EQ(t->second, 0);
+	EXPECT_EQ(t->msecond, 0);
 }
 
 TEST_F(timeFixture, leap_year_tests)
@@ -359,13 +339,6 @@ TEST_F(timeFixture, set_get_time)
 	 */
 
 	EXPECT_EQ(RETURN_NOK, time_set(NULL));
-
-	/**
-	 * @<b>scenario<\b>: Getting time with NULL.
-	 * @<b>expected<\b>: False returned
-	 */
-
-	EXPECT_EQ(RETURN_NOK, time_get(NULL));
 
 	/**
 	 * @<b>scenario<\b>: Setting time with incorrect day.

@@ -1,8 +1,7 @@
 
 #include "stm32f4xx.h"
-#include "uart_engine.h"
 #include "time_counter.h"
-
+#include "wifi_driver.h"
 /**
  * 	System config:
  * 	HSI - 16MHz
@@ -24,23 +23,15 @@
  *
  */
 
-void callback(const char * data)
-{
-	uartengine_send_string(data);
-}
-
 int main(void)
 {
-	UART_Config config = {115200, '\n', 1024, 512};
-	uartengine_initialize(&config);
-	uartengine_register_callback(&callback);
 
 	time_init();
+	wifi_initialize();
 
-	/*simple uart echo*/
+	wifi_connect_to_network("NIE_KRADNIJ_INTERNETU!!!", "radionet0098");
+
 	while (1)
 	{
-		uartengine_string_watcher();
-		time_watcher();
 	}
 }

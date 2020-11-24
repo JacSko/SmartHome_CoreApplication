@@ -6,16 +6,17 @@
 #include "return_codes.h"
 
 
-void wifi_initialize();
-
-void wifi_register_response_callback(void(*callback)(const char*));
-void wifi_unregister_response_callback();
-
+RET_CODE wifi_initialize();
 RET_CODE wifi_connect_to_network(const char* ssid, const char* password);
 RET_CODE wifi_disconnect_from_network();
+RET_CODE wifi_set_mac_address(const char* mac);
+RET_CODE wifi_set_max_server_clients(uint8_t count);
+RET_CODE wifi_open_udp_server(uint16_t port);
+RET_CODE wifi_close_udp_server();
 
-RET_CODE wifi_open_server(uint16_t port);
-RET_CODE wifi_send_data(const char* data);
+
+RET_CODE wifi_register_data_callback(void(*callback)(const char* data));
+void wifi_unregister_data_callback();
 
 void wifi_deinitialize();
 
