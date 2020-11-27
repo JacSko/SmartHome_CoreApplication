@@ -24,14 +24,14 @@ using namespace ::testing;
 
 struct callbackMock
 {
-	MOCK_METHOD1(callback, void(const char*));
+	MOCK_METHOD3(callback, void(ClientEvent, ServerClientID, const char*));
 };
 
 callbackMock* callMock;
 
-void fake_callback(const char* buf)
+void fake_callback(ClientEvent ev, ServerClientID id, const char* data)
 {
-	callMock->callback(buf);
+	callMock->callback(ev, id, data);
 }
 
 struct wifiFixture : public ::testing::Test
@@ -98,12 +98,15 @@ TEST_F(wifiFixture, engine_initialization)
 	 * @<b>scenario<\b>: Module initialization - Wrong response received
 	 * @<b>expected<\b>: RETURN_NOK returned.
 	 */
+	const char echo_corr_response [] = "OK";
 	const char response [] = "ERROR";
 	EXPECT_CALL(*uartengineMock, uartengine_initialize(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_register_callback(_)).WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK));
+	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK))
+														   .WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillRepeatedly(Return(RETURN_OK));
-	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response));
+	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(echo_corr_response))
+														 .WillOnce(Return(response));
 	t1 = {};
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillRepeatedly(Return(&t1));
 	EXPECT_EQ(RETURN_NOK, wifi_initialize());
@@ -115,9 +118,11 @@ TEST_F(wifiFixture, engine_initialization)
 	const char correct_response [] = "OK";
 	EXPECT_CALL(*uartengineMock, uartengine_initialize(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_register_callback(_)).WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK));
+	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK))
+														   .WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillRepeatedly(Return(RETURN_OK));
-	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(correct_response));
+	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(correct_response))
+														 .WillOnce(Return(correct_response));
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillRepeatedly(Return(&t1));
 	EXPECT_EQ(RETURN_OK, wifi_initialize());
 }
@@ -131,20 +136,20 @@ TEST_F(wifiFixture, callback_register_unregister)
 	 * @<b>scenario<\b>: Callback registering when there was no callback registered previously.
 	 * @<b>expected<\b>: RETURN_OK returned.
 	 */
-	EXPECT_EQ(RETURN_OK, wifi_register_data_callback(&fake_callback));
+	EXPECT_EQ(RETURN_OK, wifi_register_client_event_callback(&fake_callback));
 
 	/**
 	 * @<b>scenario<\b>: Callback registering when there was callback registered previously.
 	 * @<b>expected<\b>: RETURN_NOK returned.
 	 */
-	EXPECT_EQ(RETURN_NOK, wifi_register_data_callback(&fake_callback));
+	EXPECT_EQ(RETURN_NOK, wifi_register_client_event_callback(&fake_callback));
 
 	/**
 	 * @<b>scenario<\b>: Callback unregistered and registered again.
 	 * @<b>expected<\b>: RETURN_OK returned.
 	 */
-	wifi_unregister_data_callback();
-	EXPECT_EQ(RETURN_OK, wifi_register_data_callback(&fake_callback));
+	wifi_unregister_client_event_callback();
+	EXPECT_EQ(RETURN_OK, wifi_register_client_event_callback(&fake_callback));
 }
 
 /**
@@ -335,53 +340,6 @@ TEST_F(wifiFixture, wifi_mac_address_set)
 										   .WillOnce(Return(&t1));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(wifi_disconn_ok));
 	EXPECT_EQ(RETURN_OK, wifi_set_mac_address("MAC"));
-
-}
-
-/**
- * @test WiFi set max server clients
- */
-TEST_F(wifiFixture, wifi_max_server_clients)
-{
-	/**
-	 * @<b>scenario<\b>: Set max server clients - wrong response received.
-	 * @<b>expected<\b>: RETURN_NOK returned.
-	 */
-	TimeItem t1 = {};
-	TimeItem t2 = {};
-	t2.time_raw = t1.time_raw + 10000;
-	const char wifi_disconn_error[] = "ERROR";
-	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Invoke([&](const char * data)->RET_CODE
-								{
-									if (!data) return RETURN_NOK;
-									EXPECT_STREQ(data, "AT+CIPSERVERMAXCONN=5\r\n");
-									return RETURN_OK;
-								}));
-	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillRepeatedly(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t2));
-	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillRepeatedly(Return(wifi_disconn_error));
-	EXPECT_EQ(RETURN_NOK, wifi_set_max_server_clients(5));
-
-	/**
-	 * @<b>scenario<\b>: Disconnect request - correct response received.
-	 * @<b>expected<\b>: RETURN_OK returned.
-	 */
-	const char wifi_disconn_ok[] = "OK";
-	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Invoke([&](const char * data)->RET_CODE
-								{
-									if (!data) return RETURN_NOK;
-									EXPECT_STREQ(data, "AT+CIPSERVERMAXCONN=5\r\n");
-									return RETURN_OK;
-								}));
-	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillRepeatedly(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1));
-	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(wifi_disconn_ok));
-	EXPECT_EQ(RETURN_OK, wifi_set_max_server_clients(5));
 
 }
 

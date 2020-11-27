@@ -6,21 +6,25 @@
 #include "../../time/include/time_counter.h"
 
 const uint16_t DEFAULT_REPLY_TIMEOUT_MS = 1000;
+const uint16_t WIFI_CONNECT_TIMEOUT = 5000;
 const uint16_t DHCP_IP_GET_TIMEOUT_MS = 10000;
 
 char TX_BUFFER[128];
 const char* RX_BUFFER;
 
-void(*wifi_callback)(const char* data);
+void(*wifi_status_callback)(ClientEvent ev, ServerClientID id, const char* data);
 #define TX_BUF_SIZE sizeof(TX_BUFFER)/sizeof(TX_BUFFER[0])
 
 /*	INTERNAL FUNCTIONS  */
 RET_CODE wifi_send_command();
 RET_CODE wifi_send_and_wait(uint32_t timeout);
+RET_CODE wifi_send_and_wait_defined_response(const char* response, uint32_t timeout);
 RET_CODE wifi_wait_for_response(uint32_t timeout);
 RET_CODE wifi_wait_for_defined_response(const char* resp, uint32_t timeout);
 RET_CODE wifi_test();
+RET_CODE wifi_disable_echo();
 void wifi_on_uart_data(const char* data);
+void wifi_convert_ntp_time(uint8_t* data, TimeItem* time);
 
 
 RET_CODE wifi_initialize()
@@ -32,24 +36,36 @@ RET_CODE wifi_initialize()
 	{
 		if (uartengine_register_callback(&wifi_on_uart_data) == RETURN_OK)
 		{
-			result = wifi_test();
+			if (wifi_disable_echo() == RETURN_OK)
+			{
+				result = wifi_test();
+			}
 		}
 	}
-
 	return result;
 }
 
-RET_CODE wifi_test()
+RET_CODE wifi_send_data(ServerClientID id, const char* data, uint16_t size)
+{
+	return RETURN_ERROR;
+}
+
+RET_CODE wifi_register_client_event_callback(void(*callback)(ClientEvent ev, ServerClientID id, const char* data))
 {
 	RET_CODE result = RETURN_NOK;
-	string_format(TX_BUFFER, "AT\r\n");
-	result = wifi_send_and_wait(DEFAULT_REPLY_TIMEOUT_MS);
-	if (result == RETURN_OK)
+	if (!wifi_status_callback)
 	{
-		result = !strcmp(RX_BUFFER, "OK")? RETURN_OK : RETURN_NOK;
+		wifi_status_callback = callback;
+		result = RETURN_OK;
 	}
 	return result;
 }
+
+void wifi_unregister_client_event_callback()
+{
+	wifi_status_callback = NULL;
+}
+
 RET_CODE wifi_send_command()
 {
 	return uartengine_send_string(TX_BUFFER);
@@ -76,22 +92,6 @@ RET_CODE wifi_send_and_wait_defined_response(const char* response, uint32_t time
 	return result;
 }
 
-RET_CODE wifi_register_data_callback(void(*callback)(const char* data))
-{
-	RET_CODE result = RETURN_NOK;
-	if (!wifi_callback)
-	{
-		wifi_callback = callback;
-		result = RETURN_OK;
-	}
-	return result;
-}
-
-void wifi_unregister_data_callback()
-{
-	wifi_callback = NULL;
-}
-
 void wifi_on_uart_data(const char* data)
 {
 
@@ -100,8 +100,8 @@ void wifi_on_uart_data(const char* data)
 RET_CODE wifi_wait_for_response(uint32_t timeout)
 {
 	RET_CODE result = RETURN_NOK;
-	TimeItem* t = time_get();
-	while(time_get()->time_raw <= t->time_raw + timeout)
+	uint32_t raw_time = time_get()->time_raw;
+	while(time_get()->time_raw <= raw_time + timeout)
 	{
 		if (uartengine_can_read_string() == RETURN_OK)
 		{
@@ -116,10 +116,10 @@ RET_CODE wifi_wait_for_response(uint32_t timeout)
 RET_CODE wifi_wait_for_defined_response(const char* resp, uint32_t timeout)
 {
 	RET_CODE result = RETURN_NOK;
-	TimeItem* t = time_get();
 	if (!resp) return RETURN_ERROR;
 
-	while(time_get()->time_raw <= t->time_raw + timeout)
+	uint32_t raw_time = time_get()->time_raw;
+	while(time_get()->time_raw <= raw_time + timeout)
 	{
 		if (uartengine_can_read_string() == RETURN_OK)
 		{
@@ -129,7 +129,6 @@ RET_CODE wifi_wait_for_defined_response(const char* resp, uint32_t timeout)
 				result = RETURN_OK;
 				break;
 			}
-
 		}
 	}
 	return result;
@@ -140,6 +139,34 @@ void wifi_deinitialize()
 	uartengine_deinitialize();
 }
 
+/*
+ * 		API COMMANDS implementation
+ */
+
+RET_CODE wifi_test()
+{
+	RET_CODE result = RETURN_NOK;
+	string_format(TX_BUFFER, "AT\r\n");
+	result = wifi_send_and_wait(DEFAULT_REPLY_TIMEOUT_MS);
+	if (result == RETURN_OK)
+	{
+		result = !strcmp(RX_BUFFER, "OK")? RETURN_OK : RETURN_NOK;
+	}
+	return result;
+}
+
+RET_CODE wifi_disable_echo()
+{
+	string_format(TX_BUFFER, "ATE0\r\n");
+	return wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS);
+}
+
+RET_CODE wifi_enable_echo()
+{
+	string_format(TX_BUFFER, "ATE1\r\n");
+	return wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS);
+}
+
 RET_CODE wifi_connect_to_network(const char* ssid, const char* password)
 {
 	RET_CODE result = RETURN_NOK;
@@ -147,8 +174,7 @@ RET_CODE wifi_connect_to_network(const char* ssid, const char* password)
 	string_format(TX_BUFFER, "AT+CWJAP_CUR=\"%s\",\"%s\"\r\n", ssid, password);
 	if (wifi_send_command() == RETURN_OK)
 	{
-		/* wait for response WIFI CONNECTED*/
-		if (wifi_wait_for_defined_response("WIFI CONNECTED", DEFAULT_REPLY_TIMEOUT_MS) == RETURN_OK)
+		if (wifi_wait_for_defined_response("WIFI CONNECTED", WIFI_CONNECT_TIMEOUT) == RETURN_OK)
 		{
 			if (wifi_wait_for_defined_response("WIFI GOT IP", DHCP_IP_GET_TIMEOUT_MS) == RETURN_OK)
 			{
@@ -175,12 +201,6 @@ RET_CODE wifi_set_mac_address(const char* mac)
 	return wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS);
 }
 
-RET_CODE wifi_set_max_server_clients(uint8_t count)
-{
-	string_format(TX_BUFFER, "AT+CIPSERVERMAXCONN=%d\r\n", count);
-	return wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS);
-}
-
 RET_CODE wifi_open_udp_server(uint16_t port)
 {
 	string_format(TX_BUFFER, "AT+CIPSERVER=1,%d\r\n", port);
@@ -190,5 +210,94 @@ RET_CODE wifi_close_udp_server()
 {
 	string_format(TX_BUFFER, "AT+CIPSERVER=0\r\n");
 	return wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS);
+}
+
+RET_CODE wifi_allow_multiple_clients(uint8_t state)
+{
+	string_format(TX_BUFFER, "AT+CIPMUX=%d\r\n", state? '1' : '0');
+	return wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS);
+}
+
+RET_CODE wifi_get_time(const char* ntp_server, TimeItem* item)
+{
+	return RETURN_ERROR;
+}
+
+void wifi_convert_ntp_time(uint8_t* data, TimeItem* tim)
+{
+
+	const uint32_t LEAPOCH       = (946684800LL + 86400*(31+29));
+	const uint32_t DAYS_PER_400Y = (365*400 + 97);
+	const uint32_t DAYS_PER_100Y = (365*100 + 24);
+	const uint32_t DAYS_PER_4Y   = (365*4   + 1);
+	const uint32_t NTP_TO_UNIX_TS = 2208988800;
+    uint32_t unix_ts = 0;
+    uint32_t days, secs;
+    int remdays, remsecs, remyears;
+	int qc_cycles, c_cycles, q_cycles;
+	int years, months;
+	int wday, yday, leap;
+	static const char days_in_month[] = {31,30,31,30,31,31,30,31,30,31,31,29};
+
+
+    unix_ts =  0xFF000000 & (data[0] << 24);
+    unix_ts |= 0x00FF0000 & (data[1] << 16);
+    unix_ts |= 0x0000FF00 & (data[2] << 8);
+    unix_ts |= 0x000000FF & (data[3] << 0);
+
+    unix_ts = unix_ts - NTP_TO_UNIX_TS - LEAPOCH;
+
+    secs = unix_ts;
+	days = secs / 86400;
+	remsecs = secs % 86400;
+	if (remsecs < 0) {
+		remsecs += 86400;
+		days--;
+	}
+
+    wday = (3+days)%7;
+	if (wday < 0) wday += 7;
+
+	qc_cycles = days / DAYS_PER_400Y;
+	remdays = days % DAYS_PER_400Y;
+	if (remdays < 0) {
+		remdays += DAYS_PER_400Y;
+		qc_cycles--;
+	}
+
+	c_cycles = remdays / DAYS_PER_100Y;
+	if (c_cycles == 4) c_cycles--;
+	remdays -= c_cycles * DAYS_PER_100Y;
+
+	q_cycles = remdays / DAYS_PER_4Y;
+	if (q_cycles == 25) q_cycles--;
+	remdays -= q_cycles * DAYS_PER_4Y;
+
+	remyears = remdays / 365;
+	if (remyears == 4) remyears--;
+	remdays -= remyears * 365;
+
+	leap = !remyears && (q_cycles || !c_cycles);
+	yday = remdays + 31 + 28 + leap;
+	if (yday >= 365+leap) yday -= 365+leap;
+
+	years = remyears + 4*q_cycles + 100*c_cycles + 400*qc_cycles;
+
+	for (months=0; days_in_month[months] <= remdays; months++)
+		remdays -= days_in_month[months];
+
+	tim->year = years + 100;
+	tim->month = months + 2;
+	if (tim->month >= 12) {
+		tim->month -=12;
+		tim->year++;
+	}
+	tim->year+=1900;
+	tim->month++;
+	tim->day = remdays + 1;
+
+	tim->hour = remsecs / 3600;
+	tim->minute = remsecs / 60 % 60;
+	tim->second = remsecs % 60;
 }
 

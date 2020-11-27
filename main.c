@@ -2,6 +2,7 @@
 #include "stm32f4xx.h"
 #include "time_counter.h"
 #include "wifi_driver.h"
+#include "uart_engine.h"
 /**
  * 	System config:
  * 	HSI - 16MHz
@@ -26,10 +27,14 @@
 int main(void)
 {
 
+
 	time_init();
 	wifi_initialize();
 
-	wifi_connect_to_network("NIE_KRADNIJ_INTERNETU!!!", "radionet0098");
+	if (wifi_connect_to_network("NIE_KRADNIJ_INTERNETU!!!", "radionet0098") == RETURN_OK)
+	{
+		uartengine_send_string("SUCCESS");
+	}
 
 	while (1)
 	{
