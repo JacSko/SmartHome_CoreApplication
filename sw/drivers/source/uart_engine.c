@@ -46,7 +46,7 @@ RET_CODE uartengine_initialize(UART_Config* cfg)
 
 	USART1->CR1 |= USART_CR1_UE | USART_CR1_RXNEIE | USART_CR1_RE | USART_CR1_TE;
 	USART1->BRR = (100000000/config.baudrate);
-	gpio_pin_cfg(GPIOA, PA10, gpio_mode_AF7_OD_PD_LS);
+	gpio_pin_cfg(GPIOA, PA10, gpio_mode_AF7_OD_PU_LS);
 	gpio_pin_cfg(GPIOA, PA9, gpio_mode_AF7_PP_LS);
 
 	tx_buf.buf = (char*) malloc (sizeof(char)*config.buffer_size);
