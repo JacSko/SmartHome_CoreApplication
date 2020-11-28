@@ -18,6 +18,7 @@ void start_sending();
 void stop_sending();
 void uartengine_notify_callbacks();
 #define UART_ENGINE_CALLBACK_SIZE 5
+RET_CODE uartengine_get_string_from_buffer();
 
 typedef struct
 {
@@ -25,6 +26,7 @@ typedef struct
 	uint16_t tail;
 	uint16_t head;
 	uint8_t string_cnt;
+	uint16_t bytes_cnt;
 }BUFFER;
 
 UART_Config config;
@@ -55,11 +57,13 @@ RET_CODE uartengine_initialize(UART_Config* cfg)
 
 	tx_buf.head = 0;
 	tx_buf.tail = 0;
-	tx_buf.string_cnt = 0;
+	tx_buf.string_cnt = 0; /* not used */
+	tx_buf.bytes_cnt = 0;  /* not user */
 
 	rx_buf.head = 0;
 	rx_buf.tail = 0;
 	rx_buf.string_cnt = 0;
+	rx_buf.bytes_cnt = 0;
 
 	if (!rx_buf.buf || !rx_buf.buf || !rx_string)
 	{
@@ -113,26 +117,49 @@ RET_CODE uartengine_send_string(const char * buffer)
 
 RET_CODE uartengine_can_read_string()
 {
-	return rx_buf.string_cnt > 0? RETURN_OK : RETURN_NOK;
+	RET_CODE result = RETURN_NOK;
+
+	if (rx_buf.string_cnt > 0)
+	{
+		uartengine_get_string_from_buffer();
+		if (strlen(rx_string) > 0)
+		{
+			result = RETURN_OK;
+		}
+	}
+	return result;
 }
 
 const char* uartengine_get_string()
 {
+	return rx_string;
+}
+
+RET_CODE uartengine_get_string_from_buffer()
+{
 	char* buffer = rx_string;
 	if (!rx_buf.buf || rx_buf.string_cnt == 0 || !buffer)
 	{
-		return NULL;
+		return RETURN_ERROR;
 	}
 
 	char c;
 	while (1)
 	{
 		c = rx_buf.buf[rx_buf.tail];
-		*buffer = c;
 		rx_buf.tail++;
+		rx_buf.bytes_cnt--;
 		if (rx_buf.tail == config.buffer_size)
 		{
 			rx_buf.tail = 0;
+		}
+		if (c != '\r' && c != '\n')
+		{
+			*buffer = c;
+		}
+		else
+		{
+			*buffer = 0x00;
 		}
 		if (c == '\n')
 		{
@@ -140,10 +167,38 @@ const char* uartengine_get_string()
 			break;
 		}
 		buffer++;
+
 	}
 	rx_buf.string_cnt--;
-	return rx_string;
+	return RETURN_OK;
+}
 
+uint16_t uartengine_count_bytes()
+{
+	return rx_buf.bytes_cnt;
+}
+
+const uint8_t* uartengine_get_bytes()
+{
+	char* buffer = rx_string;
+	if (!rx_buf.buf || rx_buf.bytes_cnt == 0 || !buffer)
+	{
+		return NULL;
+	}
+
+	while (rx_buf.bytes_cnt)
+	{
+		*buffer = rx_buf.buf[rx_buf.tail];
+		rx_buf.tail++;
+		rx_buf.bytes_cnt--;
+		if (rx_buf.tail == config.buffer_size)
+		{
+			rx_buf.tail = 0;
+		}
+		buffer++;
+
+	}
+	return (uint8_t*)rx_string;
 }
 
 RET_CODE uartengine_register_callback(void(*callback)(const char *))
@@ -191,7 +246,6 @@ void uartengine_string_watcher()
 {
 	if (uartengine_can_read_string())
 	{
-		uartengine_get_string();
 		uartengine_notify_callbacks();
 	}
 }
@@ -209,26 +263,17 @@ void USART1_IRQHandler (void)
 {
 	if (USART1->SR & USART_SR_RXNE){
 		char c = USART1->DR;
-		if (c != '\r')
+		rx_buf.buf[rx_buf.head] = USART1->DR;
+		rx_buf.head++;
+		rx_buf.bytes_cnt++;
+		if (c == '\n')
 		{
-			rx_buf.buf[rx_buf.head] = USART1->DR;
-			if (c == config.delimiter && rx_buf.tail == rx_buf.head)
-			{
-				rx_buf.buf[rx_buf.head] = 0;
-			}
-			else
-			{
-				rx_buf.head++;
-				if (c == config.delimiter)
-				{
-					rx_buf.string_cnt++;
-				}
-			}
+			rx_buf.string_cnt++;
+		}
 
-			if (rx_buf.head == config.buffer_size)
-			{
-				rx_buf.head = 0;
-			}
+		if (rx_buf.head == config.buffer_size)
+		{
+			rx_buf.head = 0;
 		}
 
 	}

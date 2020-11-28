@@ -12,7 +12,6 @@
 typedef struct
 {
 	uint32_t baudrate;
-	char delimiter;
 	uint16_t buffer_size;
 	uint16_t string_size;
 }UART_Config;
@@ -44,6 +43,17 @@ RET_CODE uartengine_can_read_string();
  * 	If there is no string in buffer, NULL is returned.
  */
 const char* uartengine_get_string();
+
+/**
+ * 	Returns amount of bytes currently received.
+ * 	It includes all bytes, including special chars like CR, LF.
+ */
+uint16_t uartengine_count_bytes();
+
+/**
+ * 	Returns all bytes already received.
+ */
+const uint8_t* uartengine_get_bytes();
 
 /**
  * 	Watcher responsible for calling callbacks - to be called in main program loop.

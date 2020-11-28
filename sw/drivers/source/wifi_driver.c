@@ -31,7 +31,7 @@ RET_CODE wifi_initialize()
 {
 	RET_CODE result = RETURN_NOK;
 
-	UART_Config config = {115200, '\n', 1024, 512};
+	UART_Config config = {115200, 1024, 512};
 	if (uartengine_initialize(&config) == RETURN_OK)
 	{
 		if (uartengine_register_callback(&wifi_on_uart_data) == RETURN_OK)
