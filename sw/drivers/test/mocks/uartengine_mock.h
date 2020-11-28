@@ -9,9 +9,11 @@ struct uartMock
 	MOCK_METHOD1(uartengine_initialize, RET_CODE(UART_Config*));
 	MOCK_METHOD0(uartengine_deinitialize, void());
 	MOCK_METHOD1(uartengine_send_string, RET_CODE(const char*));
-	MOCK_METHOD0(uartengine_get_string, const char*());
-	MOCK_METHOD0(uartengine_string_watcher, void());
 	MOCK_METHOD0(uartengine_can_read_string, RET_CODE());
+	MOCK_METHOD0(uartengine_get_string, const char*());
+	MOCK_METHOD0(uartengine_count_bytes, uint16_t());
+	MOCK_METHOD0(uartengine_get_bytes, const uint8_t*());
+	MOCK_METHOD0(uartengine_string_watcher, void());
 	MOCK_METHOD1(uartengine_register_callback, RET_CODE(void(*callback)(const char*)));
 	MOCK_METHOD1(uartengine_unregister_callback, RET_CODE(void(*callback)(const char*)));
 };
@@ -46,6 +48,16 @@ RET_CODE uartengine_send_string(const char * string)
 RET_CODE uartengine_can_read_string()
 {
 	return uartengineMock->uartengine_can_read_string();
+}
+
+uint16_t uartengine_count_bytes()
+{
+	return uartengineMock->uartengine_count_bytes();
+}
+
+const uint8_t* uartengine_get_bytes()
+{
+	return uartengineMock->uartengine_get_bytes();
 }
 
 const char* uartengine_get_string()
