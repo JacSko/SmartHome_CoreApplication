@@ -8,6 +8,7 @@
 const uint16_t DEFAULT_REPLY_TIMEOUT_MS = 1000;
 const uint16_t WIFI_CONNECT_TIMEOUT = 5000;
 const uint16_t DHCP_IP_GET_TIMEOUT_MS = 10000;
+const uint16_t SERVER_CONN_TIMEOUT_MS = 10000;
 
 char TX_BUFFER[128];
 const char* RX_BUFFER;
@@ -21,8 +22,11 @@ RET_CODE wifi_send_and_wait(uint32_t timeout);
 RET_CODE wifi_send_and_wait_defined_response(const char* response, uint32_t timeout);
 RET_CODE wifi_wait_for_response(uint32_t timeout);
 RET_CODE wifi_wait_for_defined_response(const char* resp, uint32_t timeout);
+RET_CODE wifi_wait_for_bytes(uint16_t bytes_count, uint32_t timeout);
 RET_CODE wifi_test();
 RET_CODE wifi_disable_echo();
+RET_CODE wifi_connect_server(ConnType type, const char* server, uint16_t port)
+RET_CODE wifi_disconnect_server();
 void wifi_on_uart_data(const char* data);
 void wifi_convert_ntp_time(uint8_t* data, TimeItem* time);
 
@@ -43,11 +47,6 @@ RET_CODE wifi_initialize()
 		}
 	}
 	return result;
-}
-
-RET_CODE wifi_send_data(ServerClientID id, const char* data, uint16_t size)
-{
-	return RETURN_ERROR;
 }
 
 RET_CODE wifi_register_client_event_callback(void(*callback)(ClientEvent ev, ServerClientID id, const char* data))
@@ -134,6 +133,22 @@ RET_CODE wifi_wait_for_defined_response(const char* resp, uint32_t timeout)
 	return result;
 }
 
+RET_CODE wifi_wait_for_bytes(uint16_t bytes_count, uint32_t timeout)
+{
+	RET_CODE result = RETURN_NOK;
+	uint32_t raw_time = time_get()->time_raw;
+	while(time_get()->time_raw <= raw_time + timeout)
+	{
+		if (uartengine_count_bytes() == bytes_count)
+		{
+			RX_BUFFER = (char*) uartengine_get_bytes();
+			result = RETURN_OK;
+			break;
+		}
+	}
+	return result;
+}
+
 void wifi_deinitialize()
 {
 	uartengine_deinitialize();
@@ -165,6 +180,20 @@ RET_CODE wifi_enable_echo()
 {
 	string_format(TX_BUFFER, "ATE1\r\n");
 	return wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS);
+}
+
+RET_CODE wifi_send_data(ServerClientID id, const char* data, uint16_t size)
+{
+	RET_CODE result = RETURN_NOK;
+	string_format(TX_BUFFER, "AT+CIPSEND=%d,%d\r\n", id, size);
+	if (wifi_send_and_wait_defined_response("> ", DEFAULT_REPLY_TIMEOUT_MS) == RETURN_OK)
+	{
+		if (uartengine_send_string(data) == RETURN_OK)
+		{
+			result = wifi_wait_for_defined_response("SEND OK", DEFAULT_REPLY_TIMEOUT_MS);
+		}
+	}
+	return result;
 }
 
 RET_CODE wifi_connect_to_network(const char* ssid, const char* password)
@@ -218,9 +247,53 @@ RET_CODE wifi_allow_multiple_clients(uint8_t state)
 	return wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS);
 }
 
+RET_CODE wifi_connect_server(ConnType type, const char* server, uint16_t port)
+{
+	const char* conn_name = type == UDP? "UDP" : type == TCP? "TCP" : "SSL";
+
+	string_format(TX_BUFFER, "AT+CIPSTART=\"%s\",\"%s\",%d\r\n", conn_name, server, port);
+	return wifi_send_and_wait_defined_response("OK", SERVER_CONN_TIMEOUT_MS);
+}
+
+RET_CODE wifi_disconnect_server()
+{
+	string_format(TX_BUFFER, "AT+CIPCLOSE\r\n");
+	return wifi_send_and_wait_defined_response("OK", SERVER_CONN_TIMEOUT_MS);
+}
+
 RET_CODE wifi_get_time(const char* ntp_server, TimeItem* item)
 {
-	return RETURN_ERROR;
+	if (!item) return RETURN_ERROR;
+
+	RET_CODE result = RETURN_NOK;
+	const char ntp_request [] = "c                                               ";	/* 'c' + 47 spaces is the request to ntp server to get time */
+	const uint8_t ntp_telegram_size = 48;
+	const uint8_t ipd_header_size = 8;
+	const uint8_t ntp_timestamp_offset = 39;
+
+	string_format(TX_BUFFER, "AT+CIPSEND=%d\r\n",ntp_telegram_size);
+	if (wifi_send_and_wait_defined_response("> ", DEFAULT_REPLY_TIMEOUT_MS) == RETURN_OK)
+	{
+		if (uartengine_send_string(ntp_request) == RETURN_OK)
+		{
+			if (wifi_wait_for_defined_response("SEND OK", DEFAULT_REPLY_TIMEOUT_MS) == RETURN_OK)
+			{
+				result = wifi_wait_for_bytes(ntp_telegram_size + ipd_header_size, DEFAULT_REPLY_TIMEOUT_MS);
+				if (result == RETURN_OK)
+				{
+					wifi_convert_ntp_time((uint8_t*)(RX_BUFFER + ipd_header_size + ntp_timestamp_offset), item);
+				}
+			}
+		}
+	}
+	return result;
+}
+
+RET_CODE wifi_set_ip_address(IPAddress* ip_address)
+{
+	string_format(TX_BUFFER, "AT+CIPSTA_CUR=\"%d.%d.%d.%d\"\r\n", ip_address->ip_address[0], ip_address->ip_address[1],
+																  ip_address->ip_address[2], ip_address->ip_address[3]);
+	return wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS);
 }
 
 void wifi_convert_ntp_time(uint8_t* data, TimeItem* tim)
