@@ -29,12 +29,24 @@ int main(void)
 
 
 	time_init();
-	wifi_initialize();
+	if (wifi_initialize() != RETURN_OK)
+	{
+		while(1){};
+	}
+	RET_CODE result = RETURN_OK;
 
 	if (wifi_connect_to_network("NIE_KRADNIJ_INTERNETU!!!", "radionet0098") == RETURN_OK)
 	{
-		uartengine_send_string("SUCCESS");
+		if (wifi_allow_multiple_clients(1) == RETURN_OK)
+		{
+			if (wifi_open_udp_server(2222))
+			{
+
+			}
+		}
 	}
+
+
 
 	while (1)
 	{

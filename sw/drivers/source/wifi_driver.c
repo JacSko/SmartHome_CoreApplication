@@ -25,7 +25,7 @@ RET_CODE wifi_wait_for_defined_response(const char* resp, uint32_t timeout);
 RET_CODE wifi_wait_for_bytes(uint16_t bytes_count, uint32_t timeout);
 RET_CODE wifi_test();
 RET_CODE wifi_disable_echo();
-RET_CODE wifi_connect_server(ConnType type, const char* server, uint16_t port)
+RET_CODE wifi_connect_server(ConnType type, const char* server, uint16_t port);
 RET_CODE wifi_disconnect_server();
 void wifi_on_uart_data(const char* data);
 void wifi_convert_ntp_time(uint8_t* data, TimeItem* time);
@@ -207,7 +207,7 @@ RET_CODE wifi_connect_to_network(const char* ssid, const char* password)
 		{
 			if (wifi_wait_for_defined_response("WIFI GOT IP", DHCP_IP_GET_TIMEOUT_MS) == RETURN_OK)
 			{
-				if (wifi_wait_for_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS) == RETURN_OK)
+				if (wifi_wait_for_defined_response("OK", WIFI_CONNECT_TIMEOUT) == RETURN_OK)
 				{
 					result = RETURN_OK;
 				}
@@ -243,7 +243,7 @@ RET_CODE wifi_close_udp_server()
 
 RET_CODE wifi_allow_multiple_clients(uint8_t state)
 {
-	string_format(TX_BUFFER, "AT+CIPMUX=%d\r\n", state? '1' : '0');
+	string_format(TX_BUFFER, "AT+CIPMUX=%s\r\n", state? "1" : "0");
 	return wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS);
 }
 
