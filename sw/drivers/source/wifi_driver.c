@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 
 #include "wifi_driver.h"
 #include "uart_engine.h"
@@ -65,6 +66,14 @@ void wifi_unregister_client_event_callback()
 	wifi_status_callback = NULL;
 }
 
+void wifi_call_client_callback(ClientEvent ev, ServerClientID id, const char* data)
+{
+	if (wifi_status_callback)
+	{
+		wifi_status_callback(ev, id, data);
+	}
+}
+
 RET_CODE wifi_send_command()
 {
 	return uartengine_send_string(TX_BUFFER);
@@ -93,6 +102,29 @@ RET_CODE wifi_send_and_wait_defined_response(const char* response, uint32_t time
 
 void wifi_on_uart_data(const char* data)
 {
+	if (strstr(data, ",CONNECT")) /* new client connected */
+	{
+		ServerClientID id = atoi(strtok((char*)data, ","));
+		wifi_call_client_callback(CLIENT_CONNECTED, id, NULL);
+
+	}
+	else if (strstr(data, ",CLOSED")) /* client disconnected */
+	{
+		ServerClientID id = atoi(strtok((char*)data, ","));
+		wifi_call_client_callback(CLIENT_DISCONNECTED, id, NULL);
+	}
+	else if (strstr(data, "+IPD,")) /* new data received */
+	{
+		const char delims[3] = ",:";
+        const char* command = strtok((char*)data, delims);
+        const char* client = strtok(NULL, delims);
+        const char* size = strtok(NULL, delims);
+        const char* data = strtok(NULL, delims);
+
+        (void) command;
+        (void) size;
+        wifi_call_client_callback(CLIENT_DATA, (ServerClientID)atoi(client), data);
+	}
 
 }
 
@@ -173,12 +205,6 @@ RET_CODE wifi_test()
 RET_CODE wifi_disable_echo()
 {
 	string_format(TX_BUFFER, "ATE0\r\n");
-	return wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS);
-}
-
-RET_CODE wifi_enable_echo()
-{
-	string_format(TX_BUFFER, "ATE1\r\n");
 	return wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS);
 }
 
@@ -263,13 +289,13 @@ RET_CODE wifi_disconnect_server()
 
 RET_CODE wifi_get_time(const char* ntp_server, TimeItem* item)
 {
-	if (!item) return RETURN_ERROR;
+	if (!item || !ntp_server) return RETURN_ERROR;
 
 	RET_CODE result = RETURN_NOK;
 	const char ntp_request [] = "c                                               ";	/* 'c' + 47 spaces is the request to ntp server to get time */
 	const uint8_t ntp_telegram_size = 48;
 	const uint8_t ipd_header_size = 8;
-	const uint8_t ntp_timestamp_offset = 39;
+	const uint8_t ntp_timestamp_offset = 40;
 
 	string_format(TX_BUFFER, "AT+CIPSEND=%d\r\n",ntp_telegram_size);
 	if (wifi_send_and_wait_defined_response("> ", DEFAULT_REPLY_TIMEOUT_MS) == RETURN_OK)
@@ -294,6 +320,140 @@ RET_CODE wifi_set_ip_address(IPAddress* ip_address)
 	string_format(TX_BUFFER, "AT+CIPSTA_CUR=\"%d.%d.%d.%d\"\r\n", ip_address->ip_address[0], ip_address->ip_address[1],
 																  ip_address->ip_address[2], ip_address->ip_address[3]);
 	return wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS);
+}
+
+RET_CODE wifi_get_ip_address(IPAddress* ip_address)
+{
+	RET_CODE result = RETURN_NOK;
+
+	if (!ip_address) return RETURN_ERROR;
+
+	string_format(TX_BUFFER, "AT+CIPSTA_CUR?\r\n");
+
+	if (wifi_send_command() == RETURN_OK)
+	{
+		for (uint8_t i = 0; i < 3; i++)
+		{
+			if (wifi_wait_for_response(DEFAULT_REPLY_TIMEOUT_MS) == RETURN_OK)
+			{
+				char delims [5] = {":\".,"};
+				const char* command = strtok((char*)RX_BUFFER, delims);
+				if (!strcmp(command, "+CIPSTA_CUR"))
+				{
+					const char* type = strtok(NULL, delims);
+					const char* byte1 = strtok(NULL, delims);
+					const char* byte2 = strtok(NULL, delims);
+					const char* byte3 = strtok(NULL, delims);
+					const char* byte4 = strtok(NULL, delims);
+					if (!strcmp(type, "ip"))
+					{
+						ip_address->ip_address[0] = atoi(byte1);
+						ip_address->ip_address[1] = atoi(byte2);
+						ip_address->ip_address[2] = atoi(byte3);
+						ip_address->ip_address[3] = atoi(byte4);
+					}
+					else if (!strcmp(type, "gateway"))
+					{
+						ip_address->gateway[0] = atoi(byte1);
+						ip_address->gateway[1] = atoi(byte2);
+						ip_address->gateway[2] = atoi(byte3);
+						ip_address->gateway[3] = atoi(byte4);
+					}
+					else
+					{
+						ip_address->netmask[0] = atoi(byte1);
+						ip_address->netmask[1] = atoi(byte2);
+						ip_address->netmask[2] = atoi(byte3);
+						ip_address->netmask[3] = atoi(byte4);
+					}
+					result = RETURN_OK;
+				}
+				else
+				{
+					result = RETURN_NOK;
+					break;
+				}
+			}
+			else
+			{
+				result = RETURN_NOK;
+				break;
+			}
+		}
+	}
+	return result;
+}
+
+RET_CODE wifi_get_current_network_name(char* buffer, uint8_t size)
+{
+	RET_CODE result = RETURN_NOK;
+
+	if (!buffer) return RETURN_ERROR;
+
+	string_format(TX_BUFFER, "AT+CWJAP_CUR?\r\n");
+
+	if (wifi_send_command() == RETURN_OK)
+	{
+		if (wifi_wait_for_response(DEFAULT_REPLY_TIMEOUT_MS) == RETURN_OK)
+		{
+			char delims [5] = {":\".,"};
+			const char* command = strtok((char*)RX_BUFFER, delims);
+			if (!strcmp(command, "+CWJAP_CUR"))
+			{
+				const char * name = strtok(NULL, delims);
+				if (strlen(name) < size)
+				{
+					string_format(buffer, "%s", name);
+					result = RETURN_OK;
+				}
+			}
+		}
+	}
+
+	return result;
+}
+
+RET_CODE wifi_request_client_details(ClientID* client)
+{
+	RET_CODE result = RETURN_NOK;
+
+	if (!client) return RETURN_ERROR;
+
+	string_format(TX_BUFFER, "AT+CIPSTATUS\r\n");
+
+	if (wifi_send_command() == RETURN_OK)
+	{
+		while (wifi_wait_for_response(DEFAULT_REPLY_TIMEOUT_MS) == RETURN_OK)
+		{
+			if (!strcmp(RX_BUFFER, "OK"))
+			{
+				break;
+			}
+			char delims [5] = {":\".,"};
+			const char* command = strtok((char*)RX_BUFFER, delims);
+			if (!strcmp(command, "+CIPSTATUS"))
+			{
+				const char * client_id_str = strtok(NULL, delims);
+				const char * client_conn_type_str = strtok(NULL, delims);
+				const char* byte1 = strtok(NULL, delims);
+				const char* byte2 = strtok(NULL, delims);
+				const char* byte3 = strtok(NULL, delims);
+				const char* byte4 = strtok(NULL, delims);
+
+				if (client->id == atoi(client_id_str))
+				{
+					client->type = strcmp(client_conn_type_str, "TCP")==0 ? TCP : UDP;
+					client->address.ip_address[0] = atoi(byte1);
+					client->address.ip_address[1] = atoi(byte2);
+					client->address.ip_address[2] = atoi(byte3);
+					client->address.ip_address[3] = atoi(byte4);
+					result = RETURN_OK;
+				}
+			}
+		}
+	}
+
+	return result;
 }
 
 void wifi_convert_ntp_time(uint8_t* data, TimeItem* tim)
