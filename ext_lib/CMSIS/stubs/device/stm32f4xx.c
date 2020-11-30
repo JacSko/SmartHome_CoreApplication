@@ -12,6 +12,7 @@ void stm_stub_init()
 	GPIOC = (GPIO_TypeDef*) malloc(sizeof(GPIO_TypeDef));
 	RCC = (RCC_TypeDef*) malloc(sizeof(RCC_TypeDef));
 	USART1 = (USART_TypeDef*) malloc(sizeof(USART_TypeDef));
+	USART2 = (USART_TypeDef*) malloc(sizeof(USART_TypeDef));
 	NVIC = (NVIC_Type*) malloc(sizeof(NVIC_Type));
 
 	for (uint8_t i = 0; i < irq_arr_size; i++)
@@ -27,6 +28,7 @@ void stm_stub_deinit()
 	free(GPIOC);
 	free(RCC);
 	free(USART1);
+	free(USART2);
 	free(NVIC);
 }
 void NVIC_EnableIRQ(IRQn_Type IRQn)

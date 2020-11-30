@@ -13,6 +13,21 @@ target_link_libraries(uart_engine PUBLIC
 
 ##############################################################
 
+add_library(bt_engine STATIC
+        source/bt_engine.c
+)
+
+target_include_directories(bt_engine PUBLIC
+        include
+)
+
+target_link_libraries(bt_engine PUBLIC
+        gpio_config
+        STM_HEADERS
+)
+
+##############################################################
+
 add_library(wifi_driver STATIC
         source/wifi_driver.c
 )

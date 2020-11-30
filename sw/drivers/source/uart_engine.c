@@ -8,9 +8,9 @@
 #include "return_codes.h"
 /*
  * UART engine summary:
- * - UART1 peripherial
- * - UART_TX = PA9
- * - UART_RX = PA10
+ * - UART2 peripherial
+ * - UART_TX = PA2
+ * - UART_RX = PA3
  */
 
 /* INTERNAL functions declaration */
@@ -27,11 +27,11 @@ typedef struct
 	uint16_t head;
 	uint8_t string_cnt;
 	uint16_t bytes_cnt;
-}BUFFER;
+} UART_BUFFER;
 
-UART_Config config;
-volatile BUFFER tx_buf;
-volatile BUFFER rx_buf;
+UART_Config uart_config;
+volatile UART_BUFFER uart_tx_buf;
+volatile UART_BUFFER uart_rx_buf;
 char* rx_string;
 
 void (*CALLBACKS[UART_ENGINE_CALLBACK_SIZE])(const char *);
@@ -40,48 +40,48 @@ void (*CALLBACKS[UART_ENGINE_CALLBACK_SIZE])(const char *);
 RET_CODE uartengine_initialize(UART_Config* cfg)
 {
 	RET_CODE result = RETURN_OK;
-	config = *cfg;
+	uart_config = *cfg;
 
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
-	RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
+	RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
 	__DSB();
 
-	USART1->CR1 |= USART_CR1_UE | USART_CR1_RXNEIE | USART_CR1_RE | USART_CR1_TE;
-	USART1->BRR = (100000000/config.baudrate);
-	gpio_pin_cfg(GPIOA, PA10, gpio_mode_AF7_OD_PU_LS);
-	gpio_pin_cfg(GPIOA, PA9, gpio_mode_AF7_PP_LS);
+	USART2->CR1 |= USART_CR1_UE | USART_CR1_RXNEIE | USART_CR1_RE | USART_CR1_TE;
+	USART2->BRR = (50000000/uart_config.baudrate);
+	gpio_pin_cfg(GPIOA, PA3, gpio_mode_AF7_OD_PU_LS);
+	gpio_pin_cfg(GPIOA, PA2, gpio_mode_AF7_PP_LS);
 
-	tx_buf.buf = (char*) malloc (sizeof(char)*config.buffer_size);
-	rx_buf.buf = (char*) malloc (sizeof(char)*config.buffer_size);
-	rx_string = (char*) malloc (sizeof(char)*config.string_size);
+	uart_tx_buf.buf = (char*) malloc (sizeof(char)*uart_config.buffer_size);
+	uart_rx_buf.buf = (char*) malloc (sizeof(char)*uart_config.buffer_size);
+	rx_string = (char*) malloc (sizeof(char)*uart_config.string_size);
 
-	tx_buf.head = 0;
-	tx_buf.tail = 0;
-	tx_buf.string_cnt = 0; /* not used */
-	tx_buf.bytes_cnt = 0;  /* not user */
+	uart_tx_buf.head = 0;
+	uart_tx_buf.tail = 0;
+	uart_tx_buf.string_cnt = 0; /* not used */
+	uart_tx_buf.bytes_cnt = 0;  /* not user */
 
-	rx_buf.head = 0;
-	rx_buf.tail = 0;
-	rx_buf.string_cnt = 0;
-	rx_buf.bytes_cnt = 0;
+	uart_rx_buf.head = 0;
+	uart_rx_buf.tail = 0;
+	uart_rx_buf.string_cnt = 0;
+	uart_rx_buf.bytes_cnt = 0;
 
-	if (!rx_buf.buf || !rx_buf.buf || !rx_string)
+	if (!uart_rx_buf.buf || !uart_rx_buf.buf || !rx_string)
 	{
 		result = RETURN_ERROR;
 	}
 
-	NVIC_EnableIRQ(USART1_IRQn);
+	NVIC_EnableIRQ(USART2_IRQn);
 
 	return result;
 }
 
 void uartengine_deinitialize()
 {
-	free(tx_buf.buf);
-	free(rx_buf.buf);
+	free(uart_tx_buf.buf);
+	free(uart_rx_buf.buf);
 	free(rx_string);
-	tx_buf.buf = NULL;
-	rx_buf.buf = NULL;
+	uart_tx_buf.buf = NULL;
+	uart_rx_buf.buf = NULL;
 	rx_string = NULL;
 	for (uint8_t i = 0; i < UART_ENGINE_CALLBACK_SIZE; i++)
 	{
@@ -92,7 +92,7 @@ void uartengine_deinitialize()
 
 RET_CODE uartengine_send_string(const char * buffer)
 {
-	if (!tx_buf.buf)
+	if (!uart_tx_buf.buf)
 	{
 		return RETURN_ERROR;
 	}
@@ -102,11 +102,11 @@ RET_CODE uartengine_send_string(const char * buffer)
 	while (*buffer)
 	{
 		c = *buffer;
-		tx_buf.buf[tx_buf.head] = c;
-		tx_buf.head++;
-		if (tx_buf.head == config.buffer_size)
+		uart_tx_buf.buf[uart_tx_buf.head] = c;
+		uart_tx_buf.head++;
+		if (uart_tx_buf.head == uart_config.buffer_size)
 		{
-			tx_buf.head = 0;
+			uart_tx_buf.head = 0;
 		}
 		buffer++;
 	}
@@ -119,7 +119,7 @@ RET_CODE uartengine_can_read_string()
 {
 	RET_CODE result = RETURN_NOK;
 
-	if (rx_buf.string_cnt > 0)
+	if (uart_rx_buf.string_cnt > 0)
 	{
 		uartengine_get_string_from_buffer();
 		if (strlen(rx_string) > 0)
@@ -138,7 +138,7 @@ const char* uartengine_get_string()
 RET_CODE uartengine_get_string_from_buffer()
 {
 	char* buffer = rx_string;
-	if (!rx_buf.buf || rx_buf.string_cnt == 0 || !buffer)
+	if (!uart_rx_buf.buf || uart_rx_buf.string_cnt == 0 || !buffer)
 	{
 		return RETURN_ERROR;
 	}
@@ -146,12 +146,12 @@ RET_CODE uartengine_get_string_from_buffer()
 	char c;
 	while (1)
 	{
-		c = rx_buf.buf[rx_buf.tail];
-		rx_buf.tail++;
-		rx_buf.bytes_cnt--;
-		if (rx_buf.tail == config.buffer_size)
+		c = uart_rx_buf.buf[uart_rx_buf.tail];
+		uart_rx_buf.tail++;
+		uart_rx_buf.bytes_cnt--;
+		if (uart_rx_buf.tail == uart_config.buffer_size)
 		{
-			rx_buf.tail = 0;
+			uart_rx_buf.tail = 0;
 		}
 		if (c != '\r' && c != '\n')
 		{
@@ -169,31 +169,31 @@ RET_CODE uartengine_get_string_from_buffer()
 		buffer++;
 
 	}
-	rx_buf.string_cnt--;
+	uart_rx_buf.string_cnt--;
 	return RETURN_OK;
 }
 
 uint16_t uartengine_count_bytes()
 {
-	return rx_buf.bytes_cnt;
+	return uart_rx_buf.bytes_cnt;
 }
 
 const uint8_t* uartengine_get_bytes()
 {
 	char* buffer = rx_string;
-	if (!rx_buf.buf || rx_buf.bytes_cnt == 0 || !buffer)
+	if (!uart_rx_buf.buf || uart_rx_buf.bytes_cnt == 0 || !buffer)
 	{
 		return NULL;
 	}
 
-	while (rx_buf.bytes_cnt)
+	while (uart_rx_buf.bytes_cnt)
 	{
-		*buffer = rx_buf.buf[rx_buf.tail];
-		rx_buf.tail++;
-		rx_buf.bytes_cnt--;
-		if (rx_buf.tail == config.buffer_size)
+		*buffer = uart_rx_buf.buf[uart_rx_buf.tail];
+		uart_rx_buf.tail++;
+		uart_rx_buf.bytes_cnt--;
+		if (uart_rx_buf.tail == uart_config.buffer_size)
 		{
-			rx_buf.tail = 0;
+			uart_rx_buf.tail = 0;
 		}
 		buffer++;
 
@@ -252,44 +252,44 @@ void uartengine_string_watcher()
 
 void start_sending()
 {
-	USART1->CR1 |= USART_CR1_TXEIE;
+	USART2->CR1 |= USART_CR1_TXEIE;
 }
 void stop_sending()
 {
-	USART1->CR1 &= ~USART_CR1_TXEIE;
+	USART2->CR1 &= ~USART_CR1_TXEIE;
 }
 
-void USART1_IRQHandler (void)
+void USART2_IRQHandler (void)
 {
-	if (USART1->SR & USART_SR_RXNE){
-		char c = USART1->DR;
-		rx_buf.buf[rx_buf.head] = USART1->DR;
-		rx_buf.head++;
-		rx_buf.bytes_cnt++;
+	if (USART2->SR & USART_SR_RXNE){
+		char c = USART2->DR;
+		uart_rx_buf.buf[uart_rx_buf.head] = USART2->DR;
+		uart_rx_buf.head++;
+		uart_rx_buf.bytes_cnt++;
 		if (c == '\n')
 		{
-			rx_buf.string_cnt++;
+			uart_rx_buf.string_cnt++;
 		}
 
-		if (rx_buf.head == config.buffer_size)
+		if (uart_rx_buf.head == uart_config.buffer_size)
 		{
-			rx_buf.head = 0;
+			uart_rx_buf.head = 0;
 		}
 
 	}
 
-	if (USART1->SR & USART_SR_TXE){
-		if (tx_buf.head == tx_buf.tail)
+	if (USART2->SR & USART_SR_TXE){
+		if (uart_tx_buf.head == uart_tx_buf.tail)
 		{
 			stop_sending();
 		}
 		else
 		{
-			USART1->DR = tx_buf.buf[tx_buf.tail];
-			tx_buf.tail++;
-			if (tx_buf.tail == config.buffer_size)
+			USART2->DR = uart_tx_buf.buf[uart_tx_buf.tail];
+			uart_tx_buf.tail++;
+			if (uart_tx_buf.tail == uart_config.buffer_size)
 			{
-				tx_buf.tail = 0;
+				uart_tx_buf.tail = 0;
 			}
 		}
 	}

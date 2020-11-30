@@ -66,6 +66,7 @@ if(NOT UNIT_TESTS)
 		uart_engine
 		time_counter
 		wifi_driver
+		bt_engine
 	)
 	
 #	target_include_directories(${PROJECT_NAME}.elf PUBLIC ext_lib/CMSIS/device

@@ -381,7 +381,7 @@ TEST_F(wifiFixture, wifi_mac_address_set)
 /**
  * @test WiFi open udp server
  */
-TEST_F(wifiFixture, wifi_open_udp_server)
+TEST_F(wifiFixture, wifi_open_server)
 {
 	/**
 	 * @<b>scenario<\b>: Open UDP server - wrong response received.
@@ -404,7 +404,7 @@ TEST_F(wifiFixture, wifi_open_udp_server)
 										   .WillOnce(Return(&t1))
 										   .WillOnce(Return(&t2));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillRepeatedly(Return(wifi_disconn_error));
-	EXPECT_EQ(RETURN_NOK, wifi_open_udp_server(2222));
+	EXPECT_EQ(RETURN_NOK, wifi_open_server(2222));
 
 	/**
 	 * @<b>scenario<\b>: Disconnect request - correct response received.
@@ -421,13 +421,13 @@ TEST_F(wifiFixture, wifi_open_udp_server)
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
 										   .WillOnce(Return(&t1));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(wifi_disconn_ok));
-	EXPECT_EQ(RETURN_OK, wifi_open_udp_server(2222));
+	EXPECT_EQ(RETURN_OK, wifi_open_server(2222));
 }
 
 /**
  * @test WiFi close udp server
  */
-TEST_F(wifiFixture, wifi_close_udp_server)
+TEST_F(wifiFixture, wifi_close_server)
 {
 	/**
 	 * @<b>scenario<\b>: Open UDP server - wrong response received.
@@ -450,7 +450,7 @@ TEST_F(wifiFixture, wifi_close_udp_server)
 										   .WillOnce(Return(&t1))
 										   .WillOnce(Return(&t2));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillRepeatedly(Return(wifi_disconn_error));
-	EXPECT_EQ(RETURN_NOK, wifi_close_udp_server());
+	EXPECT_EQ(RETURN_NOK, wifi_close_server());
 
 	/**
 	 * @<b>scenario<\b>: Disconnect request - correct response received.
@@ -467,7 +467,7 @@ TEST_F(wifiFixture, wifi_close_udp_server)
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
 										   .WillOnce(Return(&t1));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(wifi_disconn_ok));
-	EXPECT_EQ(RETURN_OK, wifi_close_udp_server());
+	EXPECT_EQ(RETURN_OK, wifi_close_server());
 
 }
 

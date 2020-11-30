@@ -17,6 +17,25 @@ add_test(NAME uart_engine_tests COMMAND uart_engine_tests)
 
 ###########################################################
 
+add_executable(bt_engine_tests
+            unit/bt_engine_tests.cpp
+)
+
+target_include_directories(bt_engine_tests PUBLIC
+        ../include
+)
+target_link_libraries(bt_engine_tests PUBLIC
+        gtest_main
+        gmock_main
+        gpio_configIf
+        gpio_configMocks
+        STM_HEADERS
+)
+
+add_test(NAME bt_engine_tests COMMAND bt_engine_tests)
+
+###########################################################
+
 add_executable(wifi_driver_tests
             unit/wifi_driver_tests.cpp
 )

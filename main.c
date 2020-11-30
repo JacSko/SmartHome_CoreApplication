@@ -3,6 +3,7 @@
 #include "time_counter.h"
 #include "wifi_driver.h"
 #include "uart_engine.h"
+#include "bt_engine.h"
 /**
  * 	System config:
  * 	HSI - 16MHz
@@ -29,6 +30,10 @@ int main(void)
 
 
 	time_init();
+	BT_Config config = {115200, 1024, 512};
+
+	btengine_initialize(&config);
+
 	if (wifi_initialize() != RETURN_OK)
 	{
 		while(1){};
@@ -39,11 +44,23 @@ int main(void)
 	{
 		if (wifi_allow_multiple_clients(1) == RETURN_OK)
 		{
-			if (wifi_open_udp_server(2222))
+			if (wifi_open_server(2222))
 			{
 
 			}
+			else
+			{
+				btengine_send_string("Cannot open server\n");
+			}
 		}
+		else
+		{
+			btengine_send_string("Cannot set cipmux\n");
+		}
+	}
+	else
+	{
+		btengine_send_string("Cannot connect to wifi\n");
 	}
 
 

@@ -4,7 +4,6 @@
 extern "C" {
 #endif
 #include "../../source/task_scheduler.c"
-//#include "../../../../ext_lib/CMSIS/stubs/device/stm32f4xx.h"
 #ifdef __cplusplus
 }
 #endif

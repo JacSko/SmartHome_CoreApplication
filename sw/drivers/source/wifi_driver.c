@@ -256,12 +256,12 @@ RET_CODE wifi_set_mac_address(const char* mac)
 	return wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS);
 }
 
-RET_CODE wifi_open_udp_server(uint16_t port)
+RET_CODE wifi_open_server(uint16_t port)
 {
 	string_format(TX_BUFFER, "AT+CIPSERVER=1,%d\r\n", port);
 	return wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS);
 }
-RET_CODE wifi_close_udp_server()
+RET_CODE wifi_close_server()
 {
 	string_format(TX_BUFFER, "AT+CIPSERVER=0\r\n");
 	return wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS);

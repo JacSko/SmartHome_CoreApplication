@@ -222,6 +222,7 @@ GPIO_TypeDef* GPIOB;
 GPIO_TypeDef* GPIOC;
 RCC_TypeDef* RCC;
 USART_TypeDef* USART1;
+USART_TypeDef* USART2;
 NVIC_Type* NVIC;
 
 void stm_stub_init();
