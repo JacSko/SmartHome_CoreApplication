@@ -1,3 +1,5 @@
+if (NOT UNIT_TESTS)
+
 add_library(task_scheduler STATIC
         source/task_scheduler.c
 )
@@ -11,9 +13,8 @@ target_link_libraries(task_scheduler PUBLIC
         time_counter
 )
 
-##############################################################
+else ()
 
-
-if (UNIT_TESTS)
     add_subdirectory(test)
+
 endif()

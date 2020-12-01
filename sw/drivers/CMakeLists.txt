@@ -1,3 +1,9 @@
+if (NOT UNIT_TESTS)
+
+###############################
+# 	  STM targets here
+###############################
+
 add_library(uart_engine STATIC
         source/uart_engine.c
 )
@@ -11,7 +17,7 @@ target_link_libraries(uart_engine PUBLIC
         STM_HEADERS
 )
 
-##############################################################
+############################
 
 add_library(bt_engine STATIC
         source/bt_engine.c
@@ -26,7 +32,7 @@ target_link_libraries(bt_engine PUBLIC
         STM_HEADERS
 )
 
-##############################################################
+############################
 
 add_library(wifi_driver STATIC
         source/wifi_driver.c
@@ -42,9 +48,12 @@ target_link_libraries(wifi_driver PUBLIC
         string_formatter
 )
 
-##############################################################
+else()
 
-if (UNIT_TESTS)
+###############################
+#	  UT targets here
+###############################
+
     add_library(driversMock INTERFACE)
     target_include_directories(driversMock INTERFACE
                 test/mocks

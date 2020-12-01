@@ -1,3 +1,5 @@
+if (NOT UNIT_TESTS)
+
 add_library(time_counter STATIC
         source/time_counter.c
 )
@@ -11,9 +13,8 @@ target_link_libraries(time_counter PUBLIC
 )
 
 
+else ()
 
-
-if (UNIT_TESTS)
     add_library(time_counterIf INTERFACE)
     target_include_directories(time_counterIf INTERFACE
                 include
@@ -26,5 +27,7 @@ if (UNIT_TESTS)
 	target_link_libraries(time_counterMock INTERFACE
 	        STM_HEADERS
 	)
+	
     add_subdirectory(test)
+    
 endif()

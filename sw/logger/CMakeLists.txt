@@ -1,3 +1,5 @@
+if (NOT UNIT_TESTS)
+
 add_library(logger STATIC
         source/Logger.c
 )
@@ -10,6 +12,8 @@ target_link_libraries(logger PUBLIC
         STM_HEADERS
 )
 
-if (UNIT_TESTS)
+else ()
+
 #    add_subdirectory(test)
+
 endif()
