@@ -101,74 +101,74 @@ TEST_F(uartengineFixture, string_send)
 	uartengine_initialize(&cfg);
 
 	EXPECT_EQ(RETURN_OK, uartengine_send_string(data));
-	EXPECT_EQ(tx_buf.head, 15);
-	EXPECT_EQ(tx_buf.tail, 0);
-	EXPECT_EQ(tx_buf.buf[0], 'S');
-	EXPECT_EQ(tx_buf.buf[1], 'T');
-	EXPECT_EQ(tx_buf.buf[2], 'R');
-	EXPECT_EQ(tx_buf.buf[3], 'I');
-	EXPECT_EQ(tx_buf.buf[4], 'N');
-	EXPECT_EQ(tx_buf.buf[5], 'G');
-	EXPECT_EQ(tx_buf.buf[6], '_');
-	EXPECT_EQ(tx_buf.buf[7], 'T');
-	EXPECT_EQ(tx_buf.buf[8], 'O');
-	EXPECT_EQ(tx_buf.buf[9], '_');
-	EXPECT_EQ(tx_buf.buf[10], 'S');
-	EXPECT_EQ(tx_buf.buf[11], 'E');
-	EXPECT_EQ(tx_buf.buf[12], 'N');
-	EXPECT_EQ(tx_buf.buf[13], 'D');
-	EXPECT_EQ(tx_buf.buf[14], '\n');
+	EXPECT_EQ(uart_tx_buf.head, 15);
+	EXPECT_EQ(uart_tx_buf.tail, 0);
+	EXPECT_EQ(uart_tx_buf.buf[0], 'S');
+	EXPECT_EQ(uart_tx_buf.buf[1], 'T');
+	EXPECT_EQ(uart_tx_buf.buf[2], 'R');
+	EXPECT_EQ(uart_tx_buf.buf[3], 'I');
+	EXPECT_EQ(uart_tx_buf.buf[4], 'N');
+	EXPECT_EQ(uart_tx_buf.buf[5], 'G');
+	EXPECT_EQ(uart_tx_buf.buf[6], '_');
+	EXPECT_EQ(uart_tx_buf.buf[7], 'T');
+	EXPECT_EQ(uart_tx_buf.buf[8], 'O');
+	EXPECT_EQ(uart_tx_buf.buf[9], '_');
+	EXPECT_EQ(uart_tx_buf.buf[10], 'S');
+	EXPECT_EQ(uart_tx_buf.buf[11], 'E');
+	EXPECT_EQ(uart_tx_buf.buf[12], 'N');
+	EXPECT_EQ(uart_tx_buf.buf[13], 'D');
+	EXPECT_EQ(uart_tx_buf.buf[14], '\n');
 	EXPECT_TRUE(READ_BIT(USART2->CR1, USART_CR1_TXEIE));
 
 	/* Simulate USART IRQ - read data from buffer */
 	USART2->SR |=  USART_SR_TXE;
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'S');
-	EXPECT_EQ(tx_buf.tail, 1);
+	EXPECT_EQ(uart_tx_buf.tail, 1);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'T');
-	EXPECT_EQ(tx_buf.tail, 2);
+	EXPECT_EQ(uart_tx_buf.tail, 2);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'R');
-	EXPECT_EQ(tx_buf.tail, 3);
+	EXPECT_EQ(uart_tx_buf.tail, 3);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'I');
-	EXPECT_EQ(tx_buf.tail, 4);
+	EXPECT_EQ(uart_tx_buf.tail, 4);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'N');
-	EXPECT_EQ(tx_buf.tail, 5);
+	EXPECT_EQ(uart_tx_buf.tail, 5);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'G');
-	EXPECT_EQ(tx_buf.tail, 6);
+	EXPECT_EQ(uart_tx_buf.tail, 6);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, '_');
-	EXPECT_EQ(tx_buf.tail, 7);
+	EXPECT_EQ(uart_tx_buf.tail, 7);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'T');
-	EXPECT_EQ(tx_buf.tail, 8);
+	EXPECT_EQ(uart_tx_buf.tail, 8);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'O');
-	EXPECT_EQ(tx_buf.tail, 9);
+	EXPECT_EQ(uart_tx_buf.tail, 9);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, '_');
-	EXPECT_EQ(tx_buf.tail, 10);
+	EXPECT_EQ(uart_tx_buf.tail, 10);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'S');
-	EXPECT_EQ(tx_buf.tail, 11);
+	EXPECT_EQ(uart_tx_buf.tail, 11);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'E');
-	EXPECT_EQ(tx_buf.tail, 12);
+	EXPECT_EQ(uart_tx_buf.tail, 12);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'N');
-	EXPECT_EQ(tx_buf.tail, 13);
+	EXPECT_EQ(uart_tx_buf.tail, 13);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'D');
-	EXPECT_EQ(tx_buf.tail, 14);
+	EXPECT_EQ(uart_tx_buf.tail, 14);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, '\n');
-	EXPECT_EQ(tx_buf.tail, 15);
+	EXPECT_EQ(uart_tx_buf.tail, 15);
 	USART2_IRQHandler();
-	EXPECT_EQ(tx_buf.tail, tx_buf.head);
+	EXPECT_EQ(uart_tx_buf.tail, uart_tx_buf.head);
 	EXPECT_FALSE(READ_BIT(USART2->CR1, USART_CR1_TXEIE));
 
 	/**
@@ -177,70 +177,70 @@ TEST_F(uartengineFixture, string_send)
 	 */
 	char data2[]= "SECOND_STRING\n";
 	EXPECT_EQ(RETURN_OK, uartengine_send_string(data2));
-	EXPECT_EQ(tx_buf.head, 9);
-	EXPECT_EQ(tx_buf.tail, 15);
-	EXPECT_EQ(tx_buf.buf[15], 'S');
-	EXPECT_EQ(tx_buf.buf[16], 'E');
-	EXPECT_EQ(tx_buf.buf[17], 'C');
-	EXPECT_EQ(tx_buf.buf[18], 'O');
-	EXPECT_EQ(tx_buf.buf[19], 'N');
-	EXPECT_EQ(tx_buf.buf[0], 'D');
-	EXPECT_EQ(tx_buf.buf[1], '_');
-	EXPECT_EQ(tx_buf.buf[2], 'S');
-	EXPECT_EQ(tx_buf.buf[3], 'T');
-	EXPECT_EQ(tx_buf.buf[4], 'R');
-	EXPECT_EQ(tx_buf.buf[5], 'I');
-	EXPECT_EQ(tx_buf.buf[6], 'N');
-	EXPECT_EQ(tx_buf.buf[7], 'G');
-	EXPECT_EQ(tx_buf.buf[8], '\n');
+	EXPECT_EQ(uart_tx_buf.head, 9);
+	EXPECT_EQ(uart_tx_buf.tail, 15);
+	EXPECT_EQ(uart_tx_buf.buf[15], 'S');
+	EXPECT_EQ(uart_tx_buf.buf[16], 'E');
+	EXPECT_EQ(uart_tx_buf.buf[17], 'C');
+	EXPECT_EQ(uart_tx_buf.buf[18], 'O');
+	EXPECT_EQ(uart_tx_buf.buf[19], 'N');
+	EXPECT_EQ(uart_tx_buf.buf[0], 'D');
+	EXPECT_EQ(uart_tx_buf.buf[1], '_');
+	EXPECT_EQ(uart_tx_buf.buf[2], 'S');
+	EXPECT_EQ(uart_tx_buf.buf[3], 'T');
+	EXPECT_EQ(uart_tx_buf.buf[4], 'R');
+	EXPECT_EQ(uart_tx_buf.buf[5], 'I');
+	EXPECT_EQ(uart_tx_buf.buf[6], 'N');
+	EXPECT_EQ(uart_tx_buf.buf[7], 'G');
+	EXPECT_EQ(uart_tx_buf.buf[8], '\n');
 	EXPECT_TRUE(READ_BIT(USART2->CR1, USART_CR1_TXEIE));
 
 	/* Simulate USART IRQ - read data from buffer */
 	USART2->SR |=  USART_SR_TXE;
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'S');
-	EXPECT_EQ(tx_buf.tail, 16);
+	EXPECT_EQ(uart_tx_buf.tail, 16);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'E');
-	EXPECT_EQ(tx_buf.tail, 17);
+	EXPECT_EQ(uart_tx_buf.tail, 17);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'C');
-	EXPECT_EQ(tx_buf.tail, 18);
+	EXPECT_EQ(uart_tx_buf.tail, 18);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'O');
-	EXPECT_EQ(tx_buf.tail, 19);
+	EXPECT_EQ(uart_tx_buf.tail, 19);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'N');
-	EXPECT_EQ(tx_buf.tail, 0);
+	EXPECT_EQ(uart_tx_buf.tail, 0);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'D');
-	EXPECT_EQ(tx_buf.tail, 1);
+	EXPECT_EQ(uart_tx_buf.tail, 1);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, '_');
-	EXPECT_EQ(tx_buf.tail, 2);
+	EXPECT_EQ(uart_tx_buf.tail, 2);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'S');
-	EXPECT_EQ(tx_buf.tail, 3);
+	EXPECT_EQ(uart_tx_buf.tail, 3);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'T');
-	EXPECT_EQ(tx_buf.tail, 4);
+	EXPECT_EQ(uart_tx_buf.tail, 4);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'R');
-	EXPECT_EQ(tx_buf.tail, 5);
+	EXPECT_EQ(uart_tx_buf.tail, 5);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'I');
-	EXPECT_EQ(tx_buf.tail, 6);
+	EXPECT_EQ(uart_tx_buf.tail, 6);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'N');
-	EXPECT_EQ(tx_buf.tail, 7);
+	EXPECT_EQ(uart_tx_buf.tail, 7);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'G');
-	EXPECT_EQ(tx_buf.tail, 8);
+	EXPECT_EQ(uart_tx_buf.tail, 8);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, '\n');
-	EXPECT_EQ(tx_buf.tail, 9);
+	EXPECT_EQ(uart_tx_buf.tail, 9);
 	USART2_IRQHandler();
-	EXPECT_EQ(tx_buf.tail, tx_buf.head);
+	EXPECT_EQ(uart_tx_buf.tail, uart_tx_buf.head);
 	EXPECT_FALSE(READ_BIT(USART2->CR1, USART_CR1_TXEIE));
 
 	/**
@@ -249,47 +249,47 @@ TEST_F(uartengineFixture, string_send)
 	 */
 	char data3[]= "AT_CMD\r\n";
 	EXPECT_EQ(RETURN_OK, uartengine_send_string(data3));
-	EXPECT_EQ(tx_buf.head, 17);
-	EXPECT_EQ(tx_buf.tail, 9);
-	EXPECT_EQ(tx_buf.buf[9], 'A');
-	EXPECT_EQ(tx_buf.buf[10], 'T');
-	EXPECT_EQ(tx_buf.buf[11], '_');
-	EXPECT_EQ(tx_buf.buf[12], 'C');
-	EXPECT_EQ(tx_buf.buf[13], 'M');
-	EXPECT_EQ(tx_buf.buf[14], 'D');
-	EXPECT_EQ(tx_buf.buf[15], '\r');
-	EXPECT_EQ(tx_buf.buf[16], '\n');
+	EXPECT_EQ(uart_tx_buf.head, 17);
+	EXPECT_EQ(uart_tx_buf.tail, 9);
+	EXPECT_EQ(uart_tx_buf.buf[9], 'A');
+	EXPECT_EQ(uart_tx_buf.buf[10], 'T');
+	EXPECT_EQ(uart_tx_buf.buf[11], '_');
+	EXPECT_EQ(uart_tx_buf.buf[12], 'C');
+	EXPECT_EQ(uart_tx_buf.buf[13], 'M');
+	EXPECT_EQ(uart_tx_buf.buf[14], 'D');
+	EXPECT_EQ(uart_tx_buf.buf[15], '\r');
+	EXPECT_EQ(uart_tx_buf.buf[16], '\n');
 	EXPECT_TRUE(READ_BIT(USART2->CR1, USART_CR1_TXEIE));
 
 	/* Simulate USART IRQ - read data from buffer */
 	USART2->SR |=  USART_SR_TXE;
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'A');
-	EXPECT_EQ(tx_buf.tail, 10);
+	EXPECT_EQ(uart_tx_buf.tail, 10);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'T');
-	EXPECT_EQ(tx_buf.tail, 11);
+	EXPECT_EQ(uart_tx_buf.tail, 11);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, '_');
-	EXPECT_EQ(tx_buf.tail, 12);
+	EXPECT_EQ(uart_tx_buf.tail, 12);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'C');
-	EXPECT_EQ(tx_buf.tail, 13);
+	EXPECT_EQ(uart_tx_buf.tail, 13);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'M');
-	EXPECT_EQ(tx_buf.tail, 14);
+	EXPECT_EQ(uart_tx_buf.tail, 14);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, 'D');
-	EXPECT_EQ(tx_buf.tail, 15);
+	EXPECT_EQ(uart_tx_buf.tail, 15);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, '\r');
-	EXPECT_EQ(tx_buf.tail, 16);
+	EXPECT_EQ(uart_tx_buf.tail, 16);
 	USART2_IRQHandler();
 	EXPECT_EQ(USART2->DR, '\n');
-	EXPECT_EQ(tx_buf.tail, 17);
+	EXPECT_EQ(uart_tx_buf.tail, 17);
 	USART2_IRQHandler();
 
-	EXPECT_EQ(tx_buf.tail, tx_buf.head);
+	EXPECT_EQ(uart_tx_buf.tail, uart_tx_buf.head);
 	EXPECT_FALSE(READ_BIT(USART2->CR1, USART_CR1_TXEIE));
 
 	uartengine_deinitialize();
@@ -335,7 +335,7 @@ TEST_F(uartengineFixture, string_read)
 	USART2_IRQHandler();
 	USART2->DR = '\n';
 	USART2_IRQHandler();
-	EXPECT_EQ(rx_buf.head, 12);
+	EXPECT_EQ(uart_rx_buf.head, 12);
 
 	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](const char* buf)
 			{
@@ -353,7 +353,7 @@ TEST_F(uartengineFixture, string_read)
 				EXPECT_EQ(buf[11], '\0');
 			}));
 	uartengine_string_watcher();
-	EXPECT_EQ(rx_buf.head, rx_buf.tail);
+	EXPECT_EQ(uart_rx_buf.head, uart_rx_buf.tail);
 
 	USART2->DR = 'S';
 	USART2_IRQHandler();
@@ -379,7 +379,7 @@ TEST_F(uartengineFixture, string_read)
 	USART2_IRQHandler();
 	USART2->DR = '\n';
 	USART2_IRQHandler();
-	EXPECT_EQ(rx_buf.head, 4);
+	EXPECT_EQ(uart_rx_buf.head, 4);
 
 	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](const char* buf)
 			{
@@ -397,7 +397,7 @@ TEST_F(uartengineFixture, string_read)
 				EXPECT_EQ(buf[11], '\0');
 			}));
 	uartengine_string_watcher();
-	EXPECT_EQ(rx_buf.head, rx_buf.tail);
+	EXPECT_EQ(uart_rx_buf.head, uart_rx_buf.tail);
 
 
 	USART2->DR = 'A';
@@ -420,7 +420,7 @@ TEST_F(uartengineFixture, string_read)
 	USART2_IRQHandler();
 	USART2->DR = '\n';
 	USART2_IRQHandler();
-	EXPECT_EQ(rx_buf.head, 14);
+	EXPECT_EQ(uart_rx_buf.head, 14);
 
 	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](const char* buf)
 			{
@@ -435,7 +435,7 @@ TEST_F(uartengineFixture, string_read)
 				EXPECT_EQ(buf[11], '\0');
 			}));
 	uartengine_string_watcher();
-	EXPECT_EQ(rx_buf.head, rx_buf.tail);
+	EXPECT_EQ(uart_rx_buf.head, uart_rx_buf.tail);
 
 	uartengine_deinitialize();
 }
@@ -535,9 +535,9 @@ TEST_F(uartengineFixture, string_read_special_data)
 	USART2_IRQHandler();
 	USART2->DR = '\n';
 	USART2_IRQHandler();
-	EXPECT_EQ(rx_buf.head, 6);
-	EXPECT_EQ(rx_buf.tail, 0);
-	EXPECT_EQ(rx_buf.string_cnt, 2);
+	EXPECT_EQ(uart_rx_buf.head, 6);
+	EXPECT_EQ(uart_rx_buf.tail, 0);
+	EXPECT_EQ(uart_rx_buf.string_cnt, 2);
 
 	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](const char* buf)
 			{
@@ -548,8 +548,8 @@ TEST_F(uartengineFixture, string_read_special_data)
 
 	uartengine_string_watcher(); //shouldn't call callback, because first string is empty
 	uartengine_string_watcher();
-	EXPECT_EQ(rx_buf.head, rx_buf.tail);
-	EXPECT_EQ(rx_buf.string_cnt, 0);
+	EXPECT_EQ(uart_rx_buf.head, uart_rx_buf.tail);
+	EXPECT_EQ(uart_rx_buf.string_cnt, 0);
 
 	USART2->DR = '\r';
 	USART2_IRQHandler();
@@ -563,9 +563,9 @@ TEST_F(uartengineFixture, string_read_special_data)
 	USART2_IRQHandler();
 	USART2->DR = '\n';
 	USART2_IRQHandler();
-	EXPECT_EQ(rx_buf.head, 12);
-	EXPECT_EQ(rx_buf.tail, 6);
-	EXPECT_EQ(rx_buf.string_cnt, 2);
+	EXPECT_EQ(uart_rx_buf.head, 12);
+	EXPECT_EQ(uart_rx_buf.tail, 6);
+	EXPECT_EQ(uart_rx_buf.string_cnt, 2);
 
 	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](const char* buf)
 			{
@@ -576,8 +576,8 @@ TEST_F(uartengineFixture, string_read_special_data)
 
 	uartengine_string_watcher(); //shouldn't call callback, because first string is empty
 	uartengine_string_watcher();
-	EXPECT_EQ(rx_buf.head, rx_buf.tail);
-	EXPECT_EQ(rx_buf.string_cnt, 0);
+	EXPECT_EQ(uart_rx_buf.head, uart_rx_buf.tail);
+	EXPECT_EQ(uart_rx_buf.string_cnt, 0);
 
 	uartengine_deinitialize();
 }
@@ -601,38 +601,38 @@ TEST_F(uartengineFixture, string_read_special_data_pooling)
 	USART2->DR = '\r';
 	USART2_IRQHandler();
 	EXPECT_EQ(RETURN_NOK, uartengine_can_read_string());
-	EXPECT_EQ(rx_buf.head, 1);
-	EXPECT_EQ(rx_buf.tail, 0);
+	EXPECT_EQ(uart_rx_buf.head, 1);
+	EXPECT_EQ(uart_rx_buf.tail, 0);
 
 	USART2->DR = '\n';
 	USART2_IRQHandler();
 	EXPECT_EQ(RETURN_NOK, uartengine_can_read_string());
-	EXPECT_EQ(rx_buf.head, 2);
-	EXPECT_EQ(rx_buf.tail, 2);
+	EXPECT_EQ(uart_rx_buf.head, 2);
+	EXPECT_EQ(uart_rx_buf.tail, 2);
 
 	USART2->DR = 'O';
 	USART2_IRQHandler();
 	EXPECT_EQ(RETURN_NOK, uartengine_can_read_string());
-	EXPECT_EQ(rx_buf.head, 3);
-	EXPECT_EQ(rx_buf.tail, 2);
+	EXPECT_EQ(uart_rx_buf.head, 3);
+	EXPECT_EQ(uart_rx_buf.tail, 2);
 
 	USART2->DR = 'K';
 	USART2_IRQHandler();
 	EXPECT_EQ(RETURN_NOK, uartengine_can_read_string());
-	EXPECT_EQ(rx_buf.head, 4);
-	EXPECT_EQ(rx_buf.tail, 2);
+	EXPECT_EQ(uart_rx_buf.head, 4);
+	EXPECT_EQ(uart_rx_buf.tail, 2);
 
 	USART2->DR = '\r';
 	USART2_IRQHandler();
 	EXPECT_EQ(RETURN_NOK, uartengine_can_read_string());
-	EXPECT_EQ(rx_buf.head, 5);
-	EXPECT_EQ(rx_buf.tail, 2);
+	EXPECT_EQ(uart_rx_buf.head, 5);
+	EXPECT_EQ(uart_rx_buf.tail, 2);
 
 	USART2->DR = '\n';
 	USART2_IRQHandler();
 	EXPECT_EQ(RETURN_OK, uartengine_can_read_string());
-	EXPECT_EQ(rx_buf.head, 6);
-	EXPECT_EQ(rx_buf.tail, 6);
+	EXPECT_EQ(uart_rx_buf.head, 6);
+	EXPECT_EQ(uart_rx_buf.tail, 6);
 
 	EXPECT_STREQ("OK", uartengine_get_string());
 }
@@ -693,8 +693,8 @@ TEST_F(uartengineFixture, string_read_bytes)
 	USART2_IRQHandler();
 	EXPECT_EQ(10U, uartengine_count_bytes());
 
-	EXPECT_EQ(rx_buf.head, 10);
-	EXPECT_EQ(rx_buf.tail, 0);
+	EXPECT_EQ(uart_rx_buf.head, 10);
+	EXPECT_EQ(uart_rx_buf.tail, 0);
 
 	const uint8_t* result = uartengine_get_bytes();
 
@@ -709,7 +709,7 @@ TEST_F(uartengineFixture, string_read_bytes)
 	EXPECT_EQ(result[8], 0x10);
 	EXPECT_EQ(result[9], 0x03);
 
-	EXPECT_EQ(rx_buf.head, rx_buf.tail);
+	EXPECT_EQ(uart_rx_buf.head, uart_rx_buf.tail);
 
 	USART2->DR = 0x11;
 	USART2_IRQHandler();
@@ -739,8 +739,8 @@ TEST_F(uartengineFixture, string_read_bytes)
 	USART2_IRQHandler();
 	EXPECT_EQ(7U, uartengine_count_bytes());
 
-	EXPECT_EQ(rx_buf.head, 2);
-	EXPECT_EQ(rx_buf.tail, 10);
+	EXPECT_EQ(uart_rx_buf.head, 2);
+	EXPECT_EQ(uart_rx_buf.tail, 10);
 
 	const uint8_t* result2 = uartengine_get_bytes();
 
@@ -752,6 +752,6 @@ TEST_F(uartengineFixture, string_read_bytes)
 	EXPECT_EQ(result2[5], 0x16);
 	EXPECT_EQ(result2[6], 0x17);
 
-	EXPECT_EQ(rx_buf.head, rx_buf.tail);
+	EXPECT_EQ(uart_rx_buf.head, uart_rx_buf.tail);
 
 }
