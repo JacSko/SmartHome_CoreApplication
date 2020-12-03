@@ -1124,43 +1124,68 @@ TEST_F(wifiFixture, wifi_ntp_time_test)
 	EXPECT_EQ(RETURN_ERROR, wifi_get_time("www.server.pl", NULL));
 
 	/**
-	 * @<b>scenario<\b>: Cannot send request command.
+	 * @<b>scenario<\b>: Cannot connect to server.
 	 * @<b>expected<\b>: RETURN_NOK returned.
 	 */
-	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_NOK));
-	EXPECT_EQ(wifi_get_time("www.server.pl", &test_item), RETURN_NOK);
-
-	/**
-	 * @<b>scenario<\b>: Cannot send NTP request command.
-	 * @<b>expected<\b>: RETURN_NOK returned.
-	 */
-	const char response [] = "> ";
-	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK))
-														   .WillOnce(Return(RETURN_NOK));
-	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK));
+	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK));
+	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_NOK));
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1));
-	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response));
-
+										   .WillOnce(Return(&t1))
+										   .WillOnce(Return(&t2));
 	EXPECT_EQ(wifi_get_time("www.server.pl", &test_item), RETURN_NOK);
 
 	/**
-	 * @<b>scenario<\b>: NTP command confirmation not received.
+	 * @<b>scenario<\b>: Cannot enable sending mode, server should be closed.
 	 * @<b>expected<\b>: RETURN_NOK returned.
 	 */
-	const char nok_response [] = "SEND NOK";
 
+	const char response_ok[] = "OK";
+	const char response_error[] = "ERROR";
+	const char response_send_ok[] = "SEND OK";
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK))
+														   .WillOnce(Return(RETURN_OK))
 														   .WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK))
+															  .WillOnce(Return(RETURN_OK))
 															  .WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
 										  .WillOnce(Return(&t1))
 										  .WillOnce(Return(&t1))
 										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t2));
-	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response))
-														 .WillOnce(Return(nok_response));
+										  .WillOnce(Return(&t2))
+										  .WillOnce(Return(&t1))
+										  .WillOnce(Return(&t1));
+	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response_ok))
+														 .WillOnce(Return(response_error))
+														 .WillOnce(Return(response_ok));
+
+	EXPECT_EQ(wifi_get_time("www.server.pl", &test_item), RETURN_NOK);
+
+	/**
+	 * @<b>scenario<\b>: NTP command send confirmation not received.
+	 * @<b>expected<\b>: RETURN_NOK returned.
+	 */
+	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK)) //connect server
+														   .WillOnce(Return(RETURN_OK)) //CIPSEND
+														   .WillOnce(Return(RETURN_OK)) //request
+														   .WillOnce(Return(RETURN_OK));//close server
+	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK)) //resp to server connec
+															  .WillOnce(Return(RETURN_OK)) //resp to cipsend
+															  .WillOnce(Return(RETURN_OK)) //wrong resp
+															  .WillOnce(Return(RETURN_OK)); //server close
+	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
+										  .WillOnce(Return(&t1))
+										  .WillOnce(Return(&t1))
+										  .WillOnce(Return(&t1))
+										  .WillOnce(Return(&t1))
+										  .WillOnce(Return(&t1))
+										  .WillOnce(Return(&t2))
+										  .WillOnce(Return(&t1))
+										  .WillOnce(Return(&t1));
+	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response_ok))
+														 .WillOnce(Return(response_ok))
+														 .WillOnce(Return(response_error))
+														 .WillOnce(Return(response_ok));
 
 	EXPECT_EQ(wifi_get_time("www.server.pl", &test_item), RETURN_NOK);
 
@@ -1168,23 +1193,33 @@ TEST_F(wifiFixture, wifi_ntp_time_test)
 	 * @<b>scenario<\b>: NTP response not received.
 	 * @<b>expected<\b>: RETURN_NOK returned.
 	 */
-	const char ok_response [] = "SEND OK";
-
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK))
+														   .WillOnce(Return(RETURN_OK))
+														   .WillOnce(Return(RETURN_OK))
 														   .WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK))
+															  .WillOnce(Return(RETURN_OK))
+															  .WillOnce(Return(RETURN_OK))
 															  .WillOnce(Return(RETURN_OK));
+
+	EXPECT_CALL(*uartengineMock, uartengine_count_bytes()).WillOnce(Return(0));
+
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
 										  .WillOnce(Return(&t1))
 										  .WillOnce(Return(&t1))
 										  .WillOnce(Return(&t1))
 										  .WillOnce(Return(&t1))
 										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t2));
-	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response))
-														 .WillOnce(Return(ok_response));
+										  .WillOnce(Return(&t1))
+										  .WillOnce(Return(&t1))
+										  .WillOnce(Return(&t2))
+										  .WillOnce(Return(&t1))
+										  .WillOnce(Return(&t1));
+	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response_ok))
+														 .WillOnce(Return(response_ok))
+														 .WillOnce(Return(response_send_ok))
+														 .WillOnce(Return(response_ok));
 
-	EXPECT_CALL(*uartengineMock, uartengine_count_bytes()).WillOnce(Return(10));
 	EXPECT_EQ(wifi_get_time("www.server.pl", &test_item), RETURN_NOK);
 
 	/**
@@ -1192,7 +1227,7 @@ TEST_F(wifiFixture, wifi_ntp_time_test)
 	 * @<b>expected<\b>: Correct time decoded, RETURN_OK returned.
 	 */
 
-	const uint8_t ntp_response [56] = {'+','I','P','D', ',', '4', '8', ':',
+	const uint8_t ntp_response [58] = {'\r', '\n', '+','I','P','D', ',', '4', '8', ':',
 										0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 										0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 										0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -1202,19 +1237,29 @@ TEST_F(wifiFixture, wifi_ntp_time_test)
 	/* 1605175872 (unix) + 2208988800 (NTP offset) = 3814164672 */
 	/* Time: 12-11-2020 10:11:12 UTC*/
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK))
+														   .WillOnce(Return(RETURN_OK))
+														   .WillOnce(Return(RETURN_OK))
 														   .WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK))
+															  .WillOnce(Return(RETURN_OK))
+															  .WillOnce(Return(RETURN_OK))
 															  .WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
 										  .WillOnce(Return(&t1))
 										  .WillOnce(Return(&t1))
 										  .WillOnce(Return(&t1))
 										  .WillOnce(Return(&t1))
+										  .WillOnce(Return(&t1))
+										  .WillOnce(Return(&t1))
+										  .WillOnce(Return(&t1))
+										  .WillOnce(Return(&t1))
 										  .WillOnce(Return(&t1));
-	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response))
-														 .WillOnce(Return(ok_response));
+	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response_ok))
+														 .WillOnce(Return(response_ok))
+														 .WillOnce(Return(response_send_ok))
+														 .WillOnce(Return(response_ok));
 
-	EXPECT_CALL(*uartengineMock, uartengine_count_bytes()).WillOnce(Return(56)); /* 48 bytes NTP and 8 bytes header */
+	EXPECT_CALL(*uartengineMock, uartengine_count_bytes()).WillOnce(Return(58)); /* 48 bytes NTP and 8 bytes header */
 	EXPECT_CALL(*uartengineMock, uartengine_get_bytes()).WillOnce(Return(ntp_response));
 	EXPECT_EQ(wifi_get_time("www.server.pl", &test_item), RETURN_OK);
 	EXPECT_EQ(test_item.year, 2020);

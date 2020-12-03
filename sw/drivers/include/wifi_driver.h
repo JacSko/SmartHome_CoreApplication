@@ -3,6 +3,8 @@
 
 #include "return_codes.h"
 #include "stm32f4xx.h"
+#include "../../time/include/time_counter.h"
+
 
 /** ID used to distinguish connected clients. */
 typedef uint8_t ServerClientID;
@@ -97,6 +99,11 @@ RET_CODE wifi_set_ip_address(IPAddress* ip_address);
  * Returns current IP address.
  */
 RET_CODE wifi_get_ip_address(IPAddress* ip_address);
+
+/**
+ * Unregister client event callback.
+ */
+RET_CODE wifi_get_time(const char* ntp_server, TimeItem* item);
 
 /**
  *	Returns current WiFi network name to which device is connected.

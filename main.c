@@ -35,14 +35,21 @@ int main(void)
 	logger_enable();
 	logger_set_group_state(LOG_DEBUG, LOGGER_GROUP_ENABLE);
 	logger_send_log(LOG_DEBUG, __FILE__, "Booting up!");
-
+	TimeItem time = {};
 	if (wifi_initialize() == RETURN_OK)
 	{
 		if (wifi_connect_to_network("NIE_KRADNIJ_INTERNETU!!!","radionet0098") == RETURN_OK)
 		{
 			if (wifi_allow_multiple_clients(0) == RETURN_OK)
 			{
-				logger_send_log(LOG_DEBUG, __FILE__, "OK!");
+				if (wifi_get_time("194.146.251.100", &time) == RETURN_OK)
+				{
+
+				}
+				else
+				{
+					logger_send_log(LOG_DEBUG, __FILE__, "Cannot get time!");
+				}
 			}
 			else
 			{

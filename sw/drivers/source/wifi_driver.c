@@ -4,7 +4,6 @@
 #include "wifi_driver.h"
 #include "uart_engine.h"
 #include "string_formatter.h"
-#include "../../time/include/time_counter.h"
 
 const uint16_t DEFAULT_REPLY_TIMEOUT_MS = 1000;
 const uint16_t WIFI_CONNECT_TIMEOUT = 5000;
@@ -294,24 +293,30 @@ RET_CODE wifi_get_time(const char* ntp_server, TimeItem* item)
 	RET_CODE result = RETURN_NOK;
 	const char ntp_request [] = "c                                               ";	/* 'c' + 47 spaces is the request to ntp server to get time */
 	const uint8_t ntp_telegram_size = 48;
+	const uint16_t ntp_server_port = 123;
 	const uint8_t ipd_header_size = 8;
 	const uint8_t ntp_timestamp_offset = 40;
 
-	string_format(TX_BUFFER, "AT+CIPSEND=%d\r\n",ntp_telegram_size);
-	if (wifi_send_and_wait_defined_response("> ", DEFAULT_REPLY_TIMEOUT_MS) == RETURN_OK)
+	if (wifi_connect_server(UDP, ntp_server, ntp_server_port) == RETURN_OK)
 	{
-		if (uartengine_send_string(ntp_request) == RETURN_OK)
+		string_format(TX_BUFFER, "AT+CIPSEND=%d\r\n",ntp_telegram_size);
+		if (wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS) == RETURN_OK)
 		{
-			if (wifi_wait_for_defined_response("SEND OK", DEFAULT_REPLY_TIMEOUT_MS) == RETURN_OK)
+			if (uartengine_send_string(ntp_request) == RETURN_OK)
 			{
-				result = wifi_wait_for_bytes(ntp_telegram_size + ipd_header_size, DEFAULT_REPLY_TIMEOUT_MS);
-				if (result == RETURN_OK)
+				if (wifi_wait_for_defined_response("SEND OK", DEFAULT_REPLY_TIMEOUT_MS) == RETURN_OK)
 				{
-					wifi_convert_ntp_time((uint8_t*)(RX_BUFFER + ipd_header_size + ntp_timestamp_offset), item);
+					result = wifi_wait_for_bytes(2 + ipd_header_size + ntp_telegram_size, DEFAULT_REPLY_TIMEOUT_MS); /* there is CRLF sequence at the beginning of data */
+					if (result == RETURN_OK)
+					{
+						wifi_convert_ntp_time((uint8_t*)(RX_BUFFER + 2 + ipd_header_size + ntp_timestamp_offset), item);
+					}
 				}
 			}
 		}
+		wifi_disconnect_server();
 	}
+
 	return result;
 }
 
