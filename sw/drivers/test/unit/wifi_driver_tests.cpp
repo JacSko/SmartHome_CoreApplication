@@ -9,6 +9,7 @@ extern "C" {
 
 #include "uartengine_mock.h"
 #include "time_counter_mock.h"
+#include "logger_mock.h"
 /**
  * @brief Unit test of wifi driver.
  *
@@ -39,6 +40,7 @@ struct wifiFixture : public ::testing::Test
 	virtual void SetUp()
 	{
 		mock_time_counter_init();
+		mock_logger_init();
 		mock_uartengine_init();
 		callMock = new callbackMock();
 	}
@@ -46,6 +48,7 @@ struct wifiFixture : public ::testing::Test
 	virtual void TearDown()
 	{
 		mock_time_counter_deinit();
+		mock_logger_deinit();
 		mock_uartengine_deinit();
 		delete callMock;
 	}

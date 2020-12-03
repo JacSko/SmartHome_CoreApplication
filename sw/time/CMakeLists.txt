@@ -15,14 +15,10 @@ target_link_libraries(time_counter PUBLIC
 
 else ()
 
-    add_library(time_counterIf INTERFACE)
-    target_include_directories(time_counterIf INTERFACE
-                include
-    )
-
     add_library(time_counterMock INTERFACE)
     target_include_directories(time_counterMock INTERFACE
                 test/mocks
+                include
     )
 	target_link_libraries(time_counterMock INTERFACE
 	        STM_HEADERS

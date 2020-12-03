@@ -15,7 +15,11 @@ target_link_libraries(logger PUBLIC
 )
 
 else ()
-
+add_library(loggerMock INTERFACE)
+    target_include_directories(loggerMock INTERFACE
+                test/mocks
+                include
+    )
     add_subdirectory(test)
 
 endif()

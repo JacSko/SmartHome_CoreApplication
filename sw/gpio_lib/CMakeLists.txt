@@ -14,14 +14,10 @@ target_link_libraries(gpio_config PUBLIC
 
 else()
 
-    add_library(gpio_configIf INTERFACE)
-    target_include_directories(gpio_configIf INTERFACE
-                include
-    )
-
     add_library(gpio_configMocks INTERFACE)
     target_include_directories(gpio_configMocks INTERFACE
                 test/mocks
+                include
     )
     
 endif()

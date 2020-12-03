@@ -9,7 +9,6 @@ target_link_libraries(task_scheduler_tests PUBLIC
         gtest_main
         gmock_main
         STM_HEADERS
-        time_counterIf
         time_counterMock
 )
 

@@ -34,7 +34,7 @@ int main(void)
 	logger_initialize(512, &btengine_send_string);
 	logger_enable();
 	logger_set_group_state(LOG_DEBUG, LOGGER_GROUP_ENABLE);
-	logger_send_log(LOG_DEBUG, __FILE__, "Booting up!");
+	logger_send(LOG_DEBUG, __FILE__, "Booting up!");
 	TimeItem time = {};
 	if (wifi_initialize() == RETURN_OK)
 	{
@@ -48,22 +48,22 @@ int main(void)
 				}
 				else
 				{
-					logger_send_log(LOG_DEBUG, __FILE__, "Cannot get time!");
+					logger_send(LOG_DEBUG, __FILE__, "Cannot get time!");
 				}
 			}
 			else
 			{
-				logger_send_log(LOG_DEBUG, __FILE__, "Cannot set cipmux!");
+				logger_send(LOG_DEBUG, __FILE__, "Cannot set cipmux!");
 			}
 		}
 		else
 		{
-			logger_send_log(LOG_DEBUG, __FILE__, "Cannot connect network!");
+			logger_send(LOG_DEBUG, __FILE__, "Cannot connect network!");
 		}
 	}
 	else
 	{
-		logger_send_log(LOG_DEBUG, __FILE__, "Cannot initialize!");
+		logger_send(LOG_DEBUG, __FILE__, "Cannot initialize!");
 	}
 
 

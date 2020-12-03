@@ -8,7 +8,6 @@ target_include_directories(uart_engine_tests PUBLIC
 target_link_libraries(uart_engine_tests PUBLIC
         gtest_main
         gmock_main
-        gpio_configIf
         gpio_configMocks
         STM_HEADERS
 )
@@ -27,7 +26,6 @@ target_include_directories(bt_engine_tests PUBLIC
 target_link_libraries(bt_engine_tests PUBLIC
         gtest_main
         gmock_main
-        gpio_configIf
         gpio_configMocks
         STM_HEADERS
 )
@@ -47,9 +45,9 @@ target_link_libraries(wifi_driver_tests PUBLIC
         gtest_main
         gmock_main
         driversMock
-        time_counterIf
         time_counterMock
         string_formatter
+        loggerMock
 )
 
 add_test(NAME wifi_driver_tests COMMAND wifi_driver_tests)

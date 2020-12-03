@@ -46,6 +46,7 @@ target_link_libraries(wifi_driver PUBLIC
         time_counter
         uart_engine
         string_formatter
+        logger
 )
 
 else()
@@ -53,14 +54,11 @@ else()
 ###############################
 #	  UT targets here
 ###############################
-add_library(driversIf INTERFACE)
-    target_include_directories(driversIf INTERFACE
-                include
-    )
 
 add_library(driversMock INTERFACE)
     target_include_directories(driversMock INTERFACE
                 test/mocks
+                include
     )
         
     add_subdirectory(test)

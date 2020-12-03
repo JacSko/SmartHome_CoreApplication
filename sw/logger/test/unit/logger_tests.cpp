@@ -15,9 +15,9 @@ extern "C" {
  *
  * All tests that verify behavior of scheduler module
  *
- * @file task_scheduler_tests.cpp
+ * @file logger_tests.cpp
  * @author  Jacek Skowronek
- * @date    11/11/2020
+ * @date    02/12/2020
  */
 
 
@@ -73,7 +73,7 @@ TEST_F(loggerFixture, send_log)
 									EXPECT_STREQ(data, "[1-2-2020 11:12:13:400] - DEBUG - FILE:DATA\n");
 									return RETURN_OK;
 								}));
-	logger_send_log(LOG_DEBUG, "FILE", "DATA");
+	logger_send(LOG_DEBUG, "FILE", "DATA");
 
 	/**
 	 * @<b>scenario<\b>: Send debug string with invalid group.
@@ -81,7 +81,7 @@ TEST_F(loggerFixture, send_log)
 	 */
 	EXPECT_CALL(*time_cnt_mock, time_get()).Times(0);
 	EXPECT_CALL(*callMock, callback(_)).Times(0);
-	logger_send_log(LOG_ENUM_MAX, "FILE", "DATA");
+	logger_send(LOG_ENUM_MAX, "FILE", "DATA");
 
 	/**
 	 * @<b>scenario<\b>: Send debug string when logger diabled.
@@ -90,7 +90,7 @@ TEST_F(loggerFixture, send_log)
 	logger_disable();
 	EXPECT_CALL(*time_cnt_mock, time_get()).Times(0);
 	EXPECT_CALL(*callMock, callback(_)).Times(0);
-	logger_send_log(LOG_DEBUG, "FILE", "DATA");
+	logger_send(LOG_DEBUG, "FILE", "DATA");
 
 }
 
@@ -158,7 +158,7 @@ TEST_F(loggerFixture, send_log_group_disabled)
 	 */
 	EXPECT_CALL(*time_cnt_mock, time_get()).Times(0);
 	EXPECT_CALL(*callMock, callback(_)).Times(0);
-	logger_send_log(LOG_DEBUG, "FILE", "DATA");
+	logger_send(LOG_DEBUG, "FILE", "DATA");
 
 
 	/**
@@ -172,7 +172,7 @@ TEST_F(loggerFixture, send_log_group_disabled)
 									EXPECT_STREQ(data, "[1-2-2020 11:12:13:400] - ERROR - FILE:DATA\n");
 									return RETURN_OK;
 								}));
-	logger_send_log(LOG_ERROR, "FILE", "DATA");
+	logger_send(LOG_ERROR, "FILE", "DATA");
 }
 
 /**

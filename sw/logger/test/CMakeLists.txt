@@ -10,7 +10,6 @@ target_link_libraries(logger_tests PUBLIC
         gmock_main
         time_counterMock
         STM_HEADERS
-        time_counterIf
         string_formatter
 )
 

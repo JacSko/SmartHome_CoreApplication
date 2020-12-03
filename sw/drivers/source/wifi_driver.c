@@ -4,6 +4,7 @@
 #include "wifi_driver.h"
 #include "uart_engine.h"
 #include "string_formatter.h"
+#include "Logger.h"
 
 const uint16_t DEFAULT_REPLY_TIMEOUT_MS = 1000;
 const uint16_t WIFI_CONNECT_TIMEOUT = 5000;
@@ -46,6 +47,7 @@ RET_CODE wifi_initialize()
 			}
 		}
 	}
+	logger_send_if(result != RETURN_OK, LOG_WIFI_DRIVER, __FILE__, "Error intializing WiFi driver");
 	return result;
 }
 
@@ -57,6 +59,7 @@ RET_CODE wifi_register_client_event_callback(void(*callback)(ClientEvent ev, Ser
 		wifi_status_callback = callback;
 		result = RETURN_OK;
 	}
+	logger_send_if(result != RETURN_OK, LOG_WIFI_DRIVER, __FILE__, "Cannot register callback");
 	return result;
 }
 
@@ -85,6 +88,7 @@ RET_CODE wifi_send_and_wait(uint32_t timeout)
 	{
 		result = wifi_wait_for_response(timeout);
 	}
+	logger_send_if(result != RETURN_OK, LOG_WIFI_DRIVER, __FILE__, "Timeout");
 	return result;
 }
 
@@ -96,6 +100,7 @@ RET_CODE wifi_send_and_wait_defined_response(const char* response, uint32_t time
 	{
 		result = wifi_wait_for_defined_response(response, timeout);
 	}
+	logger_send_if(result != RETURN_OK, LOG_WIFI_DRIVER, __FILE__, "");
 	return result;
 }
 

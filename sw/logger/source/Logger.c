@@ -84,7 +84,7 @@ uint8_t logger_get_group_state(LogGroup group)
 	}
 	return result;
 }
-void logger_send_log(LogGroup group, const char* prefix, const char* data)
+void logger_send(LogGroup group, const char* prefix, const char* data)
 {
 	if (logger.is_enabled && group < LOG_ENUM_MAX)
 	{
