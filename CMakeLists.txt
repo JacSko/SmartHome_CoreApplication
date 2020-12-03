@@ -67,6 +67,7 @@ if(NOT UNIT_TESTS)
 		time_counter
 		wifi_driver
 		bt_engine
+		logger
 	)
 	
 #	target_include_directories(${PROJECT_NAME}.elf PUBLIC ext_lib/CMSIS/device

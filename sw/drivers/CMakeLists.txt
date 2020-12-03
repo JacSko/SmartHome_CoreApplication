@@ -53,8 +53,12 @@ else()
 ###############################
 #	  UT targets here
 ###############################
+add_library(driversIf INTERFACE)
+    target_include_directories(driversIf INTERFACE
+                include
+    )
 
-    add_library(driversMock INTERFACE)
+add_library(driversMock INTERFACE)
     target_include_directories(driversMock INTERFACE
                 test/mocks
     )

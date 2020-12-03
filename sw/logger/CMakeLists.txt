@@ -10,10 +10,12 @@ target_include_directories(logger PUBLIC
 
 target_link_libraries(logger PUBLIC
         STM_HEADERS
+        bt_engine
+        time_counter
 )
 
 else ()
 
-#    add_subdirectory(test)
+    add_subdirectory(test)
 
 endif()

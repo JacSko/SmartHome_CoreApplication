@@ -4,6 +4,7 @@
 #include "wifi_driver.h"
 #include "uart_engine.h"
 #include "bt_engine.h"
+#include "Logger.h"
 /**
  * 	System config:
  * 	HSI - 16MHz
@@ -27,40 +28,35 @@
 
 int main(void)
 {
-
-
 	time_init();
 	BT_Config config = {115200, 1024, 512};
-
 	btengine_initialize(&config);
+	logger_initialize(512, &btengine_send_string);
+	logger_enable();
+	logger_set_group_state(LOG_DEBUG, LOGGER_GROUP_ENABLE);
+	logger_send_log(LOG_DEBUG, __FILE__, "Booting up!");
 
-	if (wifi_initialize() != RETURN_OK)
+	if (wifi_initialize() == RETURN_OK)
 	{
-		while(1){};
-	}
-	RET_CODE result = RETURN_OK;
-
-	if (wifi_connect_to_network("NIE_KRADNIJ_INTERNETU!!!", "radionet0098") == RETURN_OK)
-	{
-		if (wifi_allow_multiple_clients(1) == RETURN_OK)
+		if (wifi_connect_to_network("NIE_KRADNIJ_INTERNETU!!!","radionet0098") == RETURN_OK)
 		{
-			if (wifi_open_server(2222))
+			if (wifi_allow_multiple_clients(0) == RETURN_OK)
 			{
-
+				logger_send_log(LOG_DEBUG, __FILE__, "OK!");
 			}
 			else
 			{
-				btengine_send_string("Cannot open server\n");
+				logger_send_log(LOG_DEBUG, __FILE__, "Cannot set cipmux!");
 			}
 		}
 		else
 		{
-			btengine_send_string("Cannot set cipmux\n");
+			logger_send_log(LOG_DEBUG, __FILE__, "Cannot connect network!");
 		}
 	}
 	else
 	{
-		btengine_send_string("Cannot connect to wifi\n");
+		logger_send_log(LOG_DEBUG, __FILE__, "Cannot initialize!");
 	}
 
 
