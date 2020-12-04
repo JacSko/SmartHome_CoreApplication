@@ -2,6 +2,7 @@
 #define _LOGGER_MOCK_H_
 
 #include "Logger.h"
+#include <stdarg.h>
 #include "gmock/gmock.h"
 
 struct loggerMock
@@ -11,15 +12,15 @@ struct loggerMock
 	MOCK_METHOD0(logger_disable, void());
 	MOCK_METHOD2(logger_set_group_state, RET_CODE(LogGroup, uint8_t));
 	MOCK_METHOD1(logger_get_group_state, uint8_t(LogGroup));
-	MOCK_METHOD3(logger_send, void(LogGroup, const char*, const char*));
-	MOCK_METHOD4(logger_send_if, void(uint8_t, LogGroup, const char*, const char*));
+	MOCK_METHOD1(logger_send, void(LogGroup));
+	MOCK_METHOD2(logger_send_if, void(uint8_t, LogGroup));
 };
 
-loggerMock* logger_mock;
+::testing::NiceMock<loggerMock>* logger_mock;
 
 void mock_logger_init()
 {
-	logger_mock = new loggerMock;
+	logger_mock = new ::testing::NiceMock<loggerMock>;
 }
 
 void mock_logger_deinit()
@@ -52,14 +53,50 @@ uint8_t logger_get_group_state(LogGroup group)
 	return logger_mock->logger_get_group_state(group);
 }
 
-void logger_send(LogGroup group, const char* prefix, const char* data)
+const char* logger_get_group_name(LogGroup group)
 {
-	logger_mock->logger_send(group, prefix, data);
+	switch(group)
+	{
+	case LOG_ERROR:
+		return "ERROR";
+	case LOG_WIFI_DRIVER:
+		return "WIFI_DRV";
+	case LOG_TIME:
+		return "TIME";
+	case LOG_TASK_SCHEDULER:
+		return "TASK_SCH";
+	case LOG_DEBUG:
+		return "DEBUG";
+	default:
+		return "";
+	}
+
 }
 
-void logger_send_if(uint8_t cond_bool, LogGroup group, const char* prefix, const char* data)
+void logger_send(LogGroup group, const char* prefix, const char* fmt, ...)
 {
-	logger_mock->logger_send_if(cond_bool, group, prefix, data);
+	int length = 0;
+	va_list va;
+	va_start(va, fmt);
+	length = ts_formatlength(fmt, va);
+	length = length + 100;
+	va_end(va);
+	{
+		char buf[length];
+		int offset = string_format(buf, "[0-0-0 0:0:0:0] - %s - %s:", logger_get_group_name(group), prefix);
+		va_start(va, fmt);
+		length = ts_formatstring(buf+offset, fmt, va);
+		va_end(va);
+		buf[offset + length++] = '\n';
+		buf[offset + length] = 0x00;
+		printf("%s", buf);
+	}
+	logger_mock->logger_send(group);
+}
+
+void logger_send_if(uint8_t cond_bool, LogGroup group, const char* prefix, const char* fmt, ...)
+{
+	logger_mock->logger_send_if(cond_bool, group);
 }
 
 

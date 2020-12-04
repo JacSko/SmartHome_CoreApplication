@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdarg.h>
 
 #include "Logger.h"
 #include "time_counter.h"
@@ -84,31 +85,57 @@ uint8_t logger_get_group_state(LogGroup group)
 	}
 	return result;
 }
-void logger_send(LogGroup group, const char* prefix, const char* data)
+void logger_send(LogGroup group, const char* prefix, const char* fmt, ...)
 {
 	if (logger.is_enabled && group < LOG_ENUM_MAX)
 	{
 		if (LOGGER_GROUPS_STATE[group] == 1)
 		{
-			TimeItem* time = time_get();
-
-			string_format(logger.buffer, "[%d-%d-%d %d:%d:%d:%d] - %s - %s:%s\n", time->day, time->month, time->year, time->hour, time->minute, time->second, time->msecond,
-																					logger_get_group_name(group), prefix, data);
-			send_to_uart(logger.buffer);
+			int length = 0;
+			va_list va;
+			va_start(va, fmt);
+			length = ts_formatlength(fmt, va);
+			length = length + 100;
+			va_end(va);
+			{
+				TimeItem* time = time_get();
+				char buf[length];
+				int offset = string_format(buf, "[%d-%d-%d %d:%d:%d:%d] - %s - %s:", time->day, time->month, time->year, time->hour, time->minute, time->second, time->msecond,
+																									logger_get_group_name(group), prefix);
+				va_start(va, fmt);
+				length = ts_formatstring(buf+offset, fmt, va);
+				va_end(va);
+				buf[offset + length++] = '\n';
+				buf[offset + length] = 0x00;
+				send_to_uart(buf);
+			}
 		}
 	}
 }
-void logger_send_if(uint8_t cond_bool, LogGroup group, const char* prefix, const char* data)
+void logger_send_if(uint8_t cond_bool, LogGroup group, const char* prefix, const char* fmt, ...)
 {
 	if (cond_bool != 0 && logger.is_enabled && group < LOG_ENUM_MAX)
 	{
 		if (LOGGER_GROUPS_STATE[group] == 1)
 		{
-			TimeItem* time = time_get();
-
-			string_format(logger.buffer, "[%d-%d-%d %d:%d:%d:%d] - %s - %s:%s\n", time->day, time->month, time->year, time->hour, time->minute, time->second, time->msecond,
-																					logger_get_group_name(group), prefix, data);
-			send_to_uart(logger.buffer);
+			int length = 0;
+			va_list va;
+			va_start(va, fmt);
+			length = ts_formatlength(fmt, va);
+			length = length + 100;
+			va_end(va);
+			{
+				TimeItem* time = time_get();
+				char buf[length];
+				int offset = string_format(buf, "[%d-%d-%d %d:%d:%d:%d] - %s - %s:", time->day, time->month, time->year, time->hour, time->minute, time->second, time->msecond,
+																									logger_get_group_name(group), prefix);
+				va_start(va, fmt);
+				length = ts_formatstring(buf+offset, fmt, va);
+				va_end(va);
+				buf[offset + length++] = '\n';
+				buf[offset + length] = 0x00;
+				send_to_uart(buf);
+			}
 		}
 	}
 }

@@ -59,11 +59,11 @@ uint8_t logger_get_group_state(LogGroup group);
 /**
  * Sends log.
  */
-void logger_send(LogGroup group, const char* prefix, const char* data);
+void logger_send(LogGroup group, const char* prefix, const char* fmt, ...);
 
 /**
  * Sends log in cond_bool is true
  */
-void logger_send_if(uint8_t cond_bool, LogGroup group, const char* prefix, const char* data);
+void logger_send_if(uint8_t cond_bool, LogGroup group, const char* prefix, const char* fmt, ...);
 
 #endif

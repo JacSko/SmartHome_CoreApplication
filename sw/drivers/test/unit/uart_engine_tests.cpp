@@ -441,6 +441,141 @@ TEST_F(uartengineFixture, string_read)
 }
 
 /**
+ * @test Mixed read (string and bytes) from UART
+ */
+TEST_F(uartengineFixture, string_bytes_read_mixed)
+{
+	/**
+	 * @<b>scenario<\b>: String received.
+	 * @<b>expected<\b>: String written to external buffer, internal buffer indexes are equal.
+	 */
+	UART_Config cfg = {115200, 20, 15};
+	EXPECT_CALL(*gpio_lib_mock, gpio_pin_cfg(_,_,_)).Times(2);
+	uartengine_initialize(&cfg);
+	uartengine_register_callback(&fake_callback);
+
+	USART2->SR |= USART_SR_RXNE;
+
+	USART2->DR = 'R';
+	USART2_IRQHandler();
+	USART2->DR = 'E';
+	USART2_IRQHandler();
+	USART2->DR = 'A';
+	USART2_IRQHandler();
+	USART2->DR = 'D';
+	USART2_IRQHandler();
+	USART2->DR = '_';
+	USART2_IRQHandler();
+	USART2->DR = 'S';
+	USART2_IRQHandler();
+	USART2->DR = 'T';
+	USART2_IRQHandler();
+	USART2->DR = 'R';
+	USART2_IRQHandler();
+	USART2->DR = 'I';
+	USART2_IRQHandler();
+	USART2->DR = 'N';
+	USART2_IRQHandler();
+	USART2->DR = 'G';
+	USART2_IRQHandler();
+	USART2->DR = '\n';
+	USART2_IRQHandler();
+	EXPECT_EQ(uart_rx_buf.head, 12);
+	EXPECT_EQ(uart_rx_buf.tail, 0);
+	EXPECT_EQ(RETURN_OK, uartengine_can_read_string());
+	EXPECT_STREQ("READ_STRING", uartengine_get_string());
+	EXPECT_EQ(uart_rx_buf.head, uart_rx_buf.tail);
+
+	/**
+	 * @<b>scenario<\b>: Reading raw bytes from buffer.
+	 * @<b>expected<\b>: Bytes written to external buffer, internal buffer indexes are equal.
+	 */
+	USART2->DR = '\r';
+	USART2_IRQHandler();
+	USART2->DR = '\n';
+	USART2_IRQHandler();
+	USART2->DR = '+';
+	USART2_IRQHandler();
+	USART2->DR = 'I';
+	USART2_IRQHandler();
+	USART2->DR = 'P';
+	USART2_IRQHandler();
+	USART2->DR = 'D';
+	USART2_IRQHandler();
+	USART2->DR = ',';
+	USART2_IRQHandler();
+	USART2->DR = '4';
+	USART2_IRQHandler();
+	USART2->DR = '8';
+	USART2_IRQHandler();
+	USART2->DR = ':';
+	USART2_IRQHandler();
+	USART2->DR = 'a';
+	USART2_IRQHandler();
+	USART2->DR = 'b';
+	USART2_IRQHandler();
+	USART2->DR = 'c';
+	USART2_IRQHandler();
+	USART2->DR = '\r';
+	USART2_IRQHandler();
+	USART2->DR = '\n';
+	USART2_IRQHandler();
+	USART2->DR = 'd';
+	USART2_IRQHandler();
+	USART2->DR = 'e';
+	USART2_IRQHandler();
+	USART2->DR = 'f';
+	USART2_IRQHandler();
+	EXPECT_EQ(uart_rx_buf.head, 10);
+	EXPECT_EQ(uart_rx_buf.tail, 12);
+
+	EXPECT_EQ(18, uartengine_count_bytes());
+	const uint8_t* bytes_received = uartengine_get_bytes();
+	EXPECT_EQ(0, uartengine_count_bytes());
+	EXPECT_EQ(uart_rx_buf.head, uart_rx_buf.tail);
+
+	/**
+	 * @<b>scenario<\b>: String received.
+	 * @<b>expected<\b>: String written to external buffer, internal buffer indexes are equal.
+	 */
+	USART2->DR = '\r';
+	USART2_IRQHandler();
+	USART2->DR = '\n';
+	USART2_IRQHandler();
+	USART2->DR = 'S';
+	USART2_IRQHandler();
+	USART2->DR = 'E';
+	USART2_IRQHandler();
+	USART2->DR = 'C';
+	USART2_IRQHandler();
+	USART2->DR = '_';
+	USART2_IRQHandler();
+	USART2->DR = 'S';
+	USART2_IRQHandler();
+	USART2->DR = 'T';
+	USART2_IRQHandler();
+	USART2->DR = 'R';
+	USART2_IRQHandler();
+	USART2->DR = 'I';
+	USART2_IRQHandler();
+	USART2->DR = 'N';
+	USART2_IRQHandler();
+	USART2->DR = 'G';
+	USART2_IRQHandler();
+	USART2->DR = '\r';
+	USART2_IRQHandler();
+	USART2->DR = '\n';
+	USART2_IRQHandler();
+
+	EXPECT_EQ(2, uart_rx_buf.string_cnt);
+	EXPECT_EQ(RETURN_NOK, uartengine_can_read_string());
+	EXPECT_EQ(1, uart_rx_buf.string_cnt);
+	EXPECT_EQ(RETURN_OK, uartengine_can_read_string());
+	EXPECT_STREQ("SEC_STRING", uartengine_get_string());
+EXPECT_EQ(uart_rx_buf.head, uart_rx_buf.tail);
+}
+
+/**
  * @test Adding/removing callbacks tests
  */
 TEST_F(uartengineFixture, callback_add_remove)

@@ -34,6 +34,7 @@ int main(void)
 	logger_initialize(512, &btengine_send_string);
 	logger_enable();
 	logger_set_group_state(LOG_DEBUG, LOGGER_GROUP_ENABLE);
+	logger_set_group_state(LOG_WIFI_DRIVER, LOGGER_GROUP_ENABLE);
 	logger_send(LOG_DEBUG, __FILE__, "Booting up!");
 	TimeItem time = {};
 	if (wifi_initialize() == RETURN_OK)
@@ -44,7 +45,7 @@ int main(void)
 			{
 				if (wifi_get_time("194.146.251.100", &time) == RETURN_OK)
 				{
-
+					logger_send(LOG_DEBUG, __FILE__, "Everything OK!");
 				}
 				else
 				{

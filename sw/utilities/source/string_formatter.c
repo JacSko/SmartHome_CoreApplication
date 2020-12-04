@@ -1,13 +1,4 @@
-#include <stdarg.h>
-
 #include "string_formatter.h"
-
-/* Private function prototypes */
-void ts_itoa(char **buf, unsigned int d, int base);
-int ts_formatstring(char *buf, const char *fmt, va_list va);
-int ts_formatlength(const char *fmt, va_list va);
-
-/* Private functions */
 
 /**
 **---------------------------------------------------------------------------

@@ -188,7 +188,12 @@ const uint8_t* uartengine_get_bytes()
 
 	while (uart_rx_buf.bytes_cnt)
 	{
-		*buffer = uart_rx_buf.buf[uart_rx_buf.tail];
+		char c = uart_rx_buf.buf[uart_rx_buf.tail];
+		*buffer = c;
+		if (c == '\n')
+		{
+			uart_rx_buf.string_cnt--;
+		}
 		uart_rx_buf.tail++;
 		uart_rx_buf.bytes_cnt--;
 		if (uart_rx_buf.tail == uart_config.buffer_size)
