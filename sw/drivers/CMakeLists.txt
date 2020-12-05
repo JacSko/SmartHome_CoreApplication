@@ -52,7 +52,7 @@ target_link_libraries(wifi_driver PUBLIC
 else()
 
 ###############################
-#	  UT targets here
+#	  Driver mocks
 ###############################
 
 add_library(driversMock INTERFACE)
