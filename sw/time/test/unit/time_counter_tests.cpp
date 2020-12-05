@@ -258,7 +258,7 @@ TEST_F(timeFixture, callback_tests)
 	time_init();
 	TimeItem t;
 	/**
-	 * @<b>scenario<\b>: Time changed when any callback is registered.
+	 * @<b>scenario<\b>: Time changed when the callback is registered.
 	 * @<b>expected<\b>: Callback should be called.
 	 */
 
@@ -271,7 +271,7 @@ TEST_F(timeFixture, callback_tests)
 	t.second = 30;
 	t.msecond = 30;
 
-	time_set(&t);
+	time_set_utc(&t);
 
 	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](TimeItem* item)
 			{
@@ -279,7 +279,7 @@ TEST_F(timeFixture, callback_tests)
 				EXPECT_EQ(item->day, 20);
 				EXPECT_EQ(item->month, 12);
 				EXPECT_EQ(item->year, 2020);
-				EXPECT_EQ(item->hour, 12);
+				EXPECT_EQ(item->hour, 13);
 				EXPECT_EQ(item->second, 30);
 				EXPECT_EQ(item->msecond, 40);
 			}));
@@ -309,7 +309,7 @@ TEST_F(timeFixture, callback_tests)
 	t.second = 30;
 	t.msecond = 30;
 
-	time_set(&t);
+	time_set_utc(&t);
 
 	EXPECT_CALL(*callMock, callback(_)).Times(TIME_CNT_CALLBACK_MAX_SIZE).WillRepeatedly(Invoke([&](TimeItem* item)
 			{
@@ -317,13 +317,15 @@ TEST_F(timeFixture, callback_tests)
 				EXPECT_EQ(item->day, 20);
 				EXPECT_EQ(item->month, 12);
 				EXPECT_EQ(item->year, 2020);
-				EXPECT_EQ(item->hour, 12);
+				EXPECT_EQ(item->hour, 13);
 				EXPECT_EQ(item->second, 30);
 				EXPECT_EQ(item->msecond, 40);
 			}));
 
 	SysTick_Handler();
 	time_watcher();
+
+	time_deinit();
 }
 
 /**
@@ -338,7 +340,7 @@ TEST_F(timeFixture, set_get_time)
 	 * @<b>expected<\b>: False returned
 	 */
 
-	EXPECT_EQ(RETURN_NOK, time_set(NULL));
+	EXPECT_EQ(RETURN_NOK, time_set_utc(NULL));
 
 	/**
 	 * @<b>scenario<\b>: Setting time with incorrect day.
@@ -353,7 +355,7 @@ TEST_F(timeFixture, set_get_time)
 	t.second = 30;
 	t.msecond = 30;
 
-	EXPECT_EQ(RETURN_NOK, time_set(&t));
+	EXPECT_EQ(RETURN_NOK, time_set_utc(&t));
 
 	/**
 	 * @<b>scenario<\b>: Setting time with correct day.
@@ -368,7 +370,7 @@ TEST_F(timeFixture, set_get_time)
 	t.second = 30;
 	t.msecond = 30;
 
-	EXPECT_EQ(RETURN_OK, time_set(&t));
+	EXPECT_EQ(RETURN_OK, time_set_utc(&t));
 
 	/**
 	 * @<b>scenario<\b>: Setting time with incorrect month.
@@ -383,7 +385,7 @@ TEST_F(timeFixture, set_get_time)
 	t.second = 30;
 	t.msecond = 30;
 
-	EXPECT_EQ(RETURN_NOK, time_set(&t));
+	EXPECT_EQ(RETURN_NOK, time_set_utc(&t));
 
 	/**
 	 * @<b>scenario<\b>: Setting time with correct month.
@@ -398,7 +400,7 @@ TEST_F(timeFixture, set_get_time)
 	t.second = 30;
 	t.msecond = 30;
 
-	EXPECT_EQ(RETURN_OK, time_set(&t));
+	EXPECT_EQ(RETURN_OK, time_set_utc(&t));
 
 	/**
 	 * @<b>scenario<\b>: Setting time with incorrect hour.
@@ -413,7 +415,7 @@ TEST_F(timeFixture, set_get_time)
 	t.second = 30;
 	t.msecond = 30;
 
-	EXPECT_EQ(RETURN_NOK, time_set(&t));
+	EXPECT_EQ(RETURN_NOK, time_set_utc(&t));
 
 	/**
 	 * @<b>scenario<\b>: Setting time with correct hour.
@@ -428,7 +430,7 @@ TEST_F(timeFixture, set_get_time)
 	t.second = 30;
 	t.msecond = 30;
 
-	EXPECT_EQ(RETURN_OK, time_set(&t));
+	EXPECT_EQ(RETURN_OK, time_set_utc(&t));
 
 	/**
 	 * @<b>scenario<\b>: Setting time with incorrect minute.
@@ -443,7 +445,7 @@ TEST_F(timeFixture, set_get_time)
 	t.second = 30;
 	t.msecond = 30;
 
-	EXPECT_EQ(RETURN_NOK, time_set(&t));
+	EXPECT_EQ(RETURN_NOK, time_set_utc(&t));
 
 	/**
 	 * @<b>scenario<\b>: Setting time with correct minute.
@@ -458,7 +460,7 @@ TEST_F(timeFixture, set_get_time)
 	t.second = 30;
 	t.msecond = 30;
 
-	EXPECT_EQ(RETURN_OK, time_set(&t));
+	EXPECT_EQ(RETURN_OK, time_set_utc(&t));
 
 	/**
 	 * @<b>scenario<\b>: Setting time with incorrect second.
@@ -473,7 +475,7 @@ TEST_F(timeFixture, set_get_time)
 	t.second = 60;
 	t.msecond = 30;
 
-	EXPECT_EQ(RETURN_NOK, time_set(&t));
+	EXPECT_EQ(RETURN_NOK, time_set_utc(&t));
 
 	/**
 	 * @<b>scenario<\b>: Setting time with correct second.
@@ -488,7 +490,7 @@ TEST_F(timeFixture, set_get_time)
 	t.second = 59;
 	t.msecond = 30;
 
-	EXPECT_EQ(RETURN_OK, time_set(&t));
+	EXPECT_EQ(RETURN_OK, time_set_utc(&t));
 
 	/**
 	 * @<b>scenario<\b>: Setting time with incorrect mseconds.
@@ -503,7 +505,7 @@ TEST_F(timeFixture, set_get_time)
 	t.second = 59;
 	t.msecond = 1000;
 
-	EXPECT_EQ(RETURN_NOK, time_set(&t));
+	EXPECT_EQ(RETURN_NOK, time_set_utc(&t));
 
 	/**
 	 * @<b>scenario<\b>: Setting time with incorrect mseconds.
@@ -518,7 +520,7 @@ TEST_F(timeFixture, set_get_time)
 	t.second = 59;
 	t.msecond = 54;
 
-	EXPECT_EQ(RETURN_NOK, time_set(&t));
+	EXPECT_EQ(RETURN_NOK, time_set_utc(&t));
 
 	/**
 	 * @<b>scenario<\b>: Setting time with correct mseconds.
@@ -533,5 +535,130 @@ TEST_F(timeFixture, set_get_time)
 	t.second = 59;
 	t.msecond = 90;
 
-	EXPECT_EQ(RETURN_OK, time_set(&t));
+	EXPECT_EQ(RETURN_OK, time_set_utc(&t));
+}
+/**
+ * @test Setting summer/winter time
+ */
+TEST_F(timeFixture, time_set_utc)
+{
+	time_init();
+	TimeItem t;
+	EXPECT_EQ(RETURN_OK, time_register_callback(&fake_callback));
+	/**
+	 * @<b>scenario<\b>: Setting time when winter time is active.
+	 * @<b>expected<\b>: Hour incremented by 1.
+	 */
+	t.day = 20;
+	t.month = 12;
+	t.year = 2020;
+	t.hour = 12;
+	t.minute = 20;
+	t.second = 30;
+	t.msecond = 30;
+
+	time_set_utc(&t);
+
+	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](TimeItem* item)
+			{
+				if (!item) return;
+				EXPECT_EQ(item->day, 20);
+				EXPECT_EQ(item->month, 12);
+				EXPECT_EQ(item->year, 2020);
+				EXPECT_EQ(item->hour, 13);
+				EXPECT_EQ(item->second, 30);
+				EXPECT_EQ(item->msecond, 40);
+			}));
+
+	SysTick_Handler();
+	time_watcher();
+
+
+	/**
+	 * @<b>scenario<\b>: Setting time when winter time is active and is about to midnight.
+	 * @<b>expected<\b>: Hour incremented by 1 and correctly switched to next day.
+	 */
+	t.day = 20;
+	t.month = 12;
+	t.year = 2020;
+	t.hour = 23;
+	t.minute = 20;
+	t.second = 30;
+	t.msecond = 30;
+
+	time_set_utc(&t);
+
+	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](TimeItem* item)
+			{
+				if (!item) return;
+				EXPECT_EQ(item->day, 21);
+				EXPECT_EQ(item->month, 12);
+				EXPECT_EQ(item->year, 2020);
+				EXPECT_EQ(item->hour, 0);
+				EXPECT_EQ(item->second, 30);
+				EXPECT_EQ(item->msecond, 40);
+			}));
+
+	SysTick_Handler();
+	time_watcher();
+
+	/**
+	 * @<b>scenario<\b>: Setting time when winter time is active and is about to midnight, last day of month.
+	 * @<b>expected<\b>: Hour incremented by 1 and correctly switched to next year.
+	 */
+	t.day = 31;
+	t.month = 12;
+	t.year = 2020;
+	t.hour = 23;
+	t.minute = 20;
+	t.second = 30;
+	t.msecond = 30;
+
+	time_set_utc(&t);
+
+	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](TimeItem* item)
+			{
+				if (!item) return;
+				EXPECT_EQ(item->day, 1);
+				EXPECT_EQ(item->month, 1);
+				EXPECT_EQ(item->year, 2021);
+				EXPECT_EQ(item->hour, 0);
+				EXPECT_EQ(item->second, 30);
+				EXPECT_EQ(item->msecond, 40);
+			}));
+
+	SysTick_Handler();
+	time_watcher();
+
+	/**
+	 * @<b>scenario<\b>: Setting time when summer time is active and is about to midnight, last day of month.
+	 * @<b>expected<\b>: Hour incremented by 2 and correctly switched to next year.
+	 */
+	 time_set_winter_time(0);
+
+	t.day = 31;
+	t.month = 12;
+	t.year = 2020;
+	t.hour = 23;
+	t.minute = 20;
+	t.second = 30;
+	t.msecond = 30;
+
+	time_set_utc(&t);
+
+	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](TimeItem* item)
+			{
+				if (!item) return;
+				EXPECT_EQ(item->day, 1);
+				EXPECT_EQ(item->month, 1);
+				EXPECT_EQ(item->year, 2021);
+				EXPECT_EQ(item->hour, 1);
+				EXPECT_EQ(item->second, 30);
+				EXPECT_EQ(item->msecond, 40);
+			}));
+
+	SysTick_Handler();
+	time_watcher();
+
+	EXPECT_EQ(RETURN_OK, time_unregister_callback(&fake_callback));
 }

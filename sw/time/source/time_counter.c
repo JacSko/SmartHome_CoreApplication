@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "time_counter.h"
+#include "core_cmFunc.h"
 
 #define TIME_CNT_CALLBACK_MAX_SIZE 10
 #define TIME_BASETIME_MS 10
@@ -7,6 +8,7 @@
 TimeItem timestamp;
 volatile uint8_t time_changed;
 void (*CALLBACKS[TIME_CNT_CALLBACK_MAX_SIZE])(TimeItem*);
+uint8_t winter_time_active = 1;
 
 uint8_t month_day_cnt[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
@@ -22,6 +24,14 @@ void time_init()
 	/* systick_value = F_CPU/(100/PERIOD[ms]) */
 	SysTick_Config(100000000/(1000/TIME_BASETIME_MS));
 
+}
+
+void time_deinit()
+{
+	for (uint8_t i = 0; i < TIME_CNT_CALLBACK_MAX_SIZE; i ++)
+	{
+		CALLBACKS[i] = NULL;
+	}
 }
 
 RET_CODE is_time_ok(TimeItem* item)
@@ -41,14 +51,44 @@ RET_CODE is_time_ok(TimeItem* item)
 
 }
 
-RET_CODE time_set(TimeItem* item)
+void time_set_winter_time(uint8_t state)
+{
+	winter_time_active = state;
+}
+
+RET_CODE time_set_utc(TimeItem* item)
 {
 	RET_CODE result = RETURN_NOK;
 	if (item)
 	{
 		if (is_time_ok(item))
 		{
+			__disable_irq();
 			timestamp = *item;
+			if (winter_time_active)
+			{
+				timestamp.hour += 1;
+			}
+			else
+			{
+				timestamp.hour += 2;
+			}
+			if (timestamp.hour > 23)
+			{
+				timestamp.hour = timestamp.hour % 24;
+				timestamp.day++;
+				if (timestamp.day > month_day_cnt[timestamp.month])
+				{
+					timestamp.month++;
+					timestamp.day = 1;
+					if (timestamp.month > 12)
+					{
+						timestamp.month = 1;
+						timestamp.year++;
+					}
+				}
+			}
+			__enable_irq();
 			result = RETURN_OK;
 		}
 	}

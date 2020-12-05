@@ -7,7 +7,8 @@
 struct timeCounerMock
 {
 	MOCK_METHOD0(time_init, void());
-	MOCK_METHOD1(time_set, RET_CODE(TimeItem*));
+	MOCK_METHOD1(time_set_utc, RET_CODE(TimeItem*));
+	MOCK_METHOD1(time_set_winter_time, void(uint8_t state));
 	MOCK_METHOD0(time_get, TimeItem*());
 	MOCK_METHOD1(time_register_callback, RET_CODE(void(*callback)(TimeItem*)));
 	MOCK_METHOD1(time_unregister_callback, RET_CODE(void(*callback)(TimeItem*)));
@@ -32,9 +33,13 @@ void time_init()
 {
 	time_cnt_mock->time_init();
 }
-RET_CODE time_set(TimeItem* item)
+void time_set_winter_time(uint8_t state)
 {
-	return time_cnt_mock->time_set(item);
+	time_cnt_mock->time_set_winter_time(state);
+}
+RET_CODE time_set_utc(TimeItem* item)
+{
+	return time_cnt_mock->time_set_utc(item);
 }
 TimeItem* time_get()
 {

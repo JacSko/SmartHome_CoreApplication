@@ -30,9 +30,18 @@ typedef struct
 void time_init();
 
 /*
+ * Deinitialize time module, e.g. removes all callbacks
+*/
+void time_deinit();
+/*
  * Set current system time - to be used e.g. to synchornize time with NTP server
 */
-RET_CODE time_set(TimeItem* item);
+RET_CODE time_set_utc(TimeItem* item);
+
+/*
+ * Set current winter time state - needed to convert time from UTC.
+*/
+void time_set_winter_time(uint8_t state);
 
 /*
  * Get current time
