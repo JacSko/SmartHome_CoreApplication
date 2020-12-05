@@ -5,6 +5,8 @@
 #include "time_counter.h"
 #include "string_formatter.h"
 
+// TODO Allow more than one sending function (e.g. to send logs over wifi)
+
 const char* logger_get_group_name(LogGroup group);
 
 uint8_t LOGGER_GROUPS_STATE [LOG_ENUM_MAX] = {};
@@ -34,7 +36,8 @@ RET_CODE logger_initialize(uint16_t buffer_size, RET_CODE(*send_fnc)(const char*
 	}
 	for (uint8_t i = 0; i < LOG_ENUM_MAX; i++)
 	{
-		LOGGER_GROUPS_STATE[i] = 0;
+		/* LOG_ERROR group always is ON */
+		LOGGER_GROUPS_STATE[i] = i == LOG_ERROR? 1 : 0;
 	}
 	return result;
 }

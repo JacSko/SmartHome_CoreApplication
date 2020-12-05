@@ -24,7 +24,7 @@ typedef enum
 /**
  * Initialization of Logger module.
  * Module is disabled by default.
- * All module groups are also disabled.
+ * All module groups (except LOG_ERROR) are also disabled.
  * buffer_size - buffer size in bytes, to this buffer formatted string are written.
  * send_fnc - pointer to function, which allows to send out formatted data (eg UART).
  * Currently only one send function may be registered.

@@ -162,17 +162,17 @@ TEST_F(loggerFixture, send_log_group_disabled)
 
 
 	/**
-	 * @<b>scenario<\b>: Send ERROR message when DEBUG is disabled
+	 * @<b>scenario<\b>: Send LOG_TIME message when DEBUG is disabled
 	 * @<b>expected<\b>: Callback called.
 	 */
-	EXPECT_EQ(RETURN_OK, logger_set_group_state(LOG_ERROR, 1));
+	EXPECT_EQ(RETURN_OK, logger_set_group_state(LOG_TIME, 1));
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1));
 	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](const char* data) -> RET_CODE
 								{
-									EXPECT_STREQ(data, "[1-2-2020 11:12:13:400] - ERROR - FILE:DATA\n");
+									EXPECT_STREQ(data, "[1-2-2020 11:12:13:400] - TIME - FILE:DATA\n");
 									return RETURN_OK;
 								}));
-	logger_send(LOG_ERROR, "FILE", "DATA");
+	logger_send(LOG_TIME, "FILE", "DATA");
 }
 
 /**
@@ -198,7 +198,6 @@ TEST_F(loggerFixture, send_log_conditional_group_disabled)
 	 * @<b>scenario<\b>: Send ERROR message when DEBUG is disabled
 	 * @<b>expected<\b>: Callback called.
 	 */
-	EXPECT_EQ(RETURN_OK, logger_set_group_state(LOG_ERROR, 1));
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1));
 	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](const char* data) -> RET_CODE
 								{
@@ -259,7 +258,7 @@ TEST_F(loggerFixture, setting_getting_group_states)
 	 * @<b>expected<\b>: Correct state returned.
 	 */
 	EXPECT_EQ(0, logger_get_group_state(LOG_DEBUG));
-	EXPECT_EQ(0, logger_get_group_state(LOG_ERROR));
+	EXPECT_EQ(1, logger_get_group_state(LOG_ERROR));
 
 	/**
 	 * @<b>scenario<\b>: Get/Set state of incorrect group

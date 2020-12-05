@@ -144,6 +144,7 @@ RET_CODE wifi_wait_for_response(uint32_t timeout)
 		if (uartengine_can_read_string() == RETURN_OK)
 		{
 			RX_BUFFER = uartengine_get_string();
+			logger_send(LOG_WIFI_DRIVER, __func__, "ESP resp %s", RX_BUFFER);
 			result = RETURN_OK;
 			break;
 		}
@@ -163,6 +164,7 @@ RET_CODE wifi_wait_for_defined_response(const char* resp, uint32_t timeout)
 		if (uartengine_can_read_string() == RETURN_OK)
 		{
 			RX_BUFFER = uartengine_get_string();
+			logger_send(LOG_WIFI_DRIVER, __func__, "ESP resp %s", RX_BUFFER);
 			if (!strcmp(resp, RX_BUFFER))
 			{
 				result = RETURN_OK;
