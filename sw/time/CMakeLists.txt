@@ -10,6 +10,7 @@ target_include_directories(time_counter PUBLIC
 
 target_link_libraries(time_counter PUBLIC
         STM_HEADERS
+        logger
 )
 
 

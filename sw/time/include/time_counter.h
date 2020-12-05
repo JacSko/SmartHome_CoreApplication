@@ -49,6 +49,12 @@ void time_set_winter_time(uint8_t state);
 TimeItem* time_get();
 
 /*
+ * Wait function. Allow to suspend execution for defined time.
+ * Timeout should be multiply of 10ms
+*/
+void time_wait(uint16_t timeout);
+
+/*
  * Register callback for time notifications
 */
 RET_CODE time_register_callback(void(*callback)(TimeItem*));
