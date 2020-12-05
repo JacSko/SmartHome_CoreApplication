@@ -45,6 +45,11 @@ RET_CODE btengine_can_read_string();
 const char* btengine_get_string();
 
 /**
+ * 	Clears all data already received
+ */
+void btengine_clear_rx();
+
+/**
  * 	Returns amount of bytes currently received.
  * 	It includes all bytes, including special chars like CR, LF.
  */

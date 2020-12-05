@@ -51,6 +51,11 @@ const char* uartengine_get_string();
 uint16_t uartengine_count_bytes();
 
 /**
+ * 	Clears all data already received
+ */
+void uartengine_clear_rx();
+
+/**
  * 	Returns all bytes already received.
  */
 const uint8_t* uartengine_get_bytes();

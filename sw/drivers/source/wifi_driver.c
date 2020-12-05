@@ -222,9 +222,12 @@ RET_CODE wifi_reset()
 {
 	RET_CODE result = RETURN_NOK;
 	string_format(TX_BUFFER, "AT+RST\r\n");
-
-	//timeout
-	//wyczyścić bufor
+	if (wifi_send_command() == RETURN_OK)
+	{
+		time_wait(500);
+		uartengine_clear_rx();	/* remove all strange bytes received after reset */
+		result = RETURN_OK;
+	}
 	logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "cannot reset");
 	return result;
 }

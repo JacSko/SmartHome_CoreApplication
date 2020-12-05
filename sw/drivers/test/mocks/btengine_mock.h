@@ -11,6 +11,7 @@ struct btEngineMock
 	MOCK_METHOD1(btengine_send_string, RET_CODE(const char*));
 	MOCK_METHOD0(btengine_can_read_string, RET_CODE());
 	MOCK_METHOD0(btengine_get_string, const char*());
+	MOCK_METHOD0(btengine_clear_rx, void());
 	MOCK_METHOD0(btengine_count_bytes, uint16_t());
 	MOCK_METHOD0(btengine_get_bytes, const uint8_t*());
 	MOCK_METHOD0(btengine_string_watcher, void());
@@ -53,6 +54,11 @@ RET_CODE btengine_can_read_string()
 uint16_t btengine_count_bytes()
 {
 	return btengineMock->btengine_count_bytes();
+}
+
+void btengine_clear_rx()
+{
+	btengineMock->btengine_clear_rx();
 }
 
 const uint8_t* btengine_get_bytes()

@@ -135,6 +135,13 @@ const char* btengine_get_string()
 	return rx_string;
 }
 
+void btengine_clear_rx()
+{
+	bt_rx_buf.tail = bt_rx_buf.head;
+	bt_rx_buf.string_cnt = 0;
+	bt_rx_buf.bytes_cnt = 0;
+}
+
 RET_CODE btengine_get_string_from_buffer()
 {
 	char* buffer = rx_string;

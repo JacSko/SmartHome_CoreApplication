@@ -134,6 +134,12 @@ const char* uartengine_get_string()
 {
 	return rx_string;
 }
+void uartengine_clear_rx()
+{
+	uart_rx_buf.tail = uart_rx_buf.head;
+	uart_rx_buf.string_cnt = 0;
+	uart_rx_buf.bytes_cnt = 0;
+}
 
 RET_CODE uartengine_get_string_from_buffer()
 {

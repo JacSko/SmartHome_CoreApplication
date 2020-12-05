@@ -9,6 +9,7 @@ extern "C" {
 }
 #endif
 
+#include "logger_mock.h"
 
 /**
  * @brief Unit test of time module.

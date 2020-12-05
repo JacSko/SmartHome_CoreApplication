@@ -531,6 +531,7 @@ TEST_F(uartengineFixture, string_bytes_read_mixed)
 
 	EXPECT_EQ(18, uartengine_count_bytes());
 	const uint8_t* bytes_received = uartengine_get_bytes();
+	(void) bytes_received;
 	EXPECT_EQ(0, uartengine_count_bytes());
 	EXPECT_EQ(uart_rx_buf.head, uart_rx_buf.tail);
 

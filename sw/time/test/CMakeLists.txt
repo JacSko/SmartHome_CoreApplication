@@ -9,6 +9,8 @@ target_link_libraries(time_tests PUBLIC
         gtest_main
         gmock_main
         STM_HEADERS
+        string_formatter
+        loggerMock
 )
 
 add_test(NAME time_tests COMMAND time_tests)

@@ -1,8 +1,11 @@
 #ifndef _LOGGER_MOCK_H_
 #define _LOGGER_MOCK_H_
 
-#include "Logger.h"
+
 #include <stdarg.h>
+
+#include "Logger.h"
+#include "string_formatter.h"
 #include "gmock/gmock.h"
 
 struct loggerMock

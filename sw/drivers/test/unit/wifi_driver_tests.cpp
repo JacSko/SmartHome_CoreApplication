@@ -65,6 +65,7 @@ TEST_F(wifiFixture, engine_initialization)
 	 */
 	EXPECT_CALL(*uartengineMock, uartengine_initialize(_)).WillOnce(Return(RETURN_NOK));
 	EXPECT_EQ(RETURN_NOK, wifi_initialize());
+	Mock::VerifyAndClearExpectations(uartengineMock);
 
 	/**
 	 * @<b>scenario<\b>: Module initialization - cannot register UART callback.
@@ -73,61 +74,77 @@ TEST_F(wifiFixture, engine_initialization)
 	EXPECT_CALL(*uartengineMock, uartengine_initialize(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_register_callback(_)).WillOnce(Return(RETURN_NOK));
 	EXPECT_EQ(RETURN_NOK, wifi_initialize());
+	Mock::VerifyAndClearExpectations(uartengineMock);
 
 	/**
-	 * @<b>scenario<\b>: Module initialization - cannot send handshake command (OK).
+	 * @<b>scenario<\b>: Module initialization - cannot reset module.
 	 * @<b>expected<\b>: RETURN_NOK returned.
 	 */
 	EXPECT_CALL(*uartengineMock, uartengine_initialize(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_register_callback(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_NOK));
 	EXPECT_EQ(RETURN_NOK, wifi_initialize());
+	Mock::VerifyAndClearExpectations(uartengineMock);
 
 	/**
-	 * @<b>scenario<\b>: Module initialization - timeout when waiting for response.
+	 * @<b>scenario<\b>: Module initialization - cannot disable echo.
 	 * @<b>expected<\b>: RETURN_NOK returned.
 	 */
 	EXPECT_CALL(*uartengineMock, uartengine_initialize(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_register_callback(_)).WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK));
+	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK))
+														   .WillOnce(Return(RETURN_OK));
+	EXPECT_CALL(*time_cnt_mock, time_wait(_)).Times(1);
+	EXPECT_CALL(*uartengineMock, uartengine_clear_rx()).Times(1);
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillRepeatedly(Return(RETURN_NOK));
 	TimeItem t1, t2 = {};
 	t2.time_raw = t1.time_raw + 5000;	//5s means that timeout exceeded
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
 										   .WillOnce(Return(&t2));
 	EXPECT_EQ(RETURN_NOK, wifi_initialize());
+	Mock::VerifyAndClearExpectations(uartengineMock);
+	Mock::VerifyAndClearExpectations(time_cnt_mock);
+
 
 	/**
-	 * @<b>scenario<\b>: Module initialization - Wrong response received
+	 * @<b>scenario<\b>: Module initialization - cannot send test pattern.
 	 * @<b>expected<\b>: RETURN_NOK returned.
-	 */
-	const char echo_corr_response [] = "OK";
-	const char response [] = "ERROR";
-	EXPECT_CALL(*uartengineMock, uartengine_initialize(_)).WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*uartengineMock, uartengine_register_callback(_)).WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK))
-														   .WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillRepeatedly(Return(RETURN_OK));
-	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(echo_corr_response))
-														 .WillOnce(Return(response));
-	t1 = {};
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillRepeatedly(Return(&t1));
-	EXPECT_EQ(RETURN_NOK, wifi_initialize());
-
-	/**
-	 * @<b>scenario<\b>: Module initialization - correct sequence
-	 * @<b>expected<\b>: RETURN_OK returned.
 	 */
 	const char correct_response [] = "OK";
 	EXPECT_CALL(*uartengineMock, uartengine_initialize(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_register_callback(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK))
+														   .WillOnce(Return(RETURN_OK))
+														   .WillOnce(Return(RETURN_NOK));
+	EXPECT_CALL(*time_cnt_mock, time_wait(_)).Times(1);
+	EXPECT_CALL(*uartengineMock, uartengine_clear_rx()).Times(1);
+	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillRepeatedly(Return(RETURN_OK));
+	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(correct_response));
+	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
+										   .WillOnce(Return(&t1));
+	EXPECT_EQ(RETURN_NOK, wifi_initialize());
+	Mock::VerifyAndClearExpectations(uartengineMock);
+	Mock::VerifyAndClearExpectations(time_cnt_mock);
+
+	/**
+	 * @<b>scenario<\b>: Module initialization - correct sequence
+	 * @<b>expected<\b>: RETURN_OK returned.
+	 */
+
+	EXPECT_CALL(*uartengineMock, uartengine_initialize(_)).WillOnce(Return(RETURN_OK));
+	EXPECT_CALL(*uartengineMock, uartengine_register_callback(_)).WillOnce(Return(RETURN_OK));
+	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK))
+														   .WillOnce(Return(RETURN_OK))
 														   .WillOnce(Return(RETURN_OK));
+	EXPECT_CALL(*time_cnt_mock, time_wait(_)).Times(1);
+	EXPECT_CALL(*uartengineMock, uartengine_clear_rx()).Times(1);
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillRepeatedly(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(correct_response))
 														 .WillOnce(Return(correct_response));
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillRepeatedly(Return(&t1));
 	EXPECT_EQ(RETURN_OK, wifi_initialize());
+	Mock::VerifyAndClearExpectations(uartengineMock);
+	Mock::VerifyAndClearExpectations(time_cnt_mock);
 }
 
 /**
@@ -1278,10 +1295,6 @@ TEST_F(wifiFixture, wifi_ntp_time_test)
  */
 TEST_F(wifiFixture, wifi_reset_test)
 {
-	TimeItem t1 = {};
-	TimeItem t2 = {};
-
-	t2.time_raw = t1.time_raw + 10000;
 	/**
 	 * @<b>scenario<\b>: Cannot send reset command.
 	 * @<b>expected<\b>: RETURN_NOK returned.
@@ -1290,30 +1303,12 @@ TEST_F(wifiFixture, wifi_reset_test)
 	EXPECT_EQ(wifi_reset(), RETURN_NOK);
 
 	/**
-	 * @<b>scenario<\b>: No response received from chip.
-	 * @<b>expected<\b>: RETURN_NOK returned.
-	 */
-	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_NOK))
-															  .WillOnce(Return(RETURN_NOK))
-															  .WillOnce(Return(RETURN_NOK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t2));
-	EXPECT_EQ(wifi_reset(), RETURN_NOK);
-
-	/**
 	 * @<b>scenario<\b>: Correct sequence.
 	 * @<b>expected<\b>: RETURN_OK returned.
 	 */
-	const char response [] = "OK";
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1));
-	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response));
+	EXPECT_CALL(*time_cnt_mock, time_wait(_)).Times(1);
+	EXPECT_CALL(*uartengineMock, uartengine_clear_rx()).Times(1);
 	EXPECT_EQ(wifi_reset(), RETURN_OK);
 
 }

@@ -3,6 +3,7 @@
 
 #include "return_codes.h"
 #include "stm32f4xx.h"
+#include "string_formatter.h"
 
 
 #define LOGGER_GROUP_ENABLE  0x01
