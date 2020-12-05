@@ -211,7 +211,16 @@ RET_CODE wifi_test()
 	{
 		result = !strcmp(RX_BUFFER, "OK")? RETURN_OK : RETURN_NOK;
 	}
-	logger_send_if(result != RETURN_OK, LOG_WIFI_DRIVER, __func__, "%s error", __func__);
+	logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "wifi test failed");
+	return result;
+}
+
+RET_CODE wifi_reset()
+{
+	RET_CODE result = RETURN_NOK;
+	string_format(TX_BUFFER, "AT+RST\r\n");
+	result = wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS);
+	logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "cannot reset");
 	return result;
 }
 
@@ -232,7 +241,7 @@ RET_CODE wifi_send_data(ServerClientID id, const char* data, uint16_t size)
 			result = wifi_wait_for_defined_response("SEND OK", DEFAULT_REPLY_TIMEOUT_MS);
 		}
 	}
-	logger_send_if(result != RETURN_OK, LOG_WIFI_DRIVER, __func__, "Cannot send data");
+	logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "Cannot send data");
 	return result;
 }
 
@@ -255,7 +264,7 @@ RET_CODE wifi_connect_to_network(const char* ssid, const char* password)
 			}
 		}
 	}
-	logger_send_if(result != RETURN_OK, LOG_WIFI_DRIVER, __func__, "Cannot connect to network %s", ssid);
+	logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "Cannot connect to network %s", ssid);
 	return result;
 }
 
@@ -328,16 +337,16 @@ RET_CODE wifi_get_time(const char* ntp_server, TimeItem* item)
 					{
 						wifi_convert_ntp_time((uint8_t*)(RX_BUFFER + 2 + ipd_header_size + ntp_timestamp_offset), item);
 					}
-					logger_send_if(result != RETURN_OK, LOG_WIFI_DRIVER, __func__, "No response from NTP server");
+					logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "No response from NTP server");
 				}
 			}
 		}
 		if (wifi_disconnect_server() != RETURN_OK)
 		{
-			logger_send(LOG_WIFI_DRIVER, __func__, "Cannot close UDP server");
+			logger_send(LOG_ERROR, __func__, "Cannot close UDP server");
 		}
 	}
-	logger_send_if(result != RETURN_OK, LOG_WIFI_DRIVER, __func__, "Cannot get time from server %s", ntp_server);
+	logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "Cannot get time from server %s", ntp_server);
 	return result;
 }
 
@@ -411,7 +420,7 @@ RET_CODE wifi_get_ip_address(IPAddress* ip_address)
 		logger_send(LOG_WIFI_DRIVER, __func__, "gateway: %d.%d.%d.%d", ip_address->gateway[0], ip_address->gateway[1], ip_address->gateway[2], ip_address->gateway[3]);
 		logger_send(LOG_WIFI_DRIVER, __func__, "netmask: %d.%d.%d.%d", ip_address->netmask[0], ip_address->netmask[1], ip_address->netmask[2], ip_address->netmask[3]);
 	}
-	logger_send_if(result != RETURN_OK, LOG_WIFI_DRIVER, __func__, "Cannot get IP address");
+	logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "Cannot get IP address");
 	return result;
 }
 
@@ -441,7 +450,7 @@ RET_CODE wifi_get_current_network_name(char* buffer, uint8_t size)
 			}
 		}
 	}
-	logger_send_if(result != RETURN_OK, LOG_WIFI_DRIVER, __func__, "Cannot get current network name");
+	logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "Cannot get current network name");
 	return result;
 }
 
@@ -487,7 +496,7 @@ RET_CODE wifi_request_client_details(ClientID* client)
 			}
 		}
 	}
-	logger_send_if(result != RETURN_OK, LOG_WIFI_DRIVER, __func__, "Cannot get client details");
+	logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "Cannot get client details");
 	return result;
 }
 

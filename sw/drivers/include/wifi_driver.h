@@ -54,6 +54,11 @@ RET_CODE wifi_initialize();
 RET_CODE wifi_connect_to_network(const char* ssid, const char* password);
 
 /**
+ * Resets WiFi module
+ */
+RET_CODE wifi_reset();
+
+/**
  * Disconnects from WiFi network
  */
 RET_CODE wifi_disconnect_from_network();

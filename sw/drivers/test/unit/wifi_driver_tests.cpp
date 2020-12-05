@@ -1273,7 +1273,50 @@ TEST_F(wifiFixture, wifi_ntp_time_test)
 	EXPECT_EQ(test_item.second, 12);
 }
 
+/**
+ * @test WiFi chip reset test
+ */
+TEST_F(wifiFixture, wifi_reset_test)
+{
+	TimeItem t1 = {};
+	TimeItem t2 = {};
 
+	t2.time_raw = t1.time_raw + 10000;
+	/**
+	 * @<b>scenario<\b>: Cannot send reset command.
+	 * @<b>expected<\b>: RETURN_NOK returned.
+	 */
+	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_NOK));
+	EXPECT_EQ(wifi_reset(), RETURN_NOK);
+
+	/**
+	 * @<b>scenario<\b>: No response received from chip.
+	 * @<b>expected<\b>: RETURN_NOK returned.
+	 */
+	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK));
+	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_NOK))
+															  .WillOnce(Return(RETURN_NOK))
+															  .WillOnce(Return(RETURN_NOK));
+	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
+										   .WillOnce(Return(&t1))
+										   .WillOnce(Return(&t1))
+										   .WillOnce(Return(&t1))
+										   .WillOnce(Return(&t2));
+	EXPECT_EQ(wifi_reset(), RETURN_NOK);
+
+	/**
+	 * @<b>scenario<\b>: Correct sequence.
+	 * @<b>expected<\b>: RETURN_OK returned.
+	 */
+	const char response [] = "OK";
+	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK));
+	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK));
+	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
+										   .WillOnce(Return(&t1));
+	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response));
+	EXPECT_EQ(wifi_reset(), RETURN_OK);
+
+}
 
 
 
