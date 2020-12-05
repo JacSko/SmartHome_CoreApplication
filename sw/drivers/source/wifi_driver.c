@@ -41,9 +41,12 @@ RET_CODE wifi_initialize()
 	{
 		if (uartengine_register_callback(&wifi_on_uart_data) == RETURN_OK)
 		{
-			if (wifi_disable_echo() == RETURN_OK)
+			if (wifi_reset() == RETURN_OK)
 			{
-				result = wifi_test();
+				if (wifi_disable_echo() == RETURN_OK)
+				{
+					result = wifi_test();
+				}
 			}
 		}
 	}
@@ -219,7 +222,9 @@ RET_CODE wifi_reset()
 {
 	RET_CODE result = RETURN_NOK;
 	string_format(TX_BUFFER, "AT+RST\r\n");
-	result = wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS);
+
+	//timeout
+	//wyczyścić bufor
 	logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "cannot reset");
 	return result;
 }

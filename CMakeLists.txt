@@ -65,7 +65,7 @@ if(NOT UNIT_TESTS)
 		STM_HEADERS
 		uart_engine
 		time_counter
-		wifi_driver
+		wifi_manager
 		bt_engine
 		logger
 	)

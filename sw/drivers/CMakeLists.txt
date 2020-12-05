@@ -49,6 +49,22 @@ target_link_libraries(wifi_driver PUBLIC
         logger
 )
 
+############################
+
+add_library(wifi_manager STATIC
+        source/wifi_manager.c
+)
+
+target_include_directories(wifi_manager PUBLIC
+        include
+)
+
+target_link_libraries(wifi_manager PUBLIC
+        time_counter
+        wifi_driver
+        logger
+)
+
 else()
 
 ###############################

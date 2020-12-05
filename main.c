@@ -1,7 +1,7 @@
 
 #include "stm32f4xx.h"
 #include "time_counter.h"
-#include "wifi_driver.h"
+#include "wifi_manager.h"
 #include "uart_engine.h"
 #include "bt_engine.h"
 #include "Logger.h"
@@ -36,38 +36,8 @@ int main(void)
 	logger_set_group_state(LOG_DEBUG, LOGGER_GROUP_ENABLE);
 	logger_set_group_state(LOG_WIFI_DRIVER, LOGGER_GROUP_ENABLE);
 	logger_send(LOG_DEBUG, __FILE__, "Booting up!");
-	TimeItem time = {};
-	if (wifi_initialize() == RETURN_OK)
-	{
-		if (wifi_connect_to_network("NIE_KRADNIJ_INTERNETU!!!","radionet0098") == RETURN_OK)
-		{
-			if (wifi_allow_multiple_clients(0) == RETURN_OK)
-			{
-				if (wifi_get_time("194.146.251.100", &time) == RETURN_OK)
-				{
-					logger_send(LOG_DEBUG, __FILE__, "Everything OK!");
-				}
-				else
-				{
-					logger_send(LOG_DEBUG, __FILE__, "Cannot get time!");
-				}
-			}
-			else
-			{
-				logger_send(LOG_DEBUG, __FILE__, "Cannot set cipmux!");
-			}
-		}
-		else
-		{
-			logger_send(LOG_DEBUG, __FILE__, "Cannot connect network!");
-		}
-	}
-	else
-	{
-		logger_send(LOG_DEBUG, __FILE__, "Cannot initialize!");
-	}
 
-
+	wifimgr_initialize();
 
 	while (1)
 	{
