@@ -67,20 +67,6 @@ target_link_libraries(wifi_manager PUBLIC
 
 else()
 
-###############################
-#	  Driver mocks
-###############################
+	add_subdirectory(test)
 
-add_library(driversMock STATIC
-			test/mocks/btengine_mock.h
-			test/mocks/uartengine_mock.h
-			test/mocks/wifidriver_mock.h
-)
-set_target_properties(driversMock PROPERTIES LINKER_LANGUAGE CXX)
-target_include_directories(driversMock PUBLIC
-          test/mocks
-          include
-)
-        
-    add_subdirectory(test)
 endif()

@@ -16,3 +16,26 @@ target_link_libraries(logger_tests PUBLIC
 add_test(NAME logger_tests COMMAND logger_tests)
 
 ###########################################################
+
+
+
+
+
+
+
+
+
+
+
+add_library(loggerMock STATIC
+			mocks/logger_mock.h
+)
+    target_include_directories(loggerMock PUBLIC
+                mocks
+                ../include
+    )
+target_link_libraries(loggerMock PUBLIC
+	string_formatter
+)
+
+set_target_properties(loggerMock PROPERTIES LINKER_LANGUAGE CXX)

@@ -44,9 +44,8 @@ target_include_directories(wifi_driver_tests PUBLIC
 target_link_libraries(wifi_driver_tests PUBLIC
         gtest_main
         gmock_main
-        driversMock
+        uartengine_mock
         time_counterMock
-        string_formatter
         loggerMock
 )
 
@@ -64,7 +63,7 @@ target_link_libraries(wifi_manager_tests PUBLIC
         gtest_main
         gmock_main
         loggerMock
-        driversMock
+        wifidriver_mock
         STM_HEADERS
         time_counterMock
 )
@@ -72,3 +71,42 @@ target_link_libraries(wifi_manager_tests PUBLIC
 add_test(NAME wifi_manager_tests COMMAND wifi_manager_tests)
 
 ###########################################################
+
+
+
+
+
+
+
+
+
+###############################
+#	  Driver mocks
+###############################
+
+add_library(btengine_mock STATIC
+			mocks/btengine_mock.h
+)
+set_target_properties(btengine_mock PROPERTIES LINKER_LANGUAGE CXX)
+target_include_directories(btengine_mock PUBLIC
+          ../include
+          mocks/
+)
+
+add_library(uartengine_mock STATIC
+			mocks/uartengine_mock.h
+)
+set_target_properties(uartengine_mock PROPERTIES LINKER_LANGUAGE CXX)
+target_include_directories(uartengine_mock PUBLIC
+          ../include
+          mocks/
+)
+
+add_library(wifidriver_mock STATIC
+			mocks/wifidriver_mock.h
+)
+set_target_properties(wifidriver_mock PROPERTIES LINKER_LANGUAGE CXX)
+target_include_directories(wifidriver_mock PUBLIC
+          ../include
+          mocks/
+)
