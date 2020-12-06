@@ -6,8 +6,9 @@
 #include "string_formatter.h"
 
 // TODO Allow more than one sending function (e.g. to send logs over wifi)
-
+#define LOGGER_MAX_SENDERS 2
 const char* logger_get_group_name(LogGroup group);
+void logger_notify_data(const char* data);
 
 uint8_t LOGGER_GROUPS_STATE [LOG_ENUM_MAX] = {};
 
@@ -20,9 +21,9 @@ typedef struct
 } Logger;
 
 Logger logger;
-RET_CODE(*send_to_uart)(const char*);
+RET_CODE (*LOGGER_SENDERS[LOGGER_MAX_SENDERS])(const char *);
 
-RET_CODE logger_initialize(uint16_t buffer_size, RET_CODE(*send_fnc)(const char*))
+RET_CODE logger_initialize(uint16_t buffer_size)
 {
 	RET_CODE result = RETURN_NOK;
 
@@ -31,7 +32,6 @@ RET_CODE logger_initialize(uint16_t buffer_size, RET_CODE(*send_fnc)(const char*
 	{
 		logger.buffer_size = buffer_size;
 		logger.is_initialized = 1;
-		send_to_uart = send_fnc;
 		result = RETURN_OK;
 	}
 	for (uint8_t i = 0; i < LOG_ENUM_MAX; i++)
@@ -42,11 +42,43 @@ RET_CODE logger_initialize(uint16_t buffer_size, RET_CODE(*send_fnc)(const char*
 	return result;
 }
 
+RET_CODE logger_register_sender(RET_CODE(*send_fnc)(const char*))
+{
+	RET_CODE result = RETURN_NOK;
+	for (uint8_t i=0; i < LOGGER_MAX_SENDERS; i++)
+	{
+		if (LOGGER_SENDERS[i] == NULL)
+		{
+			LOGGER_SENDERS[i] = send_fnc;
+			result = RETURN_OK;
+			break;
+		}
+	}
+	return result;
+}
+
+RET_CODE logger_unregister_sender(RET_CODE(*send_fnc)(const char*))
+{
+	RET_CODE result = RETURN_NOK;
+	for (uint8_t i=0; i < LOGGER_MAX_SENDERS; i++)
+	{
+		if (LOGGER_SENDERS[i] == send_fnc)
+		{
+			LOGGER_SENDERS[i] = NULL;
+			result = RETURN_OK;
+		}
+	}
+	return result;
+}
+
 void logger_deinitialize()
 {
 	free(logger.buffer);
 	logger.is_initialized = 0;
-	send_to_uart = NULL;
+	for (uint8_t i = 0; i < LOGGER_MAX_SENDERS; i++)
+	{
+		LOGGER_SENDERS[i] = NULL;
+	}
 }
 RET_CODE logger_enable()
 {
@@ -110,11 +142,23 @@ void logger_send(LogGroup group, const char* prefix, const char* fmt, ...)
 				va_end(va);
 				buf[offset + length++] = '\n';
 				buf[offset + length] = 0x00;
-				send_to_uart(buf);
+				logger_notify_data(buf);
 			}
 		}
 	}
 }
+
+void logger_notify_data(const char* data)
+{
+	for (uint8_t i = 0; i < LOGGER_MAX_SENDERS; i++)
+	{
+		if (LOGGER_SENDERS[i] != NULL)
+		{
+			LOGGER_SENDERS[i](data);
+		}
+	}
+}
+
 void logger_send_if(uint8_t cond_bool, LogGroup group, const char* prefix, const char* fmt, ...)
 {
 	if (cond_bool != 0 && logger.is_enabled && group < LOG_ENUM_MAX)
@@ -137,7 +181,7 @@ void logger_send_if(uint8_t cond_bool, LogGroup group, const char* prefix, const
 				va_end(va);
 				buf[offset + length++] = '\n';
 				buf[offset + length] = 0x00;
-				send_to_uart(buf);
+				logger_notify_data(buf);
 			}
 		}
 	}

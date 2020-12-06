@@ -31,7 +31,8 @@ int main(void)
 	time_init();
 	BT_Config config = {115200, 1024, 512};
 	btengine_initialize(&config);
-	logger_initialize(512, &btengine_send_string);
+	logger_initialize(512);
+	logger_register_sender(&btengine_send_string);
 	logger_enable();
 	logger_set_group_state(LOG_DEBUG, LOGGER_GROUP_ENABLE);
 	logger_set_group_state(LOG_WIFI_DRIVER, LOGGER_GROUP_ENABLE);

@@ -10,7 +10,9 @@
 
 struct loggerMock
 {
-	MOCK_METHOD2(logger_initialize, RET_CODE(uint16_t, RET_CODE(*)(const char*)));
+	MOCK_METHOD1(logger_initialize, RET_CODE(uint16_t));
+	MOCK_METHOD1(logger_register_sender, RET_CODE(RET_CODE(*send_fnc)(const char*)));
+	MOCK_METHOD1(logger_unregister_sender, RET_CODE(RET_CODE(*send_fnc)(const char*)));
 	MOCK_METHOD0(logger_enable, RET_CODE());
 	MOCK_METHOD0(logger_disable, void());
 	MOCK_METHOD2(logger_set_group_state, RET_CODE(LogGroup, uint8_t));
@@ -31,11 +33,19 @@ void mock_logger_deinit()
 	delete logger_mock;
 }
 
-RET_CODE logger_initialize(uint16_t buffer_size, RET_CODE(*send_fnc)(const char*))
+RET_CODE logger_initialize(uint16_t buffer_size)
 {
-	return logger_mock->logger_initialize(buffer_size, send_fnc);
+	return logger_mock->logger_initialize(buffer_size);
 }
 
+RET_CODE logger_register_sender(RET_CODE(*send_fnc)(const char*))
+{
+	return logger_mock->logger_register_sender(send_fnc);
+}
+RET_CODE logger_unregister_sender(RET_CODE(*send_fnc)(const char*))
+{
+	return logger_mock->logger_unregister_sender(send_fnc);
+}
 RET_CODE logger_enable()
 {
 	return logger_mock->logger_enable();

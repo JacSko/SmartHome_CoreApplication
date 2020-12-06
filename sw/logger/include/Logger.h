@@ -31,8 +31,15 @@ typedef enum
  * send_fnc - pointer to function, which allows to send out formatted data (eg UART).
  * Currently only one send function may be registered.
  */
-RET_CODE logger_initialize(uint16_t buffer_size, RET_CODE(*send_fnc)(const char*));
-
+RET_CODE logger_initialize(uint16_t buffer_size);
+/**
+ * Allows to register sender function - e.g UART sending function.
+ */
+RET_CODE logger_register_sender(RET_CODE(*send_fnc)(const char*));
+/**
+ * Unregisters sender function.
+ */
+RET_CODE logger_unregister_sender(RET_CODE(*send_fnc)(const char*));
 /**
  * Enables logger module.
  * Returns OK if module enabled successfully.

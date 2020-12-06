@@ -42,7 +42,7 @@ struct loggerFixture : public ::testing::Test
 	{
 		callMock = new callbackMock;
 		mock_time_counter_init();
-		logger_initialize(LOGGER_BUFFER_SIZE, &fake_callback);
+		logger_initialize(LOGGER_BUFFER_SIZE);
 	}
 
 	virtual void TearDown()
@@ -60,6 +60,7 @@ TEST_F(loggerFixture, send_log)
 {
 	EXPECT_EQ(RETURN_OK, logger_enable());
 	EXPECT_EQ(RETURN_OK, logger_set_group_state(LOG_DEBUG, 1));
+	EXPECT_EQ(RETURN_OK, logger_register_sender(&fake_callback));
 	TimeItem t1 = {};
 	t1.day = 1; t1.month = 2, t1.year = 2020, t1.hour = 11, t1.minute = 12, t1.second = 13, t1.msecond = 400;
 
@@ -101,6 +102,7 @@ TEST_F(loggerFixture, send_log_conditional)
 {
 	EXPECT_EQ(RETURN_OK, logger_enable());
 	EXPECT_EQ(RETURN_OK, logger_set_group_state(LOG_DEBUG, 1));
+	EXPECT_EQ(RETURN_OK, logger_register_sender(&fake_callback));
 	TimeItem t1 = {};
 	t1.day = 1; t1.month = 2, t1.year = 2020, t1.hour = 11, t1.minute = 12, t1.second = 13, t1.msecond = 400;
 
@@ -149,6 +151,7 @@ TEST_F(loggerFixture, send_log_conditional)
 TEST_F(loggerFixture, send_log_group_disabled)
 {
 	EXPECT_EQ(RETURN_OK, logger_enable());
+	EXPECT_EQ(RETURN_OK, logger_register_sender(&fake_callback));
 	TimeItem t1 = {};
 	t1.day = 1; t1.month = 2, t1.year = 2020, t1.hour = 11, t1.minute = 12, t1.second = 13, t1.msecond = 400;
 
@@ -181,6 +184,7 @@ TEST_F(loggerFixture, send_log_group_disabled)
 TEST_F(loggerFixture, send_log_conditional_group_disabled)
 {
 	EXPECT_EQ(RETURN_OK, logger_enable());
+	EXPECT_EQ(RETURN_OK, logger_register_sender(&fake_callback));
 	TimeItem t1 = {};
 	t1.day = 1; t1.month = 2, t1.year = 2020, t1.hour = 11, t1.minute = 12, t1.second = 13, t1.msecond = 400;
 
@@ -294,4 +298,32 @@ TEST_F(loggerFixture, setting_getting_group_states)
 	 */
 	EXPECT_EQ(RETURN_NOK, logger_set_group_state(LOG_DEBUG,0));
 	EXPECT_EQ(0, logger_get_group_state(LOG_DEBUG));
+}
+
+/**
+ * @test Adding/removing sender function
+ */
+TEST_F(loggerFixture, sender_add_remove_tests)
+{
+	/**
+	 * @<b>scenario<\b>: Register three sender functions
+	 * @<b>expected<\b>: 2x RETURN_OK, 1x RETURN_NOK returned.
+	 */
+	EXPECT_EQ(RETURN_OK, logger_register_sender(&fake_callback));
+	EXPECT_EQ(RETURN_OK, logger_register_sender(&fake_callback));
+	EXPECT_EQ(RETURN_NOK, logger_register_sender(&fake_callback));
+
+	/**
+	 * @<b>scenario<\b>: Unregister all occurences of sender functions
+	 * @<b>expected<\b>: Sender function removed.
+	 */
+	EXPECT_EQ(RETURN_OK, logger_unregister_sender(&fake_callback));
+
+	/**
+	 * @<b>scenario<\b>: Unregister not existing function
+	 * @<b>expected<\b>: RETURN_NOK returned.
+	 */
+	EXPECT_EQ(RETURN_NOK, logger_unregister_sender(&fake_callback));
+
+
 }
