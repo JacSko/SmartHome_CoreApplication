@@ -15,11 +15,18 @@ target_link_libraries(logger PUBLIC
 )
 
 else ()
-add_library(loggerMock INTERFACE)
-    target_include_directories(loggerMock INTERFACE
+add_library(loggerMock STATIC
+			test/mocks/logger_mock.h
+)
+    target_include_directories(loggerMock PUBLIC
                 test/mocks
                 include
     )
+target_link_libraries(loggerMock PUBLIC
+	string_formatter
+)
+
+set_target_properties(loggerMock PROPERTIES LINKER_LANGUAGE CXX)
     add_subdirectory(test)
 
 endif()

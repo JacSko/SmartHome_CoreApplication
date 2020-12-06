@@ -65,6 +65,8 @@ target_link_libraries(wifi_manager_tests PUBLIC
         gmock_main
         loggerMock
         driversMock
+        STM_HEADERS
+        time_counterMock
 )
 
 add_test(NAME wifi_manager_tests COMMAND wifi_manager_tests)

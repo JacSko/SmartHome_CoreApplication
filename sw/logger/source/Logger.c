@@ -157,6 +157,8 @@ const char* logger_get_group_name(LogGroup group)
 		return "TASK_SCH";
 	case LOG_DEBUG:
 		return "DEBUG";
+	case LOG_WIFI_MANAGER:
+		return "WIFI_MGR";
 	default:
 		return "";
 	}

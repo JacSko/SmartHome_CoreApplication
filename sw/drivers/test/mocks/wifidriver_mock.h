@@ -27,12 +27,12 @@ struct wifiDriverMock
 
 wifiDriverMock* wifi_driver_mock;
 
-void mock_btengine_init()
+void mock_wifidriver_init()
 {
 	wifi_driver_mock = new wifiDriverMock;
 }
 
-void mock_btengine_deinit()
+void mock_wifidriver_deinit()
 {
 	delete wifi_driver_mock;
 }

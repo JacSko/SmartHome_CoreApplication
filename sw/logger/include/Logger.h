@@ -18,6 +18,7 @@ typedef enum
 	LOG_TIME = 0x02,
 	LOG_TASK_SCHEDULER = 0x03,
 	LOG_DEBUG = 0x04,
+	LOG_WIFI_MANAGER = 0x05,
 
 	LOG_ENUM_MAX
 } LogGroup;

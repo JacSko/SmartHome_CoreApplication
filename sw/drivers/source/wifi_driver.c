@@ -109,18 +109,19 @@ RET_CODE wifi_send_and_wait_defined_response(const char* response, uint32_t time
 
 void wifi_on_uart_data(const char* data)
 {
+	logger_send(LOG_WIFI_DRIVER, __func__, "Received uart clb: %s", data);
 	if (strstr(data, ",CONNECT")) /* new client connected */
 	{
 		ServerClientID id = atoi(strtok((char*)data, ","));
 		wifi_call_client_callback(CLIENT_CONNECTED, id, NULL);
-		logger_send(LOG_WIFI_DRIVER, __func__, "Received data %s", data);
+		logger_send(LOG_WIFI_DRIVER, __func__, "NEW CLIENT CONNECTED: %d", id);
 
 	}
 	else if (strstr(data, ",CLOSED")) /* client disconnected */
 	{
 		ServerClientID id = atoi(strtok((char*)data, ","));
 		wifi_call_client_callback(CLIENT_DISCONNECTED, id, NULL);
-		logger_send(LOG_WIFI_DRIVER, __func__, "Received data %s", data);
+		logger_send(LOG_WIFI_DRIVER, __func__, "Client disconnected!! %d", id);
 	}
 	else if (strstr(data, "+IPD,")) /* new data received */
 	{
@@ -199,6 +200,8 @@ RET_CODE wifi_wait_for_bytes(uint16_t bytes_count, uint32_t timeout)
 void wifi_deinitialize()
 {
 	uartengine_deinitialize();
+	wifi_status_callback = NULL;
+
 }
 
 /*

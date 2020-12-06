@@ -35,11 +35,14 @@ int main(void)
 	logger_enable();
 	logger_set_group_state(LOG_DEBUG, LOGGER_GROUP_ENABLE);
 	logger_set_group_state(LOG_WIFI_DRIVER, LOGGER_GROUP_ENABLE);
+	logger_set_group_state(LOG_WIFI_MANAGER, LOGGER_GROUP_ENABLE);
 	logger_send(LOG_DEBUG, __FILE__, "Booting up!");
 
 	wifimgr_initialize();
 
 	while (1)
 	{
+		btengine_string_watcher();
+		uartengine_string_watcher();
 	}
 }
