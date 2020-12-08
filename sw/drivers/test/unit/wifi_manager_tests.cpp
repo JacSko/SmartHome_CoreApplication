@@ -766,3 +766,29 @@ TEST_F(wifiMgrFixture, get_ssid_name)
 	EXPECT_STREQ(result, name);
 }
 
+/**
+ * @test WiFi manager - settings save test
+ */
+TEST_F(wifiMgrFixture, settings_save_tests)
+{
+	/**
+	 * @<b>scenario<\b>: Change all persistent settings and trigger save.
+	 * @<b>expected<\b>: Settings should be saved
+	 */
+	const char new_ssid [] = "NEW_SSID";
+	const char new_pass [] = "NEW_PASS";
+	const char new_ntp [] = "NEW_NTP";
+	const char new_ip [] = "11.12.13.14";
+	uint32_t new_port = 5555;
+
+	EXPECT_EQ(RETURN_OK, wifimgr_set_network_data(new_ssid, new_pass));
+	EXPECT_EQ(RETURN_OK, wifimgr_set_ip_address(new_ip));
+	EXPECT_EQ(RETURN_OK, wifimgr_set_server_port(new_port));
+	EXPECT_EQ(RETURN_OK, wifimgr_set_ntp_server(new_ntp));
+	wifimgr_save_defaults();
+	EXPECT_STREQ(new_ssid, SETTING_WIFI_NET_SSID);
+	EXPECT_STREQ(new_pass, SETTING_WIFI_NET_PASS);
+	EXPECT_STREQ(new_ntp, SETTING_WIFI_NTP_SERVER);
+	EXPECT_STREQ(new_ip, SETTING_WIFI_STATION_IP_ADDRESS);
+	EXPECT_EQ(new_port, SETTING_WIFI_SERVER_PORT);
+}

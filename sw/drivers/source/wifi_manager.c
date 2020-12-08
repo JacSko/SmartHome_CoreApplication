@@ -1,20 +1,20 @@
 #include "wifi_manager.h"
 #include "Logger.h"
+#include "system_settings.h"
+#include "string_formatter.h"
 #include <stdlib.h>
 #include <string.h>
 
+RET_CODE wifimgr_setup();
 void wifimgr_on_client_event(ClientEvent ev, ServerClientID id, const char* data);
 void(*wifimgr_data_callback)(ServerClientID id, const char* data);
 
 uint8_t WIFIMGR_MAX_CLIENTS = 2;
 
-
-char wifi_cur_ssid [32] = "NIE_KRADNIJ_INTERNETU!!!";
-char wifi_cur_pass [64] = "radionet0098";
-char wifi_ntp_server [100] = "194.146.251.101";
-IPAddress wifi_cur_ip_address = {{192,168,100,100},{0,0,0,0},{0,0,0,0}};
-
-uint16_t wifi_server_port = 4444;
+char wifi_cur_ssid [32];
+char wifi_cur_pass [64];
+char wifi_ntp_server [100];
+IPAddress wifi_cur_ip_address;
 
 typedef struct WiFiClient
 {
@@ -29,22 +29,42 @@ typedef struct WifiMgr
 	uint8_t wifi_connected;
 	uint8_t server_running;
 	uint16_t server_port;
-	char* ssid;
-	char* pass;
 } WifiMgr;
 
 
 WifiMgr wifi_mgr;
 
+void wifimgr_load_default_settings()
+{
+	wifi_mgr.server_port = SETTING_WIFI_SERVER_PORT;
+	strcpy(wifi_cur_ssid, SETTING_WIFI_NET_SSID);
+	strcpy(wifi_cur_pass, SETTING_WIFI_NET_PASS);
+	strcpy(wifi_ntp_server, SETTING_WIFI_NTP_SERVER);
+	wifimgr_set_ip_address(SETTING_WIFI_STATION_IP_ADDRESS);
+}
+
+void wifimgr_save_defaults()
+{
+	SETTING_WIFI_SERVER_PORT = wifi_mgr.server_port;
+	strcpy(SETTING_WIFI_NET_SSID, wifi_cur_ssid);
+	strcpy(SETTING_WIFI_NET_PASS, wifi_cur_pass);
+	strcpy(SETTING_WIFI_NTP_SERVER, wifi_ntp_server);
+	string_format(SETTING_WIFI_STATION_IP_ADDRESS, "%d.%d.%d.%d", wifi_cur_ip_address.ip_address[0],wifi_cur_ip_address.ip_address[1],
+																	 wifi_cur_ip_address.ip_address[2],wifi_cur_ip_address.ip_address[3]);
+}
+
 RET_CODE wifimgr_initialize()
 {
 	logger_send(LOG_WIFI_MANAGER, __func__, "initializing wifimgr");
-	wifi_mgr.ssid = wifi_cur_ssid;
-	wifi_mgr.pass = wifi_cur_pass;
+	wifimgr_load_default_settings();
 
+	return wifimgr_setup();
+}
+
+RET_CODE wifimgr_setup()
+{
 	wifi_mgr.clients_cnt = 0;
 	wifi_mgr.wifi_connected = 0;
-	wifi_mgr.server_port = wifi_server_port;
 	wifi_mgr.server_running = 0;
 
 	RET_CODE result = RETURN_NOK;
@@ -62,7 +82,7 @@ RET_CODE wifimgr_initialize()
 			logger_send(LOG_ERROR, __func__, "Cannot set ip address");
 			break;
 		}
-		if (wifi_connect_to_network(wifi_mgr.ssid, wifi_mgr.pass) != RETURN_OK)
+		if (wifi_connect_to_network(wifi_cur_ssid, wifi_cur_pass) != RETURN_OK)
 		{
 			logger_send(LOG_ERROR, __func__, "Cannot connect to network!");
 			break;
@@ -197,11 +217,14 @@ RET_CODE wifimgr_set_ntp_server(const char* server)
 
 RET_CODE wifimgr_set_ip_address(const char* address)
 {
+	char ip_address [64];
+
 	RET_CODE result = RETURN_NOK;
 	if (address)
 	{
+		strcpy(ip_address, address); /* copy needed because of strtok */
 		char delims [5] = {"."};
-		const char* byte1 = strtok((char*)address, delims);
+		const char* byte1 = strtok(ip_address, delims);
 		const char* byte2 = strtok(NULL, delims);
 		const char* byte3 = strtok(NULL, delims);
 		const char* byte4 = strtok(NULL, delims);
@@ -225,7 +248,7 @@ RET_CODE wifimgr_set_server_port(uint16_t port)
 	RET_CODE result = RETURN_NOK;
 	if (port > 999 && port < 10000)
 	{
-		wifi_server_port = port;
+		wifi_mgr.server_port = port;
 		result = RETURN_OK;
 	}
 	logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "error");
@@ -290,7 +313,7 @@ RET_CODE wifimgr_get_time(TimeItem* item)
 			break;
 		}
 
-		if (wifi_open_server(wifi_server_port) != RETURN_OK)
+		if (wifi_open_server(wifi_mgr.server_port) != RETURN_OK)
 		{
 			logger_send(LOG_ERROR, __func__, "cannot open server");
 			break;
@@ -368,7 +391,7 @@ uint8_t wifi_get_max_clients()
 RET_CODE wifimgr_reset()
 {
 	wifimgr_deinitialize();
-	return wifimgr_initialize();
+	return wifimgr_setup();
 }
 void wifimgr_deinitialize()
 {
