@@ -29,17 +29,21 @@
 
 void print_log()
 {
-	logger_send(LOG_DEBUG, __func__,"TEST STRING");
+	TimeItem item = {};
+	RET_CODE result = wifimgr_get_time(&item);
+	logger_send(LOG_DEBUG, __func__,"Get time result %d: %d:%d%d %d-%d-%d", result,
+							item.day, item.month, item.year,
+							item.hour, item.minute, item.second);
 }
 
 int main(void)
 {
 	time_init();
 	sch_initialize();
-//	sch_subscribe(&print_log);
-//	sch_set_task_period(&print_log, 1000);
-//	sch_set_task_type(&print_log, TASKTYPE_PERIODIC);
-//	sch_set_task_state(&print_log, TASKSTATE_RUNNING);
+	sch_subscribe(&print_log);
+	sch_set_task_period(&print_log, 20000);
+	sch_set_task_type(&print_log, TASKTYPE_PERIODIC);
+	sch_set_task_state(&print_log, TASKSTATE_RUNNING);
 
 	BT_Config config = {115200, 2048, 1024};
 	btengine_initialize(&config);

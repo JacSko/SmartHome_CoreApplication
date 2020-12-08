@@ -40,8 +40,9 @@ RET_CODE wifimgr_send_data(ServerClientID id, const char* data);
  * RETURN_OK is returned if data sent to at least one client.
  */
 RET_CODE wifimgr_broadcast_data(const char* data);
-
-//TODO to remove
+/**
+ * Gets current time from NTP server
+ */
 RET_CODE wifimgr_get_time(TimeItem* item);
 /**
  * Returns how many clients are currently connected

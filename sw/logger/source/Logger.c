@@ -5,7 +5,6 @@
 #include "time_counter.h"
 #include "string_formatter.h"
 
-// TODO Allow more than one sending function (e.g. to send logs over wifi)
 #define LOGGER_MAX_SENDERS 2
 const char* logger_get_group_name(LogGroup group);
 void logger_notify_data(const char* data);
