@@ -598,8 +598,8 @@ TEST_F(wifiFixture, wifi_send_data_to_client_test)
 	TimeItem t1 = {};
 	TimeItem t2 = {};
 	t2.time_raw = t1.time_raw + 5000;
-	const char wrong_char []= "< ";
-	const char correct_char []= "> ";
+	const char wrong_char []= "NOK";
+	const char correct_char []= "OK";
 	const char wrong_response [] = "SEND NOK";
 	const char correct_response [] = "SEND OK";
 	/**

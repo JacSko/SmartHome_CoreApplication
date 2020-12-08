@@ -50,7 +50,6 @@ RET_CODE wifi_initialize()
 			}
 		}
 	}
-	logger_send_if(result != RETURN_OK, LOG_WIFI_DRIVER, __func__, "Error intializing WiFi driver");
 	return result;
 }
 
@@ -62,7 +61,6 @@ RET_CODE wifi_register_client_event_callback(void(*callback)(ClientEvent ev, Ser
 		wifi_status_callback = callback;
 		result = RETURN_OK;
 	}
-	logger_send_if(result != RETURN_OK, LOG_WIFI_DRIVER, __func__, "Cannot register callback");
 	return result;
 }
 
@@ -81,7 +79,6 @@ void wifi_call_client_callback(ClientEvent ev, ServerClientID id, const char* da
 
 RET_CODE wifi_send_command()
 {
-	logger_send(LOG_WIFI_DRIVER, __func__, ">> %s", TX_BUFFER);
 	return uartengine_send_string(TX_BUFFER);
 }
 
@@ -92,7 +89,6 @@ RET_CODE wifi_send_and_wait(uint32_t timeout)
 	{
 		result = wifi_wait_for_response(timeout);
 	}
-	logger_send_if(result != RETURN_OK, LOG_WIFI_DRIVER, __func__, "Timeout");
 	return result;
 }
 
@@ -104,25 +100,21 @@ RET_CODE wifi_send_and_wait_defined_response(const char* response, uint32_t time
 	{
 		result = wifi_wait_for_defined_response(response, timeout);
 	}
-	logger_send_if(result != RETURN_OK, LOG_WIFI_DRIVER, __func__, "Error waiting for response %s", response);
 	return result;
 }
 
 void wifi_on_uart_data(const char* data)
 {
-	logger_send(LOG_WIFI_DRIVER, __func__, "Received uart clb: %s", data);
 	if (strstr(data, ",CONNECT")) /* new client connected */
 	{
 		ServerClientID id = atoi(strtok((char*)data, ","));
 		wifi_call_client_callback(CLIENT_CONNECTED, id, NULL);
-		logger_send(LOG_WIFI_DRIVER, __func__, "NEW CLIENT CONNECTED: %d", id);
 
 	}
 	else if (strstr(data, ",CLOSED")) /* client disconnected */
 	{
 		ServerClientID id = atoi(strtok((char*)data, ","));
 		wifi_call_client_callback(CLIENT_DISCONNECTED, id, NULL);
-		logger_send(LOG_WIFI_DRIVER, __func__, "Client disconnected!! %d", id);
 	}
 	else if (strstr(data, "+IPD,")) /* new data received */
 	{
@@ -135,7 +127,6 @@ void wifi_on_uart_data(const char* data)
         (void) command;
         (void) size;
         wifi_call_client_callback(CLIENT_DATA, (ServerClientID)atoi(client), data);
-        logger_send(LOG_WIFI_DRIVER, __func__, "Received data %s", data);
 	}
 
 }
@@ -149,12 +140,10 @@ RET_CODE wifi_wait_for_response(uint32_t timeout)
 		if (uartengine_can_read_string() == RETURN_OK)
 		{
 			RX_BUFFER = uartengine_get_string();
-			logger_send(LOG_WIFI_DRIVER, __func__, "<< %s", RX_BUFFER);
 			result = RETURN_OK;
 			break;
 		}
 	}
-	logger_send_if(result != RETURN_OK, LOG_WIFI_DRIVER, __func__, "Timeout waiting for response");
 	return result;
 }
 
@@ -169,7 +158,6 @@ RET_CODE wifi_wait_for_defined_response(const char* resp, uint32_t timeout)
 		if (uartengine_can_read_string() == RETURN_OK)
 		{
 			RX_BUFFER = uartengine_get_string();
-			logger_send(LOG_WIFI_DRIVER, __func__, "<< %s", RX_BUFFER);
 			if (!strcmp(resp, RX_BUFFER))
 			{
 				result = RETURN_OK;
@@ -177,7 +165,6 @@ RET_CODE wifi_wait_for_defined_response(const char* resp, uint32_t timeout)
 			}
 		}
 	}
-	logger_send_if(result != RETURN_OK, LOG_WIFI_DRIVER, __func__, "Timeout waiting for %s response", resp);
 	return result;
 }
 
@@ -194,7 +181,6 @@ RET_CODE wifi_wait_for_bytes(uint16_t bytes_count, uint32_t timeout)
 			break;
 		}
 	}
-	logger_send_if(result != RETURN_OK, LOG_WIFI_DRIVER, __func__, "Timeout waiting for %u bytes", bytes_count);
 	return result;
 }
 
@@ -218,7 +204,6 @@ RET_CODE wifi_test()
 	{
 		result = !strcmp(RX_BUFFER, "OK")? RETURN_OK : RETURN_NOK;
 	}
-	logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "wifi test failed");
 	return result;
 }
 
@@ -232,7 +217,6 @@ RET_CODE wifi_reset()
 		uartengine_clear_rx();	/* remove all strange bytes received after reset */
 		result = RETURN_OK;
 	}
-	logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "cannot reset");
 	return result;
 }
 
@@ -246,14 +230,13 @@ RET_CODE wifi_send_data(ServerClientID id, const char* data, uint16_t size)
 {
 	RET_CODE result = RETURN_NOK;
 	string_format(TX_BUFFER, "AT+CIPSEND=%d,%d\r\n", id, size);
-	if (wifi_send_and_wait_defined_response("> ", DEFAULT_REPLY_TIMEOUT_MS) == RETURN_OK)
+	if (wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS) == RETURN_OK)
 	{
 		if (uartengine_send_string(data) == RETURN_OK)
 		{
 			result = wifi_wait_for_defined_response("SEND OK", DEFAULT_REPLY_TIMEOUT_MS);
 		}
 	}
-	logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "Cannot send data");
 	return result;
 }
 
@@ -271,12 +254,10 @@ RET_CODE wifi_connect_to_network(const char* ssid, const char* password)
 				if (wifi_wait_for_defined_response("OK", WIFI_CONNECT_TIMEOUT) == RETURN_OK)
 				{
 					result = RETURN_OK;
-					logger_send(LOG_WIFI_DRIVER, __func__, "Connected to %s", ssid);
 				}
 			}
 		}
 	}
-	logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "Cannot connect to network %s", ssid);
 	return result;
 }
 
@@ -349,16 +330,11 @@ RET_CODE wifi_get_time(const char* ntp_server, TimeItem* item)
 					{
 						wifi_convert_ntp_time((uint8_t*)(RX_BUFFER + 2 + ipd_header_size + ntp_timestamp_offset), item);
 					}
-					logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "No response from NTP server");
 				}
 			}
 		}
-		if (wifi_disconnect_server() != RETURN_OK)
-		{
-			logger_send(LOG_ERROR, __func__, "Cannot close UDP server");
-		}
+		wifi_disconnect_server();
 	}
-	logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "Cannot get time from server %s", ntp_server);
 	return result;
 }
 
@@ -427,12 +403,8 @@ RET_CODE wifi_get_ip_address(IPAddress* ip_address)
 				break;
 			}
 		}
-		logger_send(LOG_WIFI_DRIVER, __func__, "Recv IP address:");
-		logger_send(LOG_WIFI_DRIVER, __func__, "IP: %d.%d.%d.%d", ip_address->ip_address[0], ip_address->ip_address[1], ip_address->ip_address[2], ip_address->ip_address[3]);
-		logger_send(LOG_WIFI_DRIVER, __func__, "gateway: %d.%d.%d.%d", ip_address->gateway[0], ip_address->gateway[1], ip_address->gateway[2], ip_address->gateway[3]);
-		logger_send(LOG_WIFI_DRIVER, __func__, "netmask: %d.%d.%d.%d", ip_address->netmask[0], ip_address->netmask[1], ip_address->netmask[2], ip_address->netmask[3]);
 	}
-	logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "Cannot get IP address");
+
 	return result;
 }
 
@@ -456,13 +428,11 @@ RET_CODE wifi_get_current_network_name(char* buffer, uint8_t size)
 				if (strlen(name) < size)
 				{
 					string_format(buffer, "%s", name);
-					logger_send(LOG_WIFI_DRIVER, __func__, "Current network name %s", name);
 					result = RETURN_OK;
 				}
 			}
 		}
 	}
-	logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "Cannot get current network name");
 	return result;
 }
 
@@ -502,13 +472,9 @@ RET_CODE wifi_request_client_details(ClientID* client)
 					client->address.ip_address[3] = atoi(byte4);
 					result = RETURN_OK;
 				}
-				logger_send(LOG_WIFI_DRIVER, __func__, "Client details: id:%d ct:%d ip:%d.%d.%d.%d", client->id, client->type,
-														client->address.ip_address[0], client->address.ip_address[1],
-														client->address.ip_address[2], client->address.ip_address[3]);
 			}
 		}
 	}
-	logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "Cannot get client details");
 	return result;
 }
 
@@ -588,7 +554,5 @@ void wifi_convert_ntp_time(uint8_t* data, TimeItem* tim)
 	tim->hour = remsecs / 3600;
 	tim->minute = remsecs / 60 % 60;
 	tim->second = remsecs % 60;
-	logger_send(LOG_WIFI_DRIVER, __func__, "NTP time recv: %d-%d-%d %d:%d:%d",
-							tim->day, tim->month, tim->year, tim->hour, tim->minute, tim->second);
 }
 

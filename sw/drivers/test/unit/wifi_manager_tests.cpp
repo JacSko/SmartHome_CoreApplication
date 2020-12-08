@@ -238,6 +238,26 @@ TEST_F(wifiMgrFixture, manager_client_handling)
 	EXPECT_EQ(wifimgr_count_clients(), 2);
 
 	/**
+	 * @<b>scenario<\b>: Getting connected clients details.
+	 * @<b>expected<\b>: Clients data are correct.
+	 */
+	{
+		const uint8_t max_client_count = 2;
+		ClientID clients [max_client_count];
+		EXPECT_EQ(max_client_count, wifimgr_get_clients_details(clients));
+		EXPECT_EQ(clients[0].id, 0);
+		EXPECT_EQ(clients[0].address.ip_address[0], 1);
+		EXPECT_EQ(clients[0].address.ip_address[1], 2);
+		EXPECT_EQ(clients[0].address.ip_address[2], 3);
+		EXPECT_EQ(clients[0].address.ip_address[3], 4);
+		EXPECT_EQ(clients[1].id, 1);
+		EXPECT_EQ(clients[1].address.ip_address[0], 5);
+		EXPECT_EQ(clients[1].address.ip_address[1], 6);
+		EXPECT_EQ(clients[1].address.ip_address[2], 7);
+		EXPECT_EQ(clients[1].address.ip_address[3], 8);
+	}
+
+	/**
 	 * @<b>scenario<\b>: Sending data to client 1.
 	 * @<b>expected<\b>: Data send successfully.
 	 */
@@ -284,6 +304,22 @@ TEST_F(wifiMgrFixture, manager_client_handling)
 	clientid = 0;
 	wifimgr_on_client_event(CLIENT_DISCONNECTED, clientid, NULL);
 	EXPECT_EQ(wifimgr_count_clients(), 1);
+
+	/**
+	 * @<b>scenario<\b>: Getting connected clients details after disconnection of another client.
+	 * @<b>expected<\b>: Clients data are correct.
+	 */
+	{
+		const uint8_t max_client_count = 2;
+		ClientID clients [max_client_count];
+		EXPECT_EQ(1, wifimgr_get_clients_details(clients));
+		EXPECT_EQ(clients[0].id, 1);
+		EXPECT_EQ(clients[0].address.ip_address[0], 5);
+		EXPECT_EQ(clients[0].address.ip_address[1], 6);
+		EXPECT_EQ(clients[0].address.ip_address[2], 7);
+		EXPECT_EQ(clients[0].address.ip_address[3], 8);
+
+	}
 
 	/**
 	 * @<b>scenario<\b>: Sending data to client 1 - which is disconnected.
@@ -675,4 +711,58 @@ TEST_F(wifiMgrFixture, callback_register_unregister)
 	EXPECT_EQ(RETURN_OK, wifimgr_register_data_callback(&fake_callback));
 }
 
+/**
+ * @test WiFi manager - get IP address test
+ */
+TEST_F(wifiMgrFixture, get_ip_address_test)
+{
+	/**
+	 * @<b>scenario<\b>: Getting current IP address.
+	 * @<b>expected<\b>: RETURN_OK returned.
+	 */
+	IPAddress item = {};
+	IPAddress result = {};
+	item.ip_address[0] = 1;
+	item.ip_address[1] = 2;
+	item.ip_address[2] = 3;
+	item.ip_address[3] = 4;
+
+	EXPECT_CALL(*wifi_driver_mock, wifi_get_ip_address(_)).WillOnce(Invoke([&](IPAddress* addr) -> RET_CODE
+			{
+				*addr = item;
+				return RETURN_OK;
+			}));
+
+	EXPECT_EQ(RETURN_OK, wifimgr_get_ip_address(&result));
+	EXPECT_EQ(result.ip_address[0], 1);
+	EXPECT_EQ(result.ip_address[1], 2);
+	EXPECT_EQ(result.ip_address[2], 3);
+	EXPECT_EQ(result.ip_address[3], 4);
+}
+
+/**
+ * @test WiFi manager - get name of ssid test
+ */
+TEST_F(wifiMgrFixture, get_ssid_name)
+{
+	/**
+	 * @<b>scenario<\b>: Getting current network name.
+	 * @<b>expected<\b>: RETURN_OK returned.
+	 */
+	char result [32];
+	char name [32] = "TEST_SSID_NAME";
+
+
+	EXPECT_CALL(*wifi_driver_mock, wifi_get_current_network_name(_,_)).WillOnce(Invoke([&](char* ssid, uint8_t size) -> RET_CODE
+			{
+				for (uint8_t i = 0; i < size; i++)
+				{
+					ssid[i] = name[i];
+				}
+				return RETURN_OK;
+			}));
+
+	EXPECT_EQ(RETURN_OK, wifimgr_get_network_name(result, 32));
+	EXPECT_STREQ(result, name);
+}
 

@@ -61,7 +61,7 @@ RET_CODE wifimgr_get_network_name(char* buf, uint8_t buf_size);
  * It takes pointer to plece, where data is to be stored.
  * Returns count of clients written.
  */
-uint8_t wifi_get_clients_details(ClientID* buffer);
+uint8_t wifimgr_get_clients_details(ClientID* buffer);
 /**
  * Get maximum number of clients possible.
  */

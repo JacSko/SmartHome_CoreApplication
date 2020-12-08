@@ -59,7 +59,7 @@ RET_CODE wifimgr_initialize()
 
 		if (wifi_set_ip_address(&wifi_cur_ip_address) != RETURN_OK)
 		{
-			logger_send(LOG_ERROR, __func__, "Cannot init wifi driver");
+			logger_send(LOG_ERROR, __func__, "Cannot set ip address");
 			break;
 		}
 		if (wifi_connect_to_network(wifi_mgr.ssid, wifi_mgr.pass) != RETURN_OK)
@@ -339,19 +339,16 @@ void wifimgr_unregister_data_callback(void(*callback)(ServerClientID id, const c
 }
 RET_CODE wifimgr_get_ip_address(IPAddress* item)
 {
-	//TODO add UT
 	return wifi_get_ip_address(item);
 }
 
 RET_CODE wifimgr_get_network_name(char* buf, uint8_t buf_size)
 {
-	//TODO add UT
 	return wifi_get_current_network_name(buf, buf_size);
 }
 
-uint8_t wifi_get_clients_details(ClientID* buffer)
+uint8_t wifimgr_get_clients_details(ClientID* buffer)
 {
-	//TODO add UT
 	uint8_t result = 0;
 	for (uint8_t i = 0; i < WIFIMGR_MAX_CLIENTS; i++)
 	{

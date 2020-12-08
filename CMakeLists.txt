@@ -68,6 +68,7 @@ if(NOT UNIT_TESTS)
 		wifi_manager
 		bt_engine
 		logger
+		task_scheduler
 	)
 	
 #	target_include_directories(${PROJECT_NAME}.elf PUBLIC ext_lib/CMSIS/device
