@@ -63,8 +63,6 @@ target_link_libraries(wifi_manager PUBLIC
         time_counter
         wifi_driver
         logger
-        system_settings
-        string_formatter
 )
 
 else()
