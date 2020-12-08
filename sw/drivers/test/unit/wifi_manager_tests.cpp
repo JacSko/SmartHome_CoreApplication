@@ -125,7 +125,8 @@ TEST_F(wifiMgrFixture, manager_initialization)
 	EXPECT_CALL(*wifi_driver_mock, wifi_set_ip_address(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_connect_to_network(_,_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_allow_multiple_clients(0)).WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*wifi_driver_mock, wifi_get_time(_,_)).WillOnce(Return(RETURN_NOK));
+	EXPECT_CALL(*wifi_driver_mock, wifi_get_time(_,_)).WillOnce(Return(RETURN_NOK))
+													  .WillOnce(Return(RETURN_NOK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_allow_multiple_clients(1)).WillOnce(Return(RETURN_NOK));
 	EXPECT_EQ(RETURN_NOK, wifimgr_initialize());
 

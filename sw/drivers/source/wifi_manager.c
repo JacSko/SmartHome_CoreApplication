@@ -11,7 +11,7 @@ uint8_t WIFIMGR_MAX_CLIENTS = 2;
 
 char wifi_cur_ssid [32] = "NIE_KRADNIJ_INTERNETU!!!";
 char wifi_cur_pass [64] = "radionet0098";
-char wifi_ntp_server [100] = "194.146.251.100";
+char wifi_ntp_server [100] = "194.146.251.101";
 IPAddress wifi_cur_ip_address = {{192,168,100,100},{0,0,0,0},{0,0,0,0}};
 
 uint16_t wifi_server_port = 4444;
@@ -77,16 +77,16 @@ RET_CODE wifimgr_initialize()
 		}
 		TimeItem tim;
 
-		if (wifi_get_time(wifi_ntp_server, &tim) != RETURN_OK)
+		RET_CODE time_ok = wifi_get_time(wifi_ntp_server, &tim);
+		if (time_ok != RETURN_OK)
 		{
-			logger_send(LOG_ERROR, __func__, "Cannot get NTP time!");
+			/* workaround - due to bug in ESP, after initializiation there is not first response from NTP server */
+			logger_send(LOG_ERROR, __func__, "Cannot get NTP time, trying again!");
+			time_ok = wifi_get_time(wifi_ntp_server, &tim);
 		}
-		else
+		if (time_ok == RETURN_OK)
 		{
-			if (time_set_utc(&tim) != RETURN_OK)
-			{
-				logger_send(LOG_ERROR, __func__, "Cannot set system time!");
-			}
+			time_set_utc(&tim);
 		}
 
 		if (wifi_allow_multiple_clients(1) != RETURN_OK)
