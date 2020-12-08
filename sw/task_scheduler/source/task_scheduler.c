@@ -1,6 +1,7 @@
 #include "task_scheduler.h"
 #include "time_counter.h"
 #include <stdlib.h>
+#include "Logger.h"
 
 typedef struct SchItem
 {
@@ -42,7 +43,7 @@ void sch_initialize ()
 	}
 	else
 	{
-		//TODO print error
+		logger_send(LOG_ERROR, __func__, "Cannot allocate buffer!");
 	}
 }
 RET_CODE sch_subscribe (TASK task)
@@ -110,12 +111,12 @@ RET_CODE sch_schedule_task (TASK task, TASK_PERIOD period)
 		{
 			sch_unsubscribe(task);
 			result = RETURN_NOK;
-			//cannot set task period
+			logger_send(LOG_ERROR, __func__, "Cannot set task period!");
 		}
 	}
 	else
 	{
-		//cannot schedule task
+		logger_send(LOG_ERROR, __func__, "Cannot schedule task!");
 	}
 	return result;
 }

@@ -9,6 +9,7 @@ extern "C" {
 #endif
 
 #include "time_counter_mock.h"
+#include "logger_mock.h"
 
 /**
  * @brief Unit test of task scheduler module.
@@ -50,12 +51,14 @@ struct timeFixture : public ::testing::Test
 	virtual void SetUp()
 	{
 		mock_time_counter_init();
+		mock_logger_init();
 		callMock = new callbackMock();
 	}
 
 	virtual void TearDown()
 	{
 		mock_time_counter_deinit();
+		mock_logger_deinit();
 		delete callMock;
 	}
 };

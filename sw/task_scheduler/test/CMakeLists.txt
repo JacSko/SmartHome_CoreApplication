@@ -10,6 +10,7 @@ target_link_libraries(task_scheduler_tests PUBLIC
         gmock_main
         STM_HEADERS
         time_counterMock
+        loggerMock
 )
 
 add_test(NAME task_scheduler_tests COMMAND task_scheduler_tests)
