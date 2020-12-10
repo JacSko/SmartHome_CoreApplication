@@ -8,7 +8,7 @@
  * It starts TCP server which allows clients to connect.
  * Before server is started, time is updated basing on NTP server.
  */
-RET_CODE wifimgr_initialize();
+RET_CODE wifimgr_initialize(uint16_t rx_buffer_size);
 /**
  * Change the WiFi network to which module is connected.
  * If manager is already running, the connection is established again.

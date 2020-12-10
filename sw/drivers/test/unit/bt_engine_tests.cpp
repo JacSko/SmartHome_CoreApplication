@@ -448,7 +448,7 @@ TEST_F(btengineFixture, callback_add_remove)
 
 	for (uint8_t i = 0; i < BT_ENGINE_CALLBACK_SIZE; i++)
 	{
-		CALLBACKS[i] = NULL;
+		BT_CALLBACKS[i] = NULL;
 	}
 	/**
 	 * @<b>scenario<\b>: Callback list empty - adding one callback.
@@ -503,7 +503,7 @@ TEST_F(btengineFixture, callback_add_remove)
 
 	for (uint8_t i = 0; i < BT_ENGINE_CALLBACK_SIZE; i++)
 	{
-		CALLBACKS[i] = NULL;
+		BT_CALLBACKS[i] = NULL;
 	}
 }
 

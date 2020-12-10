@@ -69,6 +69,7 @@ if(NOT UNIT_TESTS)
 		bt_engine
 		logger
 		task_scheduler
+		command_parser
 	)
 	
 #	target_include_directories(${PROJECT_NAME}.elf PUBLIC ext_lib/CMSIS/device
@@ -129,4 +130,5 @@ endif()
 	add_subdirectory(sw/task_scheduler)
 	add_subdirectory(ext_lib)
 	add_subdirectory(sw/utilities)
+	add_subdirectory(sw/command_parser)
 	

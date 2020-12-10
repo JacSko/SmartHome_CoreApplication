@@ -12,7 +12,7 @@ const uint16_t DHCP_IP_GET_TIMEOUT_MS = 10000;
 const uint16_t SERVER_CONN_TIMEOUT_MS = 10000;
 
 char TX_BUFFER[128];
-const char* RX_BUFFER;
+char* RX_BUFFER;
 
 void(*wifi_status_callback)(ClientEvent ev, ServerClientID id, const char* data);
 #define TX_BUF_SIZE sizeof(TX_BUFFER)/sizeof(TX_BUFFER[0])
@@ -139,7 +139,7 @@ RET_CODE wifi_wait_for_response(uint32_t timeout)
 	{
 		if (uartengine_can_read_string() == RETURN_OK)
 		{
-			RX_BUFFER = uartengine_get_string();
+			RX_BUFFER = (char*) uartengine_get_string();
 			result = RETURN_OK;
 			break;
 		}
@@ -157,7 +157,7 @@ RET_CODE wifi_wait_for_defined_response(const char* resp, uint32_t timeout)
 	{
 		if (uartengine_can_read_string() == RETURN_OK)
 		{
-			RX_BUFFER = uartengine_get_string();
+			RX_BUFFER = (char*)uartengine_get_string();
 			if (!strcmp(resp, RX_BUFFER))
 			{
 				result = RETURN_OK;
@@ -176,7 +176,7 @@ RET_CODE wifi_wait_for_bytes(uint16_t bytes_count, uint32_t timeout)
 	{
 		if (uartengine_count_bytes() == bytes_count)
 		{
-			RX_BUFFER = (char*) uartengine_get_bytes();
+			RX_BUFFER = (char*)uartengine_get_bytes();
 			result = RETURN_OK;
 			break;
 		}

@@ -29,6 +29,8 @@ typedef struct WifiMgr
 	uint8_t wifi_connected;
 	uint8_t server_running;
 	uint16_t server_port;
+	char* rx_buffer;
+	uint16_t rx_buffer_size;
 	char* ssid;
 	char* pass;
 } WifiMgr;
@@ -36,7 +38,8 @@ typedef struct WifiMgr
 
 WifiMgr wifi_mgr;
 
-RET_CODE wifimgr_initialize()
+
+RET_CODE wifimgr_initialize(uint16_t rx_buffer_size)
 {
 	logger_send(LOG_WIFI_MANAGER, __func__, "initializing wifimgr");
 	wifi_mgr.ssid = wifi_cur_ssid;
@@ -46,6 +49,7 @@ RET_CODE wifimgr_initialize()
 	wifi_mgr.wifi_connected = 0;
 	wifi_mgr.server_port = wifi_server_port;
 	wifi_mgr.server_running = 0;
+	wifi_mgr.rx_buffer_size = rx_buffer_size;
 
 	RET_CODE result = RETURN_NOK;
 
@@ -108,7 +112,8 @@ RET_CODE wifimgr_initialize()
 		}
 
 		wifi_mgr.clients = (WiFiClient*) malloc (sizeof(WiFiClient) * WIFIMGR_MAX_CLIENTS);
-		if (wifi_mgr.clients)
+		wifi_mgr.rx_buffer = (char*) malloc (sizeof(char) * rx_buffer_size);
+		if (wifi_mgr.rx_buffer && wifi_mgr.clients)
 		{
 			result = RETURN_OK;
 		}
@@ -151,10 +156,17 @@ void wifimgr_on_client_event(ClientEvent ev, ServerClientID id, const char* data
 	case CLIENT_DATA:
 		if (wifi_mgr.clients[id].connected)
 		{
-			logger_send(LOG_WIFI_MANAGER, __func__, "client data: id %d, data %s", id, data);
-			if (wifimgr_data_callback)
+			if (wifi_mgr.rx_buffer_size >= strlen(data))
 			{
-				wifimgr_data_callback(id, data);
+				if (wifimgr_data_callback)
+				{
+					strcpy(wifi_mgr.rx_buffer, data);
+					wifimgr_data_callback(id, wifi_mgr.rx_buffer);
+				}
+			}
+			else
+			{
+				logger_send(LOG_ERROR, __func__, "Buffer too small %d/%d", strlen(data), wifi_mgr.rx_buffer_size);
 			}
 		}
 		else
@@ -368,7 +380,7 @@ uint8_t wifi_get_max_clients()
 RET_CODE wifimgr_reset()
 {
 	wifimgr_deinitialize();
-	return wifimgr_initialize();
+	return wifimgr_initialize(wifi_mgr.rx_buffer_size);
 }
 void wifimgr_deinitialize()
 {
@@ -377,7 +389,9 @@ void wifimgr_deinitialize()
 	if (wifi_mgr.clients)
 	{
 		free(wifi_mgr.clients);
+		free(wifi_mgr.rx_buffer);
 		wifi_mgr.clients = NULL;
+		wifi_mgr.rx_buffer = NULL;
 	}
 	wifi_mgr.clients_cnt = 0;
 	wifi_mgr.wifi_connected = 0;

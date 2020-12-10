@@ -34,7 +34,7 @@ volatile BT_BUFFER bt_tx_buf;
 volatile BT_BUFFER bt_rx_buf;
 char* rx_string;
 
-void (*CALLBACKS[BT_ENGINE_CALLBACK_SIZE])(const char *);
+void (*BT_CALLBACKS[BT_ENGINE_CALLBACK_SIZE])(const char *);
 
 
 RET_CODE btengine_initialize(BT_Config* cfg)
@@ -85,7 +85,7 @@ void btengine_deinitialize()
 	rx_string = NULL;
 	for (uint8_t i = 0; i < BT_ENGINE_CALLBACK_SIZE; i++)
 	{
-		CALLBACKS[i] = NULL;
+		BT_CALLBACKS[i] = NULL;
 	}
 
 }
@@ -213,9 +213,9 @@ RET_CODE btengine_register_callback(void(*callback)(const char *))
 	RET_CODE result = RETURN_ERROR;
 	for (uint8_t i = 0; i < BT_ENGINE_CALLBACK_SIZE; i++)
 	{
-		if (CALLBACKS[i] == NULL)
+		if (BT_CALLBACKS[i] == NULL)
 		{
-			CALLBACKS[i] = callback;
+			BT_CALLBACKS[i] = callback;
 			result = RETURN_OK;
 			break;
 		}
@@ -228,9 +228,9 @@ RET_CODE btengine_unregister_callback(void(*callback)(const char *))
 	RET_CODE result = RETURN_ERROR;
 	for (uint8_t i = 0; i < BT_ENGINE_CALLBACK_SIZE; i++)
 	{
-		if (CALLBACKS[i] == callback)
+		if (BT_CALLBACKS[i] == callback)
 		{
-			CALLBACKS[i] = NULL;
+			BT_CALLBACKS[i] = NULL;
 			result = RETURN_OK;
 			break;
 		}
@@ -242,9 +242,9 @@ void btengine_notify_callbacks()
 {
 	for (uint8_t i = 0; i < BT_ENGINE_CALLBACK_SIZE; i++)
 	{
-		if (CALLBACKS[i] != NULL)
+		if (BT_CALLBACKS[i] != NULL)
 		{
-			CALLBACKS[i](rx_string);
+			BT_CALLBACKS[i](rx_string);
 		}
 	}
 }

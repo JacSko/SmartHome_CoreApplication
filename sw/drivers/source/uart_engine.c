@@ -34,7 +34,7 @@ volatile UART_BUFFER uart_tx_buf;
 volatile UART_BUFFER uart_rx_buf;
 char* rx_string;
 
-void (*CALLBACKS[UART_ENGINE_CALLBACK_SIZE])(const char *);
+void (*UART_CALLBACKS[UART_ENGINE_CALLBACK_SIZE])(const char *);
 
 
 RET_CODE uartengine_initialize(UART_Config* cfg)
@@ -85,7 +85,7 @@ void uartengine_deinitialize()
 	rx_string = NULL;
 	for (uint8_t i = 0; i < UART_ENGINE_CALLBACK_SIZE; i++)
 	{
-		CALLBACKS[i] = NULL;
+		UART_CALLBACKS[i] = NULL;
 	}
 
 }
@@ -217,9 +217,9 @@ RET_CODE uartengine_register_callback(void(*callback)(const char *))
 	RET_CODE result = RETURN_ERROR;
 	for (uint8_t i = 0; i < UART_ENGINE_CALLBACK_SIZE; i++)
 	{
-		if (CALLBACKS[i] == NULL)
+		if (UART_CALLBACKS[i] == NULL)
 		{
-			CALLBACKS[i] = callback;
+			UART_CALLBACKS[i] = callback;
 			result = RETURN_OK;
 			break;
 		}
@@ -232,9 +232,9 @@ RET_CODE uartengine_unregister_callback(void(*callback)(const char *))
 	RET_CODE result = RETURN_ERROR;
 	for (uint8_t i = 0; i < UART_ENGINE_CALLBACK_SIZE; i++)
 	{
-		if (CALLBACKS[i] == callback)
+		if (UART_CALLBACKS[i] == callback)
 		{
-			CALLBACKS[i] = NULL;
+			UART_CALLBACKS[i] = NULL;
 			result = RETURN_OK;
 			break;
 		}
@@ -246,9 +246,9 @@ void uartengine_notify_callbacks()
 {
 	for (uint8_t i = 0; i < UART_ENGINE_CALLBACK_SIZE; i++)
 	{
-		if (CALLBACKS[i] != NULL)
+		if (UART_CALLBACKS[i] != NULL)
 		{
-			CALLBACKS[i](rx_string);
+			UART_CALLBACKS[i](rx_string);
 		}
 	}
 }
