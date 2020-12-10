@@ -62,7 +62,7 @@ TEST_F(uartengineFixture, engine_initialization)
 	 * @<b>scenario<\b>: Module initialization.
 	 * @<b>expected<\b>: RCC enabled, USART2 enabled, RXNEIE set, TXEIE not set.
 	 */
-	UART_Config cfg = {115200, 20, 15};
+	UARTEngine_Config cfg = {115200, 20, 15};
 
 	EXPECT_CALL(*gpio_lib_mock, gpio_pin_cfg(_,_,_)).Times(2);
 
@@ -96,7 +96,7 @@ TEST_F(uartengineFixture, string_send)
 	 * @<b>scenario<\b>: String send.
 	 * @<b>expected<\b>: Data written to buffer, TXEIE enabled.
 	 */
-	UART_Config cfg = {115200, 20, 15};
+	UARTEngine_Config cfg = {115200, 20, 15};
 	EXPECT_CALL(*gpio_lib_mock, gpio_pin_cfg(_,_,_)).Times(2);
 	uartengine_initialize(&cfg);
 
@@ -304,7 +304,7 @@ TEST_F(uartengineFixture, string_read)
 	 * @<b>scenario<\b>: String read.
 	 * @<b>expected<\b>: Data written to provided buffer, NULL terminated.
 	 */
-	UART_Config cfg = {115200, 20, 15};
+	UARTEngine_Config cfg = {115200, 20, 15};
 	EXPECT_CALL(*gpio_lib_mock, gpio_pin_cfg(_,_,_)).Times(2);
 	uartengine_initialize(&cfg);
 	uartengine_register_callback(&fake_callback);
@@ -449,7 +449,7 @@ TEST_F(uartengineFixture, string_bytes_read_mixed)
 	 * @<b>scenario<\b>: String received.
 	 * @<b>expected<\b>: String written to external buffer, internal buffer indexes are equal.
 	 */
-	UART_Config cfg = {115200, 20, 15};
+	UARTEngine_Config cfg = {115200, 20, 15};
 	EXPECT_CALL(*gpio_lib_mock, gpio_pin_cfg(_,_,_)).Times(2);
 	uartengine_initialize(&cfg);
 	uartengine_register_callback(&fake_callback);
@@ -652,7 +652,7 @@ TEST_F(uartengineFixture, string_read_special_data)
 	 * @<b>scenario<\b>: CRLF sequence received on begin and end of the string.
 	 * @<b>expected<\b>: CRLF sequences shall be filtered out.
 	 */
-	UART_Config cfg = {115200, 20, 15};
+	UARTEngine_Config cfg = {115200, 20, 15};
 	EXPECT_CALL(*gpio_lib_mock, gpio_pin_cfg(_,_,_)).Times(2);
 	uartengine_initialize(&cfg);
 	uartengine_register_callback(&fake_callback);
@@ -727,7 +727,7 @@ TEST_F(uartengineFixture, string_read_special_data_pooling)
 	 * @<b>scenario<\b>: CRLF sequence received on begin and end of the string.
 	 * @<b>expected<\b>: CRLF sequences shall be filtered out.
 	 */
-	UART_Config cfg = {115200, 20, 15};
+	UARTEngine_Config cfg = {115200, 20, 15};
 	EXPECT_CALL(*gpio_lib_mock, gpio_pin_cfg(_,_,_)).Times(2);
 	uartengine_initialize(&cfg);
 	uartengine_register_callback(&fake_callback);
@@ -782,7 +782,7 @@ TEST_F(uartengineFixture, string_read_bytes)
 	 * @<b>scenario<\b>: 10 bytes received, includes CR and LR chars.
 	 * @<b>expected<\b>: All bytes can be read.
 	 */
-	UART_Config cfg = {115200, 15, 15};
+	UARTEngine_Config cfg = {115200, 15, 15};
 	EXPECT_CALL(*gpio_lib_mock, gpio_pin_cfg(_,_,_)).Times(2);
 	uartengine_initialize(&cfg);
 	uartengine_register_callback(&fake_callback);

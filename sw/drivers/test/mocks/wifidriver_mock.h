@@ -6,7 +6,7 @@
 
 struct wifiDriverMock
 {
-	MOCK_METHOD0(wifi_initialize, RET_CODE());
+	MOCK_METHOD1(wifi_initialize, RET_CODE(const WIFI_UART_Config*));
 	MOCK_METHOD2(wifi_connect_to_network, RET_CODE(const char*, const char*));
 	MOCK_METHOD0(wifi_reset, RET_CODE());
 	MOCK_METHOD0(wifi_disconnect_from_network, RET_CODE());
@@ -37,9 +37,9 @@ void mock_wifidriver_deinit()
 	delete wifi_driver_mock;
 }
 
-RET_CODE wifi_initialize()
+RET_CODE wifi_initialize(const WIFI_UART_Config* config)
 {
-	return wifi_driver_mock->wifi_initialize();
+	return wifi_driver_mock->wifi_initialize(config);
 }
 RET_CODE wifi_connect_to_network(const char* ssid, const char* password)
 {

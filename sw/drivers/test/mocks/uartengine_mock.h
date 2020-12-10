@@ -6,7 +6,7 @@
 
 struct uartMock
 {
-	MOCK_METHOD1(uartengine_initialize, RET_CODE(UART_Config*));
+	MOCK_METHOD1(uartengine_initialize, RET_CODE(const UARTEngine_Config*));
 	MOCK_METHOD0(uartengine_deinitialize, void());
 	MOCK_METHOD1(uartengine_send_string, RET_CODE(const char*));
 	MOCK_METHOD0(uartengine_can_read_string, RET_CODE());
@@ -31,7 +31,7 @@ void mock_uartengine_deinit()
 	delete uartengineMock;
 }
 
-RET_CODE uartengine_initialize(UART_Config* cfg)
+RET_CODE uartengine_initialize(const UARTEngine_Config* cfg)
 {
 	return uartengineMock->uartengine_initialize(cfg);
 }

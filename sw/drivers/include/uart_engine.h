@@ -14,12 +14,12 @@ typedef struct
 	uint32_t baudrate;
 	uint16_t buffer_size;
 	uint16_t string_size;
-}UART_Config;
+} UARTEngine_Config;
 
 /**
  * 	Initialisation of uartengine.
  */
-RET_CODE uartengine_initialize(UART_Config*);
+RET_CODE uartengine_initialize(const UARTEngine_Config*);
 
 /**
  * 	Deinitialisation of uartengine.

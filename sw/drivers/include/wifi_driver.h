@@ -5,6 +5,12 @@
 #include "stm32f4xx.h"
 #include "../../time/include/time_counter.h"
 
+typedef struct
+{
+	uint32_t baudrate;
+	uint16_t buffer_size;
+	uint16_t string_size;
+} WIFI_UART_Config;
 
 /** ID used to distinguish connected clients. */
 typedef uint8_t ServerClientID;
@@ -46,7 +52,7 @@ typedef struct
  * Returns RETURN_OK if UART driver has been initialized
  * and communication with ESP module is working.
  */
-RET_CODE wifi_initialize();
+RET_CODE wifi_initialize(const WIFI_UART_Config* config);
 
 /**
  * Setting up a connection with WiFi network

@@ -32,12 +32,12 @@ void wifi_on_uart_data(const char* data);
 void wifi_convert_ntp_time(uint8_t* data, TimeItem* time);
 
 
-RET_CODE wifi_initialize()
+RET_CODE wifi_initialize(const WIFI_UART_Config* config)
 {
 	RET_CODE result = RETURN_NOK;
 
-	UART_Config config = {115200, 1024, 512};
-	if (uartengine_initialize(&config) == RETURN_OK)
+	UARTEngine_Config uart_cfg = {config->baudrate, config->buffer_size, config->string_size};
+	if (uartengine_initialize(&uart_cfg) == RETURN_OK)
 	{
 		if (uartengine_register_callback(&wifi_on_uart_data) == RETURN_OK)
 		{

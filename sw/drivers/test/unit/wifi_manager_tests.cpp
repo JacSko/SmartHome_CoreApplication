@@ -35,8 +35,10 @@ void fake_callback(ServerClientID id, const char* data)
 	callMock->callback(id, data);
 }
 
+
 struct wifiMgrFixture : public ::testing::Test
 {
+
 	virtual void SetUp()
 	{
 		mock_logger_init();
@@ -55,7 +57,7 @@ struct wifiMgrFixture : public ::testing::Test
 
 	virtual void setup_test_subject()
 	{
-		EXPECT_CALL(*wifi_driver_mock, wifi_initialize()).WillOnce(Return(RETURN_OK));
+		EXPECT_CALL(*wifi_driver_mock, wifi_initialize(_)).WillOnce(Return(RETURN_OK));
 		EXPECT_CALL(*wifi_driver_mock, wifi_set_ip_address(_)).WillOnce(Return(RETURN_OK));
 		EXPECT_CALL(*wifi_driver_mock, wifi_connect_to_network(_,_)).WillOnce(Return(RETURN_OK));
 		EXPECT_CALL(*wifi_driver_mock, wifi_allow_multiple_clients(0)).WillOnce(Return(RETURN_OK));
@@ -64,7 +66,7 @@ struct wifiMgrFixture : public ::testing::Test
 		EXPECT_CALL(*wifi_driver_mock, wifi_allow_multiple_clients(1)).WillOnce(Return(RETURN_OK));
 		EXPECT_CALL(*wifi_driver_mock, wifi_open_server(_)).WillOnce(Return(RETURN_OK));
 		EXPECT_CALL(*wifi_driver_mock, wifi_register_client_event_callback(_)).WillOnce(Return(RETURN_OK));
-		EXPECT_EQ(RETURN_OK, wifimgr_initialize(BUFFER_SIZE));
+		EXPECT_EQ(RETURN_OK, wifimgr_initialize(&uart_config));
 		Mock::VerifyAndClearExpectations(wifi_driver_mock);
 		Mock::VerifyAndClearExpectations(time_cnt_mock);
 	}
@@ -76,8 +78,7 @@ struct wifiMgrFixture : public ::testing::Test
 		Mock::VerifyAndClearExpectations(wifi_driver_mock);
 		Mock::VerifyAndClearExpectations(time_cnt_mock);
 	}
-
-	const uint16_t BUFFER_SIZE = 1024;
+	const WIFI_UART_Config uart_config = {115200, 1024, 512};
 };
 
 /**
@@ -89,54 +90,54 @@ TEST_F(wifiMgrFixture, manager_initialization)
 	 * @<b>scenario<\b>: Module initialization - cannot initialize wifi driver.
 	 * @<b>expected<\b>: RETURN_NOK returned.
 	 */
-	EXPECT_CALL(*wifi_driver_mock, wifi_initialize()).WillOnce(Return(RETURN_NOK));
-	EXPECT_EQ(RETURN_NOK, wifimgr_initialize(BUFFER_SIZE));
+	EXPECT_CALL(*wifi_driver_mock, wifi_initialize(_)).WillOnce(Return(RETURN_NOK));
+	EXPECT_EQ(RETURN_NOK, wifimgr_initialize(&uart_config));
 
 	/**
 	 * @<b>scenario<\b>: Module initialization - cannot set station IP address.
 	 * @<b>expected<\b>: RETURN_NOK returned.
 	 */
-	EXPECT_CALL(*wifi_driver_mock, wifi_initialize()).WillOnce(Return(RETURN_OK));
+	EXPECT_CALL(*wifi_driver_mock, wifi_initialize(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_set_ip_address(_)).WillOnce(Return(RETURN_NOK));
-	EXPECT_EQ(RETURN_NOK, wifimgr_initialize(BUFFER_SIZE));
+	EXPECT_EQ(RETURN_NOK, wifimgr_initialize(&uart_config));
 
 	/**
 	 * @<b>scenario<\b>: Module initialization - cannot connect to network.
 	 * @<b>expected<\b>: RETURN_NOK returned.
 	 */
-	EXPECT_CALL(*wifi_driver_mock, wifi_initialize()).WillOnce(Return(RETURN_OK));
+	EXPECT_CALL(*wifi_driver_mock, wifi_initialize(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_set_ip_address(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_connect_to_network(_,_)).WillOnce(Return(RETURN_NOK));
-	EXPECT_EQ(RETURN_NOK, wifimgr_initialize(BUFFER_SIZE));
+	EXPECT_EQ(RETURN_NOK, wifimgr_initialize(&uart_config));
 
 	/**
 	 * @<b>scenario<\b>: Module initialization - cannot disable multiclient mode.
 	 * @<b>expected<\b>: RETURN_NOK returned.
 	 */
-	EXPECT_CALL(*wifi_driver_mock, wifi_initialize()).WillOnce(Return(RETURN_OK));
+	EXPECT_CALL(*wifi_driver_mock, wifi_initialize(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_set_ip_address(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_connect_to_network(_,_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_allow_multiple_clients(0)).WillOnce(Return(RETURN_NOK));
-	EXPECT_EQ(RETURN_NOK, wifimgr_initialize(BUFFER_SIZE));
+	EXPECT_EQ(RETURN_NOK, wifimgr_initialize(&uart_config));
 
 	/**
 	 * @<b>scenario<\b>: Module initialization - cannot get NTP time, cannot set multiclient mode
 	 * @<b>expected<\b>: RETURN_NOK returned.
 	 */
-	EXPECT_CALL(*wifi_driver_mock, wifi_initialize()).WillOnce(Return(RETURN_OK));
+	EXPECT_CALL(*wifi_driver_mock, wifi_initialize(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_set_ip_address(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_connect_to_network(_,_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_allow_multiple_clients(0)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_get_time(_,_)).WillOnce(Return(RETURN_NOK))
 													  .WillOnce(Return(RETURN_NOK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_allow_multiple_clients(1)).WillOnce(Return(RETURN_NOK));
-	EXPECT_EQ(RETURN_NOK, wifimgr_initialize(BUFFER_SIZE));
+	EXPECT_EQ(RETURN_NOK, wifimgr_initialize(&uart_config));
 
 	/**
 	 * @<b>scenario<\b>: Module initialization - cannot open server, NTP time got correctly but cannot set
 	 * @<b>expected<\b>: RETURN_NOK returned.
 	 */
-	EXPECT_CALL(*wifi_driver_mock, wifi_initialize()).WillOnce(Return(RETURN_OK));
+	EXPECT_CALL(*wifi_driver_mock, wifi_initialize(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_set_ip_address(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_connect_to_network(_,_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_allow_multiple_clients(0)).WillOnce(Return(RETURN_OK));
@@ -144,13 +145,13 @@ TEST_F(wifiMgrFixture, manager_initialization)
 	EXPECT_CALL(*time_cnt_mock, time_set_utc(_)).WillOnce(Return(RETURN_NOK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_allow_multiple_clients(1)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_open_server(_)).WillOnce(Return(RETURN_NOK));
-	EXPECT_EQ(RETURN_NOK, wifimgr_initialize(BUFFER_SIZE));
+	EXPECT_EQ(RETURN_NOK, wifimgr_initialize(&uart_config));
 
 	/**
 	 * @<b>scenario<\b>: Module initialization - cannot subscribe for client notifications
 	 * @<b>expected<\b>: RETURN_NOK returned.
 	 */
-	EXPECT_CALL(*wifi_driver_mock, wifi_initialize()).WillOnce(Return(RETURN_OK));
+	EXPECT_CALL(*wifi_driver_mock, wifi_initialize(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_set_ip_address(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_connect_to_network(_,_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_allow_multiple_clients(0)).WillOnce(Return(RETURN_OK));
@@ -159,13 +160,13 @@ TEST_F(wifiMgrFixture, manager_initialization)
 	EXPECT_CALL(*wifi_driver_mock, wifi_allow_multiple_clients(1)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_open_server(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_register_client_event_callback(_)).WillOnce(Return(RETURN_NOK));
-	EXPECT_EQ(RETURN_NOK, wifimgr_initialize(BUFFER_SIZE));
+	EXPECT_EQ(RETURN_NOK, wifimgr_initialize(&uart_config));
 
 	/**
 	 * @<b>scenario<\b>: Module initialization - performed successfully
 	 * @<b>expected<\b>: RETURN_NOK returned.
 	 */
-	EXPECT_CALL(*wifi_driver_mock, wifi_initialize()).WillOnce(Return(RETURN_OK));
+	EXPECT_CALL(*wifi_driver_mock, wifi_initialize(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_set_ip_address(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_connect_to_network(_,_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_allow_multiple_clients(0)).WillOnce(Return(RETURN_OK));
@@ -174,7 +175,7 @@ TEST_F(wifiMgrFixture, manager_initialization)
 	EXPECT_CALL(*wifi_driver_mock, wifi_allow_multiple_clients(1)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_open_server(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_register_client_event_callback(_)).WillOnce(Return(RETURN_OK));
-	EXPECT_EQ(RETURN_OK, wifimgr_initialize(BUFFER_SIZE));
+	EXPECT_EQ(RETURN_OK, wifimgr_initialize(&uart_config));
 
 
 	EXPECT_CALL(*wifi_driver_mock, wifi_reset());
@@ -388,7 +389,7 @@ TEST_F(wifiMgrFixture, changing_network_name)
 	EXPECT_CALL(*wifi_driver_mock, wifi_reset());
 	EXPECT_CALL(*wifi_driver_mock, wifi_deinitialize());
 
-	EXPECT_CALL(*wifi_driver_mock, wifi_initialize()).WillOnce(Return(RETURN_OK));
+	EXPECT_CALL(*wifi_driver_mock, wifi_initialize(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_set_ip_address(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_connect_to_network(_,_)).WillOnce(Invoke([&](const char* ssid, const char* pass) -> RET_CODE
 			{
@@ -437,7 +438,7 @@ TEST_F(wifiMgrFixture, changing_ip_address)
 	EXPECT_CALL(*wifi_driver_mock, wifi_reset());
 	EXPECT_CALL(*wifi_driver_mock, wifi_deinitialize());
 
-	EXPECT_CALL(*wifi_driver_mock, wifi_initialize()).WillOnce(Return(RETURN_OK));
+	EXPECT_CALL(*wifi_driver_mock, wifi_initialize(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_set_ip_address(_)).WillOnce(Invoke([&](IPAddress* ip_address) -> RET_CODE
 			{
 				EXPECT_EQ(ip_address->ip_address[0], 192);
@@ -485,7 +486,7 @@ TEST_F(wifiMgrFixture, changing_server_port)
 	EXPECT_CALL(*wifi_driver_mock, wifi_reset());
 	EXPECT_CALL(*wifi_driver_mock, wifi_deinitialize());
 
-	EXPECT_CALL(*wifi_driver_mock, wifi_initialize()).WillOnce(Return(RETURN_OK));
+	EXPECT_CALL(*wifi_driver_mock, wifi_initialize(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_set_ip_address(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_connect_to_network(_,_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_allow_multiple_clients(0)).WillOnce(Return(RETURN_OK));
@@ -521,7 +522,7 @@ TEST_F(wifiMgrFixture, changing_ntp_server)
 	EXPECT_CALL(*wifi_driver_mock, wifi_reset());
 	EXPECT_CALL(*wifi_driver_mock, wifi_deinitialize());
 
-	EXPECT_CALL(*wifi_driver_mock, wifi_initialize()).WillOnce(Return(RETURN_OK));
+	EXPECT_CALL(*wifi_driver_mock, wifi_initialize(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_set_ip_address(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_connect_to_network(_,_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*wifi_driver_mock, wifi_allow_multiple_clients(0)).WillOnce(Return(RETURN_OK));
@@ -547,7 +548,7 @@ TEST_F(wifiMgrFixture, reading_time_from_ntp_server_negative_cases)
 {
 	TimeItem item = {};
 
-	EXPECT_CALL(*wifi_driver_mock, wifi_initialize()).WillOnce(Return(RETURN_OK))
+	EXPECT_CALL(*wifi_driver_mock, wifi_initialize(_)).WillOnce(Return(RETURN_OK))
 													 .WillOnce(Return(RETURN_OK))
 													 .WillOnce(Return(RETURN_OK))
 													 .WillOnce(Return(RETURN_OK))
@@ -620,7 +621,7 @@ TEST_F(wifiMgrFixture, reading_time_from_ntp_server_negative_cases)
 													   .WillOnce(Return(RETURN_OK))
 													   .WillOnce(Return(RETURN_OK));
 
-	EXPECT_EQ(RETURN_OK, wifimgr_initialize(BUFFER_SIZE));
+	EXPECT_EQ(RETURN_OK, wifimgr_initialize(&uart_config));
 
 	/**
 	 * @<b>scenario<\b>: Cannot close server getting NTP time.

@@ -30,7 +30,7 @@ typedef struct WifiMgr
 	uint8_t server_running;
 	uint16_t server_port;
 	char* rx_buffer;
-	uint16_t rx_buffer_size;
+	WIFI_UART_Config config;
 	char* ssid;
 	char* pass;
 } WifiMgr;
@@ -39,7 +39,7 @@ typedef struct WifiMgr
 WifiMgr wifi_mgr;
 
 
-RET_CODE wifimgr_initialize(uint16_t rx_buffer_size)
+RET_CODE wifimgr_initialize(const WIFI_UART_Config* config)
 {
 	logger_send(LOG_WIFI_MANAGER, __func__, "initializing wifimgr");
 	wifi_mgr.ssid = wifi_cur_ssid;
@@ -49,13 +49,13 @@ RET_CODE wifimgr_initialize(uint16_t rx_buffer_size)
 	wifi_mgr.wifi_connected = 0;
 	wifi_mgr.server_port = wifi_server_port;
 	wifi_mgr.server_running = 0;
-	wifi_mgr.rx_buffer_size = rx_buffer_size;
+	wifi_mgr.config = *config;
 
 	RET_CODE result = RETURN_NOK;
 
 	do
 	{
-		if (wifi_initialize() != RETURN_OK)
+		if (wifi_initialize(config) != RETURN_OK)
 		{
 			logger_send(LOG_ERROR, __func__, "Cannot init wifi driver");
 			break;
@@ -112,7 +112,7 @@ RET_CODE wifimgr_initialize(uint16_t rx_buffer_size)
 		}
 
 		wifi_mgr.clients = (WiFiClient*) malloc (sizeof(WiFiClient) * WIFIMGR_MAX_CLIENTS);
-		wifi_mgr.rx_buffer = (char*) malloc (sizeof(char) * rx_buffer_size);
+		wifi_mgr.rx_buffer = (char*) malloc (sizeof(char) * wifi_mgr.config.string_size);
 		if (wifi_mgr.rx_buffer && wifi_mgr.clients)
 		{
 			result = RETURN_OK;
@@ -156,7 +156,7 @@ void wifimgr_on_client_event(ClientEvent ev, ServerClientID id, const char* data
 	case CLIENT_DATA:
 		if (wifi_mgr.clients[id].connected)
 		{
-			if (wifi_mgr.rx_buffer_size >= strlen(data))
+			if (wifi_mgr.config.string_size >= strlen(data))
 			{
 				if (wifimgr_data_callback)
 				{
@@ -166,7 +166,7 @@ void wifimgr_on_client_event(ClientEvent ev, ServerClientID id, const char* data
 			}
 			else
 			{
-				logger_send(LOG_ERROR, __func__, "Buffer too small %d/%d", strlen(data), wifi_mgr.rx_buffer_size);
+				logger_send(LOG_ERROR, __func__, "Buffer too small %d/%d", strlen(data), wifi_mgr.config.string_size);
 			}
 		}
 		else
@@ -380,7 +380,7 @@ uint8_t wifi_get_max_clients()
 RET_CODE wifimgr_reset()
 {
 	wifimgr_deinitialize();
-	return wifimgr_initialize(wifi_mgr.rx_buffer_size);
+	return wifimgr_initialize(&wifi_mgr.config);
 }
 void wifimgr_deinitialize()
 {

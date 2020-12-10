@@ -52,6 +52,7 @@ struct wifiFixture : public ::testing::Test
 		mock_uartengine_deinit();
 		delete callMock;
 	}
+	const WIFI_UART_Config uart_config = {115200, 1024, 512};
 };
 
 /**
@@ -64,7 +65,7 @@ TEST_F(wifiFixture, engine_initialization)
 	 * @<b>expected<\b>: RETURN_NOK returned.
 	 */
 	EXPECT_CALL(*uartengineMock, uartengine_initialize(_)).WillOnce(Return(RETURN_NOK));
-	EXPECT_EQ(RETURN_NOK, wifi_initialize());
+	EXPECT_EQ(RETURN_NOK, wifi_initialize(&uart_config));
 	Mock::VerifyAndClearExpectations(uartengineMock);
 
 	/**
@@ -73,7 +74,7 @@ TEST_F(wifiFixture, engine_initialization)
 	 */
 	EXPECT_CALL(*uartengineMock, uartengine_initialize(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_register_callback(_)).WillOnce(Return(RETURN_NOK));
-	EXPECT_EQ(RETURN_NOK, wifi_initialize());
+	EXPECT_EQ(RETURN_NOK, wifi_initialize(&uart_config));
 	Mock::VerifyAndClearExpectations(uartengineMock);
 
 	/**
@@ -83,7 +84,7 @@ TEST_F(wifiFixture, engine_initialization)
 	EXPECT_CALL(*uartengineMock, uartengine_initialize(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_register_callback(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_NOK));
-	EXPECT_EQ(RETURN_NOK, wifi_initialize());
+	EXPECT_EQ(RETURN_NOK, wifi_initialize(&uart_config));
 	Mock::VerifyAndClearExpectations(uartengineMock);
 
 	/**
@@ -101,7 +102,7 @@ TEST_F(wifiFixture, engine_initialization)
 	t2.time_raw = t1.time_raw + 5000;	//5s means that timeout exceeded
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
 										   .WillOnce(Return(&t2));
-	EXPECT_EQ(RETURN_NOK, wifi_initialize());
+	EXPECT_EQ(RETURN_NOK, wifi_initialize(&uart_config));
 	Mock::VerifyAndClearExpectations(uartengineMock);
 	Mock::VerifyAndClearExpectations(time_cnt_mock);
 
@@ -122,7 +123,7 @@ TEST_F(wifiFixture, engine_initialization)
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(correct_response));
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
 										   .WillOnce(Return(&t1));
-	EXPECT_EQ(RETURN_NOK, wifi_initialize());
+	EXPECT_EQ(RETURN_NOK, wifi_initialize(&uart_config));
 	Mock::VerifyAndClearExpectations(uartengineMock);
 	Mock::VerifyAndClearExpectations(time_cnt_mock);
 
@@ -142,7 +143,7 @@ TEST_F(wifiFixture, engine_initialization)
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(correct_response))
 														 .WillOnce(Return(correct_response));
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillRepeatedly(Return(&t1));
-	EXPECT_EQ(RETURN_OK, wifi_initialize());
+	EXPECT_EQ(RETURN_OK, wifi_initialize(&uart_config));
 	Mock::VerifyAndClearExpectations(uartengineMock);
 	Mock::VerifyAndClearExpectations(time_cnt_mock);
 }

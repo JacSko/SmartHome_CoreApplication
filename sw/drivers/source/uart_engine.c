@@ -29,7 +29,7 @@ typedef struct
 	uint16_t bytes_cnt;
 } UART_BUFFER;
 
-UART_Config uart_config;
+UARTEngine_Config uart_config;
 volatile UART_BUFFER uart_tx_buf;
 volatile UART_BUFFER uart_rx_buf;
 char* rx_string;
@@ -37,7 +37,7 @@ char* rx_string;
 void (*UART_CALLBACKS[UART_ENGINE_CALLBACK_SIZE])(const char *);
 
 
-RET_CODE uartengine_initialize(UART_Config* cfg)
+RET_CODE uartengine_initialize(const UARTEngine_Config* cfg)
 {
 	RET_CODE result = RETURN_OK;
 	uart_config = *cfg;
