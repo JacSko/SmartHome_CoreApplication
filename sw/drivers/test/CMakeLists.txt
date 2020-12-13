@@ -110,3 +110,11 @@ target_include_directories(wifidriver_mock PUBLIC
           ../include
           mocks/
 )
+add_library(wifimanager_mock STATIC
+			mocks/wifimanager_mock.h
+)
+set_target_properties(wifimanager_mock PROPERTIES LINKER_LANGUAGE CXX)
+target_include_directories(wifimanager_mock PUBLIC
+          ../include
+          mocks/
+)

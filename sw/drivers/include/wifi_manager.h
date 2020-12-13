@@ -3,6 +3,10 @@
 #include "wifi_driver.h"
 #include "time_counter.h"
 
+
+// TODO add get_ntp_server method
+// TODO add get_server_port method
+
 /**
  * Initialize WiFi Manager.
  * It starts TCP server which allows clients to connect.
@@ -14,7 +18,6 @@ RET_CODE wifimgr_initialize(const WIFI_UART_Config* config);
  * If manager is already running, the connection is established again.
  */
 RET_CODE wifimgr_set_network_data(const char* ssid, const char* pass);
-
 /**
  * Change the NTP server data.
  * NTP server may be either IP string or hostname.

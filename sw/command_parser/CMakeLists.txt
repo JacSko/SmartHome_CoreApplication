@@ -15,6 +15,6 @@ target_link_libraries(command_parser PUBLIC
 
 else()
   
-  
+add_subdirectory(test)
   
 endif()
