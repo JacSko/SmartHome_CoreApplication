@@ -1,14 +1,33 @@
 #ifndef _UART_ENGINE_H
 #define _UART_ENGINE_H
+/* ============================= */
+/**
+ * @file uart_engine.h
+ *
+ * @brief Module is responsible for handling communcation with ESP module
+ *
+ * @details
+ * Module is handling communication with ESP WiFi device using UART.
+ * Allows to register callback function called on new data received.
+ * The string_watcher function have to be called in main thread to
+ * receive callback notifications.
+ *
+ * UART1 peripherial:<br>
+ * UART_TX = PA2 <br>
+ * UART_RX = PA3 <br>
+ *
+ * @author Jacek Skowronek
+ * @date 01/11/2020
+ */
+/* ============================= */
 
+/* =============================
+ *  Includes of project headers
+ * =============================*/
 #include "return_codes.h"
-
-/*
- * This module provides core implementation of UART communication.
- * Allows to read/write data from/to UART peripherial
- * Communication is made in string form.
-*/
-
+/* =============================
+ *       Data structures
+ * =============================*/
 typedef struct
 {
 	uint32_t baudrate;
@@ -17,60 +36,65 @@ typedef struct
 } UARTEngine_Config;
 
 /**
- * 	Initialisation of uartengine.
+ * @brief Initialize UART engine module.
+ * @param[in] config - Configuration of UART module
+ * @return See RETURN_CODES.
  */
 RET_CODE uartengine_initialize(const UARTEngine_Config*);
-
 /**
- * 	Deinitialisation of uartengine.
+ * @brief Deinitialize UART engine module.
+ * @return None
  */
 void uartengine_deinitialize();
-
 /**
- * 	Send string over UART.
- * 	Function executed asynchronously.
- * 	String has to be null terminated.
+ * @brief Send string over UART module.
+ * @details Function is blocking if there is no place in internal buffer.
+ * @param[in] data - pointer to data to send
+ * @return See RETURN_CODES.
  */
 RET_CODE uartengine_send_string(const char *);
-
 /**
- *  Returns RETURN_OK if there is at least one string ready to read
+ * @brief Checks if there is string received in buffer.
+ * @return RETURN_OK if string can be read.
  */
 RET_CODE uartengine_can_read_string();
-
 /**
- * 	Returns pointer to received string if string can be read.
- * 	If there is no string in buffer, NULL is returned.
+ * @brief Get last received string. Before call user should check, if there is string ready to read
+ * @return Pointer to string.
  */
 const char* uartengine_get_string();
-
 /**
- * 	Returns amount of bytes currently received.
- * 	It includes all bytes, including special chars like CR, LF.
+ * @brief Check how bytes is ready to read.
+ * @return Bytes count.
  */
 uint16_t uartengine_count_bytes();
-
 /**
- * 	Clears all data already received
+ * @brief Clear all received (but unread) data
+ * @return None.
  */
 void uartengine_clear_rx();
-
 /**
- * 	Returns all bytes already received.
+ * @brief Get all bytes already received.
+ * @details Before call user should check how many bytes are ready.
+ * @return Pointer to data bytes.
  */
 const uint8_t* uartengine_get_bytes();
-
 /**
- * 	Watcher responsible for calling callbacks - to be called in main program loop.
+ * @brief Constatly check for string in buffer.
+ * @details If there is string ready, registered callback are called.
+ * @return None.
  */
 void uartengine_string_watcher();
 /**
- * 	Registers callback, which will be called on new received data
+ * @brief Register function which will be notified on new string.
+ * @param[in] callback - pointer to function.
+ * @return See RETURN_CODES.
  */
 RET_CODE uartengine_register_callback(void(*callback)(const char *));
-
 /**
- * 	Unregisters previously registered callback
+ * @brief Unregister callback function.
+ * @param[in] callback - pointer to function.
+ * @return See RETURN_CODES.
  */
 RET_CODE uartengine_unregister_callback(void(*callback)(const char *));
 

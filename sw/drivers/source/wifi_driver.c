@@ -1,23 +1,26 @@
+/* =============================
+ *   Includes of common headers
+ * =============================*/
 #include <string.h>
 #include <stdlib.h>
-
+/* =============================
+ *  Includes of project headers
+ * =============================*/
 #include "wifi_driver.h"
 #include "uart_engine.h"
 #include "string_formatter.h"
 #include "Logger.h"
-
+/* =============================
+ *          Defines
+ * =============================*/
+#define TX_BUF_SIZE sizeof(TX_BUFFER)/sizeof(TX_BUFFER[0])
 const uint16_t DEFAULT_REPLY_TIMEOUT_MS = 1000;
 const uint16_t WIFI_CONNECT_TIMEOUT = 5000;
 const uint16_t DHCP_IP_GET_TIMEOUT_MS = 10000;
 const uint16_t SERVER_CONN_TIMEOUT_MS = 10000;
-
-char TX_BUFFER[128];
-char* RX_BUFFER;
-
-void(*wifi_status_callback)(ClientEvent ev, ServerClientID id, const char* data);
-#define TX_BUF_SIZE sizeof(TX_BUFFER)/sizeof(TX_BUFFER[0])
-
-/*	INTERNAL FUNCTIONS  */
+/* =============================
+ *   Internal module functions
+ * =============================*/
 RET_CODE wifi_send_command();
 RET_CODE wifi_send_and_wait(uint32_t timeout);
 RET_CODE wifi_send_and_wait_defined_response(const char* response, uint32_t timeout);
@@ -30,6 +33,13 @@ RET_CODE wifi_connect_server(ConnType type, const char* server, uint16_t port);
 RET_CODE wifi_disconnect_server();
 void wifi_on_uart_data(const char* data);
 void wifi_convert_ntp_time(uint8_t* data, TimeItem* time);
+/* =============================
+ *      Module variables
+ * =============================*/
+char TX_BUFFER[128];
+char* RX_BUFFER;
+void(*wifi_status_callback)(ClientEvent ev, ServerClientID id, const char* data);
+
 
 
 RET_CODE wifi_initialize(const WIFI_UART_Config* config)

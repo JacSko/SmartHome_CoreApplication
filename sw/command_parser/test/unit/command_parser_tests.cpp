@@ -22,7 +22,7 @@ extern "C" {
  * @author Jacek Skowronek
  * @date 11/12/2020
  */
-
+/* ============================= */
 
 using namespace ::testing;
 

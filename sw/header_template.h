@@ -31,12 +31,16 @@
  *      Global variables
  * =============================*/
 
+/* =============================
+ *       Data structures
+ * =============================*/
 
 /**
- * @brief This is method 1
- * @param[in] arg1 - this is parameter 1
- * @param[in] arg2 - this is parameter 2
- * @return It returns something
+ * @brief Initialize BT engine module.
+ * @param[in] config - Configuration of BT module
+ * @return
+ * RETURN_OK - when module initialized <br>
+ * RETURN_ERROR - in case of error
  */
 int method1(int arg1, int arg2);
 

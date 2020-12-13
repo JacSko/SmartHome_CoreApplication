@@ -1,25 +1,30 @@
+/* =============================
+ *   Includes of common headers
+ * =============================*/
 #include <stdlib.h>
 #include <string.h>
-
+/* =============================
+ *  Includes of project headers
+ * =============================*/
 #include "stm32f4xx.h"
 #include "core_cmFunc.h"
 #include "bt_engine.h"
 #include "gpio_lib.h"
 #include "return_codes.h"
-/*
- * UART engine summary:
- * - UART1 peripherial
- * - UART_TX = PA9
- * - UART_RX = PA10
- */
-
-/* INTERNAL functions declaration */
+/* =============================
+ *          Defines
+ * =============================*/
+#define BT_ENGINE_CALLBACK_SIZE 5
+/* =============================
+ *   Internal module functions
+ * =============================*/
 void btengine_start_sending();
 void btengine_stop_sending();
 void btengine_notify_callbacks();
-#define BT_ENGINE_CALLBACK_SIZE 5
 RET_CODE btengine_get_string_from_buffer();
-
+/* =============================
+ *       Internal types
+ * =============================*/
 typedef struct
 {
 	char * buf;
@@ -28,13 +33,15 @@ typedef struct
 	uint8_t string_cnt;
 	uint16_t bytes_cnt;
 } BT_BUFFER;
-
+/* =============================
+ *      Module variables
+ * =============================*/
 BT_Config config;
 volatile BT_BUFFER bt_tx_buf;
 volatile BT_BUFFER bt_rx_buf;
 char* rx_string;
-
 void (*BT_CALLBACKS[BT_ENGINE_CALLBACK_SIZE])(const char *);
+
 
 
 RET_CODE btengine_initialize(BT_Config* cfg)

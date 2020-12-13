@@ -1,25 +1,30 @@
+/* =============================
+ *   Includes of common headers
+ * =============================*/
 #include <stdlib.h>
 #include <string.h>
-
+/* =============================
+ *  Includes of project headers
+ * =============================*/
 #include "stm32f4xx.h"
 #include "core_cmFunc.h"
 #include "uart_engine.h"
 #include "gpio_lib.h"
 #include "return_codes.h"
-/*
- * UART engine summary:
- * - UART2 peripherial
- * - UART_TX = PA2
- * - UART_RX = PA3
- */
-
-/* INTERNAL functions declaration */
+/* =============================
+ *          Defines
+ * =============================*/
+#define UART_ENGINE_CALLBACK_SIZE 5
+/* =============================
+ *   Internal module functions
+ * =============================*/
 void start_sending();
 void stop_sending();
 void uartengine_notify_callbacks();
-#define UART_ENGINE_CALLBACK_SIZE 5
 RET_CODE uartengine_get_string_from_buffer();
-
+/* =============================
+ *       Internal types
+ * =============================*/
 typedef struct
 {
 	char * buf;
@@ -28,12 +33,13 @@ typedef struct
 	uint8_t string_cnt;
 	uint16_t bytes_cnt;
 } UART_BUFFER;
-
+/* =============================
+ *      Module variables
+ * =============================*/
 UARTEngine_Config uart_config;
 volatile UART_BUFFER uart_tx_buf;
 volatile UART_BUFFER uart_rx_buf;
 char* rx_string;
-
 void (*UART_CALLBACKS[UART_ENGINE_CALLBACK_SIZE])(const char *);
 
 
