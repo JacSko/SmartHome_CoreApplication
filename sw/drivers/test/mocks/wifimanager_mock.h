@@ -19,6 +19,8 @@ struct wifiMgrMock
 	MOCK_METHOD2(wifimgr_get_network_name, RET_CODE(char*, uint8_t));
 	MOCK_METHOD1(wifimgr_get_clients_details, uint8_t(ClientID*));
 	MOCK_METHOD0(wifi_get_max_clients, uint8_t());
+	MOCK_METHOD0(wifimgr_get_ntp_server, const char*());
+	MOCK_METHOD0(wifimgr_get_server_port, uint16_t());
 	MOCK_METHOD1(wifimgr_register_data_callback, RET_CODE(void(*callback)(ServerClientID, const char*)));
 	MOCK_METHOD1(wifimgr_unregister_data_callback, RET_CODE(void(*callback)(ServerClientID, const char*)));
 	MOCK_METHOD0(wifimgr_reset, RET_CODE());
@@ -101,6 +103,14 @@ void wifimgr_unregister_data_callback(void(*callback)(ServerClientID id, const c
 RET_CODE wifimgr_reset()
 {
 	return wifimgr_mock->wifimgr_reset();
+}
+const char* wifimgr_get_ntp_server()
+{
+	return wifimgr_mock->wifimgr_get_ntp_server();
+}
+uint16_t wifimgr_get_server_port()
+{
+	return wifimgr_mock->wifimgr_get_server_port();
 }
 void wifimgr_deinitialize()
 {

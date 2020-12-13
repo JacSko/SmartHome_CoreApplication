@@ -251,6 +251,32 @@ TEST_F(cmdParserFixture, wifi_manager_cmds_test)
 	cmd_handle_bt_data("wifimgr ntpserver set www.test.pl");
 
 	/**
+	 * @<b>scenario<\b>: WiFi manager NTP server get.
+	 * @<b>expected<\b>: Command executed, response sent.
+	 */
+	EXPECT_CALL(*callMock, bt_send_function(_))
+			.WillOnce(Invoke([&](const char* data) -> RET_CODE
+			{
+				EXPECT_STREQ(data, "CMD: wifimgr ntpserver get\n");
+				return RETURN_OK;
+			}))
+			.WillOnce(Invoke([&](const char* data) -> RET_CODE
+			{
+				EXPECT_STREQ(data, "NTP:www.test.pl\n");
+				return RETURN_OK;
+			}))
+			.WillOnce(Invoke([&](const char* data) -> RET_CODE
+			{
+				EXPECT_STREQ(data, "OK\n");
+				return RETURN_OK;
+			}));
+	EXPECT_CALL(*wifimgr_mock, wifimgr_get_ntp_server()).WillOnce(Invoke([&]() -> const char*
+			{
+				return "www.test.pl";
+			}));
+	cmd_handle_bt_data("wifimgr ntpserver get");
+
+	/**
 	 * @<b>scenario<\b>: WiFi manager server port set.
 	 * @<b>expected<\b>: Command executed, response sent.
 	 */
@@ -271,6 +297,29 @@ TEST_F(cmdParserFixture, wifi_manager_cmds_test)
 				return RETURN_OK;
 			}));
 	cmd_handle_bt_data("wifimgr serverport set 1111");
+
+	/**
+	 * @<b>scenario<\b>: WiFi manager server port get.
+	 * @<b>expected<\b>: Command executed, response sent.
+	 */
+	EXPECT_CALL(*callMock, bt_send_function(_))
+			.WillOnce(Invoke([&](const char* data) -> RET_CODE
+			{
+				EXPECT_STREQ(data, "CMD: wifimgr serverport get\n");
+				return RETURN_OK;
+			}))
+			.WillOnce(Invoke([&](const char* data) -> RET_CODE
+			{
+				EXPECT_STREQ(data, "PORT:1111\n");
+				return RETURN_OK;
+			}))
+			.WillOnce(Invoke([&](const char* data) -> RET_CODE
+			{
+				EXPECT_STREQ(data, "OK\n");
+				return RETURN_OK;
+			}));
+	EXPECT_CALL(*wifimgr_mock, wifimgr_get_server_port()).WillOnce(Return(1111));
+	cmd_handle_bt_data("wifimgr serverport get");
 
 	/**
 	 * @<b>scenario<\b>: WiFi manager get clients details.

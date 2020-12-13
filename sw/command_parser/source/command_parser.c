@@ -129,7 +129,13 @@ RET_CODE cmd_handle_wifimgr_subcommand(const char** command, uint8_t size)
 		{
 			result = wifimgr_set_ntp_server(command[3]);
 		}
-		//TODO add ntp server get
+		else if (!strcmp(command[2], "get"))
+		{
+			const char* server = wifimgr_get_ntp_server();
+			result = server? RETURN_OK : RETURN_NOK;
+			string_format(CMD_REPLY_BUFFER, "NTP:%s\n", server);
+			cmd_send_response();
+		}
 	}
 	else if (!strcmp(command[1], "serverport"))
 	{
@@ -137,7 +143,13 @@ RET_CODE cmd_handle_wifimgr_subcommand(const char** command, uint8_t size)
 		{
 			result = wifimgr_set_server_port(atoi(command[3]));
 		}
-		//TODO add get server port
+		else if (!strcmp(command[2], "get"))
+		{
+			uint16_t port = wifimgr_get_server_port();
+			result = RETURN_OK;
+			string_format(CMD_REPLY_BUFFER, "PORT:%d\n", port);
+			cmd_send_response();
+		}
 	}
 	else if (!strcmp(command[1], "clients"))
 	{
