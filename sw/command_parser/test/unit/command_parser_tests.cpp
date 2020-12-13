@@ -10,14 +10,17 @@ extern "C" {
 
 #include "wifimanager_mock.h"
 
+/* ============================= */
 /**
- * @brief Unit test of command parser.
- *
- * All tests that verify behavior of command parser module.
- *
  * @file command_parser_tests.cpp
- * @author  Jacek Skowronek
- * @date    12/12/2020
+ *
+ * @brief Unit tests of Command Parser module
+ *
+ * @details
+ * This test verify behavior of Command Parser module
+ *
+ * @author Jacek Skowronek
+ * @date 11/12/2020
  */
 
 
@@ -64,14 +67,15 @@ struct cmdParserFixture : public ::testing::Test
 };
 
 /**
- * @test Checks if module correctly receives data and sends response
+ * @test Checks if module correctly receives, parse data and sends response
  */
 TEST_F(cmdParserFixture, command_responding)
 {
 	const ServerClientID id = 1;
 	/**
-	 * @<b>scenario<\b>: Command from WiFi received.
-	 * @<b>expected<\b>: Echo sent, response sent.
+	 * <b>scenario</b>: Command from WiFi received.<br>
+	 * <b>expected</b>: Echo sent, response sent.<br>
+	 * ************************************************
 	 */
 	EXPECT_CALL(*callMock, wifi_send_function(_,_))
 			.WillOnce(Invoke([&](ServerClientID cliendid, const char* data) -> RET_CODE
@@ -89,8 +93,9 @@ TEST_F(cmdParserFixture, command_responding)
 	cmd_handle_wifi_data(id, "unknown command");
 
 	/**
-	 * @<b>scenario<\b>: Command from BT received.
-	 * @<b>expected<\b>: Echo sent, response sent.
+	 * <b>scenario</b>: Command from BT received.<br>
+	 * <b>expected</b>: Echo sent, response sent.<br>
+	 * ************************************************
 	 */
 	EXPECT_CALL(*callMock, bt_send_function(_))
 			.WillOnce(Invoke([&](const char* data) -> RET_CODE
@@ -112,8 +117,9 @@ TEST_F(cmdParserFixture, command_responding)
 TEST_F(cmdParserFixture, wifi_manager_cmds_test)
 {
 	/**
-	 * @<b>scenario<\b>: WiFi manager reset command.
-	 * @<b>expected<\b>: Command executed, response sent.
+	 * <b>scenario</b>: WiFi manager reset command.<br>
+	 * <b>expected</b>: Command executed, response sent.<br>
+	 * ************************************************
 	 */
 	EXPECT_CALL(*callMock, bt_send_function(_))
 			.WillOnce(Invoke([&](const char* data) -> RET_CODE
@@ -129,8 +135,9 @@ TEST_F(cmdParserFixture, wifi_manager_cmds_test)
 	EXPECT_CALL(*wifimgr_mock, wifimgr_reset()).WillOnce(Return(RETURN_OK));
 	cmd_handle_bt_data("wifimgr reset");
 	/**
-	 * @<b>scenario<\b>: WiFi manager IP set command.
-	 * @<b>expected<\b>: Command executed, response sent.
+	 * <b>scenario</b>: WiFi manager IP set command.<br>
+	 * <b>expected</b>: Command executed, response sent.<br>
+	 * ************************************************
 	 */
 	EXPECT_CALL(*callMock, bt_send_function(_))
 			.WillOnce(Invoke([&](const char* data) -> RET_CODE
@@ -151,8 +158,9 @@ TEST_F(cmdParserFixture, wifi_manager_cmds_test)
 	cmd_handle_bt_data("wifimgr ip set 192.168.1.10");
 
 	/**
-	 * @<b>scenario<\b>: WiFi manager IP get command.
-	 * @<b>expected<\b>: Command executed, response sent.
+	 * <b>scenario</b>: WiFi manager IP get command.<br>
+	 * <b>expected</b>: Command executed, response sent.<br>
+	 * ************************************************
 	 */
 	EXPECT_CALL(*callMock, bt_send_function(_))
 			.WillOnce(Invoke([&](const char* data) -> RET_CODE
@@ -180,8 +188,9 @@ TEST_F(cmdParserFixture, wifi_manager_cmds_test)
 	cmd_handle_bt_data("wifimgr ip get");
 
 	/**
-	 * @<b>scenario<\b>: WiFi manager network set command.
-	 * @<b>expected<\b>: Command executed, response sent.
+	 * <b>scenario</b>: WiFi manager network set command.<br>
+	 * <b>expected</b>: Command executed, response sent.<br>
+	 * ************************************************
 	 */
 	EXPECT_CALL(*callMock, bt_send_function(_))
 			.WillOnce(Invoke([&](const char* data) -> RET_CODE
@@ -203,8 +212,9 @@ TEST_F(cmdParserFixture, wifi_manager_cmds_test)
 	cmd_handle_bt_data("wifimgr network set NEW_SSID NEW_PASS");
 
 	/**
-	 * @<b>scenario<\b>: WiFi manager network get command.
-	 * @<b>expected<\b>: Command executed, response sent.
+	 * <b>scenario</b>: WiFi manager network get command.<br>
+	 * <b>expected</b>: Command executed, response sent.<br>
+	 * ************************************************
 	 */
 	EXPECT_CALL(*callMock, bt_send_function(_))
 			.WillOnce(Invoke([&](const char* data) -> RET_CODE
@@ -229,8 +239,9 @@ TEST_F(cmdParserFixture, wifi_manager_cmds_test)
 	cmd_handle_bt_data("wifimgr network get");
 
 	/**
-	 * @<b>scenario<\b>: WiFi manager NTP server set.
-	 * @<b>expected<\b>: Command executed, response sent.
+	 * <b>scenario</b>: WiFi manager NTP server set.<br>
+	 * <b>expected</b>: Command executed, response sent.<br>
+	 * ************************************************
 	 */
 	EXPECT_CALL(*callMock, bt_send_function(_))
 			.WillOnce(Invoke([&](const char* data) -> RET_CODE
@@ -251,8 +262,9 @@ TEST_F(cmdParserFixture, wifi_manager_cmds_test)
 	cmd_handle_bt_data("wifimgr ntpserver set www.test.pl");
 
 	/**
-	 * @<b>scenario<\b>: WiFi manager NTP server get.
-	 * @<b>expected<\b>: Command executed, response sent.
+	 * <b>scenario</b>: WiFi manager NTP server get.<br>
+	 * <b>expected</b>: Command executed, response sent.<br>
+	 * ************************************************
 	 */
 	EXPECT_CALL(*callMock, bt_send_function(_))
 			.WillOnce(Invoke([&](const char* data) -> RET_CODE
@@ -277,8 +289,9 @@ TEST_F(cmdParserFixture, wifi_manager_cmds_test)
 	cmd_handle_bt_data("wifimgr ntpserver get");
 
 	/**
-	 * @<b>scenario<\b>: WiFi manager server port set.
-	 * @<b>expected<\b>: Command executed, response sent.
+	 * <b>scenario</b>: WiFi manager server port set.<br>
+	 * <b>expected</b>: Command executed, response sent.<br>
+	 * ************************************************
 	 */
 	EXPECT_CALL(*callMock, bt_send_function(_))
 			.WillOnce(Invoke([&](const char* data) -> RET_CODE
@@ -299,8 +312,9 @@ TEST_F(cmdParserFixture, wifi_manager_cmds_test)
 	cmd_handle_bt_data("wifimgr serverport set 1111");
 
 	/**
-	 * @<b>scenario<\b>: WiFi manager server port get.
-	 * @<b>expected<\b>: Command executed, response sent.
+	 * <b>scenario</b>: WiFi manager server port get.<br>
+	 * <b>expected</b>: Command executed, response sent.<br>
+	 * ************************************************
 	 */
 	EXPECT_CALL(*callMock, bt_send_function(_))
 			.WillOnce(Invoke([&](const char* data) -> RET_CODE
@@ -322,8 +336,9 @@ TEST_F(cmdParserFixture, wifi_manager_cmds_test)
 	cmd_handle_bt_data("wifimgr serverport get");
 
 	/**
-	 * @<b>scenario<\b>: WiFi manager get clients details.
-	 * @<b>expected<\b>: Command executed, response sent.
+	 * <b>scenario</b>: WiFi manager get clients details.<br>
+	 * <b>expected</b>: Command executed, response sent.<br>
+	 * ************************************************
 	 */
 	EXPECT_CALL(*callMock, bt_send_function(_))
 			.WillOnce(Invoke([&](const char* data) -> RET_CODE

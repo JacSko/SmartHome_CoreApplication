@@ -1,25 +1,35 @@
+/* =============================
+ *   Includes of common headers
+ * =============================*/
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
+/* =============================
+ *  Includes of project headers
+ * =============================*/
 #include "command_parser.h"
 #include "string_formatter.h"
-
+/* =============================
+ *          Defines
+ * =============================*/
 #define CMD_REPLY_BUFFER_SIZE 512
 #define CMD_PARSER_USE_ECHO 1
-
-const uint8_t CMD_UNKNOWN_ID = 255;
-
-char CMD_REPLY_BUFFER [CMD_REPLY_BUFFER_SIZE];
-
-RET_CODE(*BT_SEND)(const char* data);
-RET_CODE(*WIFI_SEND)(ServerClientID id, const char* data);
-
+/* =============================
+ *   Internal module functions
+ * =============================*/
 void cmd_prepare_response(RET_CODE result);
 void cmd_send_response();
 RET_CODE cmd_parse_data(const char* data);
 RET_CODE cmd_handle_wifimgr_subcommand(const char** command, uint8_t size);
-
+/* =============================
+ *      Module variables
+ * =============================*/
+const uint8_t CMD_UNKNOWN_ID = 255;
+char CMD_REPLY_BUFFER [CMD_REPLY_BUFFER_SIZE];
+RET_CODE(*BT_SEND)(const char* data);
+RET_CODE(*WIFI_SEND)(ServerClientID id, const char* data);
 ServerClientID CURR_ID = CMD_UNKNOWN_ID;
+
 
 void cmd_register_bt_sender(RET_CODE(*callback)(const char* data))
 {

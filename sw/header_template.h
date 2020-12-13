@@ -40,7 +40,17 @@
  */
 int method1(int arg1, int arg2);
 
+//TEST TAGS
 
+/**
+ * @test Short description
+ */
+
+/**
+ * <b>scenario</b>: Scenario.<br>
+ * <b>expected</b>: Expectations.<br>
+ * ************************************************
+ */
 
 
 
