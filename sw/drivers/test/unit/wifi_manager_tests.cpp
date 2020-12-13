@@ -497,7 +497,7 @@ TEST_F(wifiMgrFixture, changing_server_port)
 	EXPECT_CALL(*wifi_driver_mock, wifi_register_client_event_callback(_)).WillOnce(Return(RETURN_OK));
 
 	EXPECT_EQ(RETURN_OK, wifimgr_reset());
-
+	EXPECT_EQ(port_ok, wifimgr_get_server_port());
 	teardown_test_subject();
 }
 
@@ -518,6 +518,7 @@ TEST_F(wifiMgrFixture, changing_ntp_server)
 	 * @<b>expected<\b>: Port changed, but it shall be done after reset.
 	 */
 	EXPECT_EQ(RETURN_OK, wifimgr_set_ntp_server(new_ntp_server));
+	EXPECT_STREQ(new_ntp_server, wifimgr_get_ntp_server());
 
 	EXPECT_CALL(*wifi_driver_mock, wifi_reset());
 	EXPECT_CALL(*wifi_driver_mock, wifi_deinitialize());
@@ -768,4 +769,3 @@ TEST_F(wifiMgrFixture, get_ssid_name)
 	EXPECT_EQ(RETURN_OK, wifimgr_get_network_name(result, 32));
 	EXPECT_STREQ(result, name);
 }
-

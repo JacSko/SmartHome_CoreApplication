@@ -6,15 +6,12 @@
 void wifimgr_on_client_event(ClientEvent ev, ServerClientID id, const char* data);
 void(*wifimgr_data_callback)(ServerClientID id, const char* data);
 
-uint8_t WIFIMGR_MAX_CLIENTS = 2;
-
-
-char wifi_cur_ssid [32] = "NIE_KRADNIJ_INTERNETU!!!";
-char wifi_cur_pass [64] = "radionet0098";
-char wifi_ntp_server [100] = "194.146.251.101";
-IPAddress wifi_cur_ip_address = {{192,168,100,100},{0,0,0,0},{0,0,0,0}};
-
-uint16_t wifi_server_port = 4444;
+uint8_t 	WIFIMGR_MAX_CLIENTS = 2;
+char 		WIFIMGR_NETWORK_SSID [32] = "NIE_KRADNIJ_INTERNETU!!!";
+char 		WIFIMGR_NETWORK_PASS [64] = "radionet0098";
+char 		WIFIMGR_NTP_SERVER [100] = "194.146.251.101";
+IPAddress 	WIFIMGR_IP_ADDRESS = {{192,168,100,100},{0,0,0,0},{0,0,0,0}};
+uint16_t 	WIFIMGR_SERVER_PORT = 4444;
 
 typedef struct WiFiClient
 {
@@ -42,12 +39,12 @@ WifiMgr wifi_mgr;
 RET_CODE wifimgr_initialize(const WIFI_UART_Config* config)
 {
 	logger_send(LOG_WIFI_MANAGER, __func__, "initializing wifimgr");
-	wifi_mgr.ssid = wifi_cur_ssid;
-	wifi_mgr.pass = wifi_cur_pass;
+	wifi_mgr.ssid = WIFIMGR_NETWORK_SSID;
+	wifi_mgr.pass = WIFIMGR_NETWORK_PASS;
 
 	wifi_mgr.clients_cnt = 0;
 	wifi_mgr.wifi_connected = 0;
-	wifi_mgr.server_port = wifi_server_port;
+	wifi_mgr.server_port = WIFIMGR_SERVER_PORT;
 	wifi_mgr.server_running = 0;
 	wifi_mgr.config = *config;
 
@@ -61,7 +58,7 @@ RET_CODE wifimgr_initialize(const WIFI_UART_Config* config)
 			break;
 		}
 
-		if (wifi_set_ip_address(&wifi_cur_ip_address) != RETURN_OK)
+		if (wifi_set_ip_address(&WIFIMGR_IP_ADDRESS) != RETURN_OK)
 		{
 			logger_send(LOG_ERROR, __func__, "Cannot set ip address");
 			break;
@@ -81,12 +78,12 @@ RET_CODE wifimgr_initialize(const WIFI_UART_Config* config)
 		}
 		TimeItem tim;
 
-		RET_CODE time_ok = wifi_get_time(wifi_ntp_server, &tim);
+		RET_CODE time_ok = wifi_get_time(WIFIMGR_NTP_SERVER, &tim);
 		if (time_ok != RETURN_OK)
 		{
 			/* workaround - due to bug in ESP, after initializiation there is not first response from NTP server */
 			logger_send(LOG_ERROR, __func__, "Cannot get NTP time, trying again!");
-			time_ok = wifi_get_time(wifi_ntp_server, &tim);
+			time_ok = wifi_get_time(WIFIMGR_NTP_SERVER, &tim);
 		}
 		if (time_ok == RETURN_OK)
 		{
@@ -185,8 +182,8 @@ RET_CODE wifimgr_set_network_data(const char* ssid, const char* pass)
 	{
 		if (strlen(ssid) < 32 && strlen(pass) < 64)
 		{
-			strcpy(wifi_cur_ssid, ssid);
-			strcpy(wifi_cur_pass, pass);
+			strcpy(WIFIMGR_NETWORK_SSID, ssid);
+			strcpy(WIFIMGR_NETWORK_PASS, pass);
 			result = RETURN_OK;
 		}
 	}
@@ -200,7 +197,7 @@ RET_CODE wifimgr_set_ntp_server(const char* server)
 
 	if (server)
 	{
-		strcpy(wifi_ntp_server, server);
+		strcpy(WIFIMGR_NTP_SERVER, server);
 		result = RETURN_OK;
 	}
 	logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "error");
@@ -220,10 +217,10 @@ RET_CODE wifimgr_set_ip_address(const char* address)
 
 		if (byte1 && byte2 && byte3 && byte4)
 		{
-			wifi_cur_ip_address.ip_address[0] = atoi(byte1);
-			wifi_cur_ip_address.ip_address[1] = atoi(byte2);
-			wifi_cur_ip_address.ip_address[2] = atoi(byte3);
-			wifi_cur_ip_address.ip_address[3] = atoi(byte4);
+			WIFIMGR_IP_ADDRESS.ip_address[0] = atoi(byte1);
+			WIFIMGR_IP_ADDRESS.ip_address[1] = atoi(byte2);
+			WIFIMGR_IP_ADDRESS.ip_address[2] = atoi(byte3);
+			WIFIMGR_IP_ADDRESS.ip_address[3] = atoi(byte4);
 			result = RETURN_OK;
 		}
 
@@ -237,11 +234,19 @@ RET_CODE wifimgr_set_server_port(uint16_t port)
 	RET_CODE result = RETURN_NOK;
 	if (port > 999 && port < 10000)
 	{
-		wifi_server_port = port;
+		WIFIMGR_SERVER_PORT = port;
 		result = RETURN_OK;
 	}
 	logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "error");
 	return result;
+}
+const char* wifimgr_get_ntp_server()
+{
+	return WIFIMGR_NTP_SERVER;
+}
+uint16_t wifimgr_get_server_port()
+{
+	return wifi_mgr.server_port;
 }
 
 RET_CODE wifimgr_send_data(ServerClientID id, const char* data)
@@ -290,7 +295,7 @@ RET_CODE wifimgr_get_time(TimeItem* item)
 			logger_send(LOG_ERROR, __func__, "cannot disable multiclient mode");
 			break;
 		}
-		if (wifi_get_time(wifi_ntp_server, item) != RETURN_OK)
+		if (wifi_get_time(WIFIMGR_NTP_SERVER, item) != RETURN_OK)
 		{
 			logger_send(LOG_ERROR, __func__, "cannot get ntp time");
 			break;
@@ -302,7 +307,7 @@ RET_CODE wifimgr_get_time(TimeItem* item)
 			break;
 		}
 
-		if (wifi_open_server(wifi_server_port) != RETURN_OK)
+		if (wifi_open_server(WIFIMGR_SERVER_PORT) != RETURN_OK)
 		{
 			logger_send(LOG_ERROR, __func__, "cannot open server");
 			break;
