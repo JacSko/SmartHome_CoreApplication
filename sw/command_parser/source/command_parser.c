@@ -28,7 +28,7 @@ const uint8_t CMD_UNKNOWN_ID = 255;
 char CMD_REPLY_BUFFER [CMD_REPLY_BUFFER_SIZE];
 RET_CODE(*BT_SEND)(const char* data);
 RET_CODE(*WIFI_SEND)(ServerClientID id, const char* data);
-ServerClientID CURR_ID = CMD_UNKNOWN_ID;
+ServerClientID CURR_ID;
 
 
 void cmd_register_bt_sender(RET_CODE(*callback)(const char* data))

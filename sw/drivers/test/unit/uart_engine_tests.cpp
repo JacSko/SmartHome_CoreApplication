@@ -10,16 +10,19 @@ extern "C" {
 
 #include "gpio_lib_mock.h"
 
+/* ============================= */
 /**
- * @brief Unit test of uartengine.
- *
- * All tests that verify behavior of uartengine module
- *
  * @file uart_engine_tests.cpp
- * @author  Jacek Skowronek
- * @date    01/11/2020
+ *
+ * @brief Unit tests of UART engine module
+ *
+ * @details
+ * This tests verifies behavior of UART engine module
+ *
+ * @author Jacek Skowronek
+ * @date 01/11/2020
  */
-
+/* ============================= */
 
 using namespace ::testing;
 
@@ -59,8 +62,9 @@ TEST_F(uartengineFixture, engine_initialization)
 {
 
 	/**
-	 * @<b>scenario<\b>: Module initialization.
-	 * @<b>expected<\b>: RCC enabled, USART2 enabled, RXNEIE set, TXEIE not set.
+	 * <b>scenario</b>: Module initialization.<br>
+	 * <b>expected</b>: RCC enabled, USART2 enabled, RXNEIE set, TXEIE not set.<br>
+    * ************************************************
 	 */
 	UARTEngine_Config cfg = {115200, 20, 15};
 
@@ -85,16 +89,18 @@ TEST_F(uartengineFixture, string_send)
 
 	char data[]= "STRING_TO_SEND\n";
 	/**
-	 * @<b>scenario<\b>: String send when UART not initialized.
-	 * @<b>expected<\b>: Error returned.
+	 * <b>scenario</b>: String send when UART not initialized.<br>
+	 * <b>expected</b>: Error returned.<br>
+    * ************************************************
 	 */
 	{
 		EXPECT_EQ(RETURN_ERROR, uartengine_send_string(data));
 	}
 
 	/**
-	 * @<b>scenario<\b>: String send.
-	 * @<b>expected<\b>: Data written to buffer, TXEIE enabled.
+	 * <b>scenario</b>: String send.<br>
+	 * <b>expected</b>: Data written to buffer, TXEIE enabled.<br>
+    * ************************************************
 	 */
 	UARTEngine_Config cfg = {115200, 20, 15};
 	EXPECT_CALL(*gpio_lib_mock, gpio_pin_cfg(_,_,_)).Times(2);
@@ -172,8 +178,9 @@ TEST_F(uartengineFixture, string_send)
 	EXPECT_FALSE(READ_BIT(USART2->CR1, USART_CR1_TXEIE));
 
 	/**
-	 * @<b>scenario<\b>: String send when buffer overlap.
-	 * @<b>expected<\b>: Data written to buffer, TXEIE enabled.
+	 * <b>scenario</b>: String send when buffer overlap.<br>
+	 * <b>expected</b>: Data written to buffer, TXEIE enabled.<br>
+    * ************************************************
 	 */
 	char data2[]= "SECOND_STRING\n";
 	EXPECT_EQ(RETURN_OK, uartengine_send_string(data2));
@@ -244,8 +251,9 @@ TEST_F(uartengineFixture, string_send)
 	EXPECT_FALSE(READ_BIT(USART2->CR1, USART_CR1_TXEIE));
 
 	/**
-	 * @<b>scenario<\b>: String send with CR LF ending.
-	 * @<b>expected<\b>: Data written to buffer, TXEIE enabled.
+	 * <b>scenario</b>: String send with CR LF ending.<br>
+	 * <b>expected</b>: Data written to buffer, TXEIE enabled.<br>
+    * ************************************************
 	 */
 	char data3[]= "AT_CMD\r\n";
 	EXPECT_EQ(RETURN_OK, uartengine_send_string(data3));
@@ -301,8 +309,9 @@ TEST_F(uartengineFixture, string_send)
 TEST_F(uartengineFixture, string_read)
 {
 	/**
-	 * @<b>scenario<\b>: String read.
-	 * @<b>expected<\b>: Data written to provided buffer, NULL terminated.
+	 * <b>scenario</b>: String read.<br>
+	 * <b>expected</b>: Data written to provided buffer, NULL terminated.<br>
+    * ************************************************
 	 */
 	UARTEngine_Config cfg = {115200, 20, 15};
 	EXPECT_CALL(*gpio_lib_mock, gpio_pin_cfg(_,_,_)).Times(2);
@@ -446,8 +455,9 @@ TEST_F(uartengineFixture, string_read)
 TEST_F(uartengineFixture, string_bytes_read_mixed)
 {
 	/**
-	 * @<b>scenario<\b>: String received.
-	 * @<b>expected<\b>: String written to external buffer, internal buffer indexes are equal.
+	 * <b>scenario</b>: String received.<br>
+	 * <b>expected</b>: String written to external buffer, internal buffer indexes are equal.<br>
+    * ************************************************
 	 */
 	UARTEngine_Config cfg = {115200, 20, 15};
 	EXPECT_CALL(*gpio_lib_mock, gpio_pin_cfg(_,_,_)).Times(2);
@@ -487,8 +497,9 @@ TEST_F(uartengineFixture, string_bytes_read_mixed)
 	EXPECT_EQ(uart_rx_buf.head, uart_rx_buf.tail);
 
 	/**
-	 * @<b>scenario<\b>: Reading raw bytes from buffer.
-	 * @<b>expected<\b>: Bytes written to external buffer, internal buffer indexes are equal.
+	 * <b>scenario</b>: Reading raw bytes from buffer.<br>
+	 * <b>expected</b>: Bytes written to external buffer, internal buffer indexes are equal.<br>
+    * ************************************************
 	 */
 	USART2->DR = '\r';
 	USART2_IRQHandler();
@@ -536,8 +547,9 @@ TEST_F(uartengineFixture, string_bytes_read_mixed)
 	EXPECT_EQ(uart_rx_buf.head, uart_rx_buf.tail);
 
 	/**
-	 * @<b>scenario<\b>: String received.
-	 * @<b>expected<\b>: String written to external buffer, internal buffer indexes are equal.
+	 * <b>scenario</b>: String received.<br>
+	 * <b>expected</b>: String written to external buffer, internal buffer indexes are equal.<br>
+    * ************************************************
 	 */
 	USART2->DR = '\r';
 	USART2_IRQHandler();
@@ -587,16 +599,18 @@ TEST_F(uartengineFixture, callback_add_remove)
 		UART_CALLBACKS[i] = NULL;
 	}
 	/**
-	 * @<b>scenario<\b>: Callback list empty - adding one callback.
-	 * @<b>expected<\b>: Callback placed on first place.
+	 * <b>scenario</b>: Callback list empty - adding one callback.<br>
+	 * <b>expected</b>: Callback placed on first place.<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(RETURN_OK, uartengine_register_callback(&fake_callback));
 	EXPECT_CALL(*callMock, callback(_));
 	uartengine_notify_callbacks();
 
 	/**
-	 * @<b>scenario<\b>: Callback list full, calling callbacks.
-	 * @<b>expected<\b>: All callbacks called.
+	 * <b>scenario</b>: Callback list full, calling callbacks.<br>
+	 * <b>expected</b>: All callbacks called.<br>
+    * ************************************************
 	 */
 	for (uint8_t i = 1; i < UART_ENGINE_CALLBACK_SIZE; i++)
 	{
@@ -605,24 +619,27 @@ TEST_F(uartengineFixture, callback_add_remove)
 	EXPECT_CALL(*callMock, callback(_)).Times(5);
 	uartengine_notify_callbacks();
 	/**
-	 * @<b>scenario<\b>: Callback list full, adding new callback.
-	 * @<b>expected<\b>: New callback not added.
+	 * <b>scenario</b>: Callback list full, adding new callback.<br>
+	 * <b>expected</b>: New callback not added.<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(RETURN_ERROR, uartengine_register_callback(&fake_callback));
 	EXPECT_CALL(*callMock, callback(_)).Times(5);
 	uartengine_notify_callbacks();
 
 	/**
-	 * @<b>scenario<\b>: Callback list full, unregister callback.
-	 * @<b>expected<\b>: Callback unregistered
+	 * <b>scenario</b>: Callback list full, unregister callback.<br>
+	 * <b>expected</b>: Callback unregistered<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(RETURN_OK, uartengine_unregister_callback(&fake_callback));
 	EXPECT_CALL(*callMock, callback(_)).Times(4);
 	uartengine_notify_callbacks();
 
 	/**
-	 * @<b>scenario<\b>: Callback list not full, unregister 2 more callbacks.
-	 * @<b>expected<\b>: Callback unregistered
+	 * <b>scenario</b>: Callback list not full, unregister 2 more callbacks.
+	 * <b>expected</b>: Callback unregistered<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(RETURN_OK, uartengine_unregister_callback(&fake_callback));
 	EXPECT_EQ(RETURN_OK, uartengine_unregister_callback(&fake_callback));
@@ -630,8 +647,9 @@ TEST_F(uartengineFixture, callback_add_remove)
 	uartengine_notify_callbacks();
 
 	/**
-	 * @<b>scenario<\b>: Callback list not contiguous, adding new callback.
-	 * @<b>expected<\b>: Callback added
+	 * <b>scenario</b>: Callback list not contiguous, adding new callback.<br>
+	 * <b>expected</b>: Callback added<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(RETURN_OK, uartengine_register_callback(&fake_callback));
 	EXPECT_CALL(*callMock, callback(_)).Times(3);
@@ -649,8 +667,9 @@ TEST_F(uartengineFixture, callback_add_remove)
 TEST_F(uartengineFixture, string_read_special_data)
 {
 	/**
-	 * @<b>scenario<\b>: CRLF sequence received on begin and end of the string.
-	 * @<b>expected<\b>: CRLF sequences shall be filtered out.
+	 * <b>scenario</b>: CRLF sequence received on begin and end of the string.<br>
+	 * <b>expected</b>: CRLF sequences shall be filtered out.<br>
+    * ************************************************
 	 */
 	UARTEngine_Config cfg = {115200, 20, 15};
 	EXPECT_CALL(*gpio_lib_mock, gpio_pin_cfg(_,_,_)).Times(2);
@@ -724,8 +743,9 @@ TEST_F(uartengineFixture, string_read_special_data)
 TEST_F(uartengineFixture, string_read_special_data_pooling)
 {
 	/**
-	 * @<b>scenario<\b>: CRLF sequence received on begin and end of the string.
-	 * @<b>expected<\b>: CRLF sequences shall be filtered out.
+	 * <b>scenario</b>: CRLF sequence received on begin and end of the string.<br>
+	 * <b>expected</b>: CRLF sequences shall be filtered out.<br>
+    * ************************************************
 	 */
 	UARTEngine_Config cfg = {115200, 20, 15};
 	EXPECT_CALL(*gpio_lib_mock, gpio_pin_cfg(_,_,_)).Times(2);
@@ -779,8 +799,9 @@ TEST_F(uartengineFixture, string_read_special_data_pooling)
 TEST_F(uartengineFixture, string_read_bytes)
 {
 	/**
-	 * @<b>scenario<\b>: 10 bytes received, includes CR and LR chars.
-	 * @<b>expected<\b>: All bytes can be read.
+	 * <b>scenario</b>: 10 bytes received, includes CR and LR chars.<br>
+	 * <b>expected</b>: All bytes can be read.<br>
+    * ************************************************
 	 */
 	UARTEngine_Config cfg = {115200, 15, 15};
 	EXPECT_CALL(*gpio_lib_mock, gpio_pin_cfg(_,_,_)).Times(2);

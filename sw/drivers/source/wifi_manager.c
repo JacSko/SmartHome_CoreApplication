@@ -1,18 +1,30 @@
-#include "wifi_manager.h"
-#include "Logger.h"
+/* =============================
+ *   Includes of common headers
+ * =============================*/
 #include <stdlib.h>
 #include <string.h>
-
+/* =============================
+ *  Includes of project headers
+ * =============================*/
+#include "wifi_manager.h"
+#include "Logger.h"
+/* =============================
+ *          Defines
+ * =============================*/
+uint8_t  WIFIMGR_MAX_CLIENTS = 2;
+char     WIFIMGR_NETWORK_SSID [32] = "NIE_KRADNIJ_INTERNETU!!!";
+char     WIFIMGR_NETWORK_PASS [64] = "radionet0098";
+char     WIFIMGR_NTP_SERVER [32] = "194.146.251.101";
+IPAddress   WIFIMGR_IP_ADDRESS = {{192,168,100,100},{0,0,0,0},{0,0,0,0}};
+uint16_t    WIFIMGR_SERVER_PORT = 4444;
+/* =============================
+ *   Internal module functions
+ * =============================*/
 void wifimgr_on_client_event(ClientEvent ev, ServerClientID id, const char* data);
 void(*wifimgr_data_callback)(ServerClientID id, const char* data);
-
-uint8_t 	WIFIMGR_MAX_CLIENTS = 2;
-char 		WIFIMGR_NETWORK_SSID [32] = "NIE_KRADNIJ_INTERNETU!!!";
-char 		WIFIMGR_NETWORK_PASS [64] = "radionet0098";
-char 		WIFIMGR_NTP_SERVER [100] = "194.146.251.101";
-IPAddress 	WIFIMGR_IP_ADDRESS = {{192,168,100,100},{0,0,0,0},{0,0,0,0}};
-uint16_t 	WIFIMGR_SERVER_PORT = 4444;
-
+/* =============================
+ *       Internal types
+ * =============================*/
 typedef struct WiFiClient
 {
 	uint8_t connected;
@@ -31,8 +43,9 @@ typedef struct WifiMgr
 	char* ssid;
 	char* pass;
 } WifiMgr;
-
-
+/* =============================
+ *      Module variables
+ * =============================*/
 WifiMgr wifi_mgr;
 
 
