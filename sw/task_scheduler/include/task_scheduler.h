@@ -1,125 +1,141 @@
 #ifndef _TASK_SCHEDULER_H_
 #define _TASK_SCHEDULER_H_
+/* ============================= */
+/**
+ * @file task_scheduler.h
+ *
+ * @brief Module is responsible for scheduling different task in time.
+ * Allows to schedule periodic tasks, that will be trigger until requesting stop.
+ * There is possibility to add one time tasks also.
+ *
+ * @details
+ * Module is handling communication with Bluetooth device using UART.
+ * Allows to register callback function called on new data received.
+ * The string_watcher function have to be called in main thread to
+ * receive callback notifications.
+ *
+ * @author Jacek Skowronek
+ * @date 13/12/2020
+ */
+/* ============================= */
 
+/* =============================
+ *  Includes of project headers
+ * =============================*/
 #include "return_codes.h"
 #include "stm32f4xx.h"
 
+/* =============================
+ *       Data structures
+ * =============================*/
 typedef enum SchTaskType
 {
-	TASKTYPE_TRIGGER,
-	TASKTYPE_PERIODIC,
-	TASKTYPE_ONCE,
-	TASKTYPE_UNKNOWN,
+	TASKTYPE_TRIGGER,    /**< Need to be manually started */
+	TASKTYPE_PERIODIC,   /**< Task will be called in defined period */
+	TASKTYPE_ONCE,       /**< Task will be called only once */
+	TASKTYPE_UNKNOWN,    /**< Unknown task type - enums count */
 }SchTaskType;
 
 typedef enum SchTaskState
 {
-	TASKSTATE_EMPTY = 0x00,
-	TASKSTATE_RUNNING,
-	TASKSTATE_STOPPED,
-	TASKSTATE_UNKNOWN,
+	TASKSTATE_EMPTY = 0x00, /**< Task is empty and may be replaced by other task */
+	TASKSTATE_RUNNING,      /**< Task is running */
+	TASKSTATE_STOPPED,      /**< Task stopped and waiting for start */
+	TASKSTATE_UNKNOWN,      /**< Unknown task state - enums count */
 } SchTaskState;
 
+/* =============================
+ *          Defines
+ * =============================*/
 typedef uint16_t TASK_PERIOD;
 typedef void(*TASK) ();
 
 
-/*
- * Initialize task scheduler.
- * This means e.g. subscribtion to time counter.
+/**
+ * @brief Initialize task scheduler.
+ * @return None.
  */
 void sch_initialize ();
-
-/*
- * Subscribe permanent task to scheduler.
+/**
+ * @brief Subscribe permanent task to scheduler.
+ * @details
  * Permanent means, that even if task became inactive (task type ONCE)
  * it is not removed from internal list ready to become active.
- *
- * set_task_period, set_task_state and set_task_type shall be called afterwards.
- * Return:
- * RETURN_OK - when subscription made correctly.
- * RETURN_NOK - when such task is already subscribed.
- * RETURN_ERROR - when e.g max number of subscription made.
+ * Functions set_task_period, set_task_state and set_task_type shall be called afterwards.
+ * @param[in] task - Pointer to function
+ * @return See RETURN_CODES.
  */
 RET_CODE sch_subscribe (TASK task);
-
-/*
- * Remove subscription of permanent task from scheduler.
- *
- * Return:
- * RETURN_OK - when subscription removed correctly.
- * RETURN_NOK - when such task was not found.
+/**
+ * @brief Unsubscribe permanent task.
+ * @param[in] task - Pointer to function
+ * @return See RETURN_CODES.
  */
 RET_CODE sch_unsubscribe (TASK task);
-
-/*
- * Add temporary task to scheduler.
- * Task is removed from scheduler just after first call.
- *
- * Return:
- * RETURN_OK - when added correctly.
- * RETURN_NOK - when task not added.
+/**
+ * @brief Schedule task to module.
+ * @details
+ * This task is removed after first call.
+ * @param[in] task - Pointer to function
+ * @param[in] period - task period
+ * @return See RETURN_CODES.
  */
 RET_CODE sch_schedule_task (TASK task, TASK_PERIOD period);
-
-/*
- * Set period for task.
- * Period range: 10ms - 60s
- * Return:
- * RETURN_OK - period changed.
- * RETURN_NOK - period cannot be changed (e.g. task not exist or invalid period).
+/**
+ * @brief Set period of task.
+ * @details
+ * Range: 10ms - 60s
+ * @param[in] task - Pointer to task
+ * @param[in] period - task period
+ * @return See RETURN_CODES.
  */
 RET_CODE sch_set_task_period (TASK task, TASK_PERIOD period);
-
-/*
- * Set state for task.
- * States: STOPPED, RUNNING
- * Return:
- * RETURN_OK - state changed.
- * RETURN_NOK - state cannot be changed (e.g. task not exist).
+/**
+ * @brief Set task state - STOPPED, RUNNING etc.
+ * @param[in] task - Pointer to task
+ * @param[in] state - task state
+ * @return See RETURN_CODES.
  */
 RET_CODE sch_set_task_state (TASK task, SchTaskState state);
-
-/*
- * Set type for task.
- * Types: ONCE, PERIODIC.
- * Return:
- * RETURN_OK - type changed.
- * RETURN_NOK - type cannot be changed (e.g. task not exist).
+/**
+ * @brief Set task type - PERIODIC, ONCE, etc.
+ * @param[in] task - Pointer to task
+ * @param[in] type - task type
+ * @return See RETURN_CODES.
  */
 RET_CODE sch_set_task_type (TASK task, SchTaskType type);
-
-/*
- * Starts task which has type == ONCE.
- * Return:
- * RETURN_OK - task started.
- * RETURN_NOK - task not started (e.g. not found or task has type other than ONCE.
+/**
+ * @brief Starts task which type is ONCE.
+ * @param[in] task - Pointer to task.
+ * @return See RETURN_CODES.
  */
 RET_CODE sch_trigger_task (TASK task);
-
-/*
- * Get period for task.
+/**
+ * @brief Get period of the task.
+ * @param[in] task - Pointer to task
+ * @return Task period.
  */
 TASK_PERIOD sch_get_task_period (TASK task);
-
-/*
- * Get state for task.
+/**
+ * @brief Get state of the task.
+ * @param[in] task - Pointer to task
+ * @return Task state.
  */
 SchTaskState sch_get_task_state (TASK task);
-
-/*
- * Get task type.
+/**
+ * @brief Get type of the task.
+ * @param[in] task - Pointer to task
+ * @return Task type.
  */
 SchTaskType sch_get_task_type (TASK task);
-
-/*
- * To be called in main function - responsible for scheduling
+/**
+ * @brief Watcher - need to be called in main thread loop to call tasks on timeout.
+ * @return None.
  */
 void sch_task_watcher ();
-
-/*
- * Deinitialize task scheduler.
- * This means e.g. freeing allocated memory.
+/**
+ * @brief Shuts down task scheduler.
+ * @return None.
  */
 void sch_deinitialize();
 

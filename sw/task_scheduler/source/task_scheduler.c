@@ -1,8 +1,21 @@
+/* =============================
+ *   Includes of common headers
+ * =============================*/
+#include <stdlib.h>
+/* =============================
+ *  Includes of project headers
+ * =============================*/
 #include "task_scheduler.h"
 #include "time_counter.h"
-#include <stdlib.h>
 #include "Logger.h"
-
+/* =============================
+ *          Defines
+ * =============================*/
+const uint8_t DEFAULT_TASKLIST_SIZE = 20;
+const uint8_t DEFAULT_TASK_INCR = 5;
+/* =============================
+ *       Internal types
+ * =============================*/
 typedef struct SchItem
 {
 	TASK callback;
@@ -19,17 +32,20 @@ typedef struct SchList
 	uint8_t capacity;
 }SchList;
 
-/* Internal functions */
+/* =============================
+ *   Internal module functions
+ * =============================*/
 void sch_on_time_change(TimeItem* item);
 void sch_realloc_data(SchItem* source, SchItem* dest);
 SchItem* sch_get_item(TASK task);
 RET_CODE sch_is_period_correct(TASK_PERIOD period);
-
-/* Module global members */
+/* =============================
+ *      Module variables
+ * =============================*/
 SchList items_list;
-const uint8_t DEFAULT_TASKLIST_SIZE = 20;
-const uint8_t DEFAULT_TASK_INCR = 5;
 volatile uint8_t time_changed;
+
+
 
 void sch_initialize ()
 {

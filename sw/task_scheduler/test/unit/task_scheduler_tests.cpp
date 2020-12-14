@@ -11,16 +11,19 @@ extern "C" {
 #include "time_counter_mock.h"
 #include "logger_mock.h"
 
+/* ============================= */
 /**
- * @brief Unit test of task scheduler module.
- *
- * All tests that verify behavior of scheduler module
- *
  * @file task_scheduler_tests.cpp
- * @author  Jacek Skowronek
- * @date    11/11/2020
+ *
+ * @brief Unit tests of Task Scheduler module
+ *
+ * @details
+ * This tests verifies behavior of Task Scheduler module
+ *
+ * @author Jacek Skowronek
+ * @date 01/11/2020
  */
-
+/* ============================= */
 
 using namespace ::testing;
 
@@ -69,15 +72,17 @@ struct timeFixture : public ::testing::Test
 TEST_F(timeFixture, module_init_task_adding)
 {
 	/**
-	 * @<b>scenario<\b>: Module initialisation.
-	 * @<b>expected<\b>: Callback registered.
+	 * <b>scenario</b>: Module initialisation.<br>
+	 * <b>expected</b>: Callback registered.<br>
+    * ************************************************
 	 */
 	EXPECT_CALL(*time_cnt_mock, time_register_callback(_));
 	sch_initialize();
 
 	/**
-	 * @<b>scenario<\b>: First task added.
-	 * @<b>expected<\b>: Task added correctly.
+	 * <b>scenario</b>: First task added.<br>
+	 * <b>expected</b>: Task added correctly.<br>
+    * ************************************************
 	 */
 	EXPECT_CALL(*time_cnt_mock, time_get_basetime()).WillOnce(Return(10));
 	EXPECT_EQ(RETURN_OK, sch_subscribe(&fake_callback1));
@@ -86,8 +91,9 @@ TEST_F(timeFixture, module_init_task_adding)
 	EXPECT_EQ(items_list.size, 1);
 
 	/**
-	 * @<b>scenario<\b>: First task removed.
-	 * @<b>expected<\b>: Task removed correctly.
+	 * <b>scenario</b>: First task removed.<br>
+	 * <b>expected</b>: Task removed correctly.<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(RETURN_OK, sch_unsubscribe(&fake_callback1));
 	EXPECT_EQ(items_list.size, 0);
@@ -105,8 +111,9 @@ TEST_F(timeFixture, task_add_remove_test)
 	sch_initialize();
 
 	/**
-	 * @<b>scenario<\b>: Sequence of correct task added - to reach max task list size.
-	 * @<b>expected<\b>: All tasks added correctly.
+	 * <b>scenario</b>: Sequence of correct task added - to reach max task list size.<br>
+	 * <b>expected</b>: All tasks added correctly.<br>
+    * ************************************************
 	 */
 
 	EXPECT_EQ(items_list.size, 0);
@@ -121,8 +128,9 @@ TEST_F(timeFixture, task_add_remove_test)
 	EXPECT_EQ(items_list.capacity, DEFAULT_TASKLIST_SIZE);
 
 	/**
-	 * @<b>scenario<\b>: List is full, task is added.
-	 * @<b>expected<\b>: List should be reallocated and resized with DEFAULT_TASK_INCR step.
+	 * <b>scenario</b>: List is full, task is added.<br>
+	 * <b>expected</b>: List should be reallocated and resized with DEFAULT_TASK_INCR step.<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(RETURN_OK, sch_subscribe(&fake_callback1));
 	EXPECT_EQ(items_list.size, DEFAULT_TASKLIST_SIZE + 1);
@@ -145,8 +153,9 @@ TEST_F(timeFixture, task_schedule_test_one_task)
 	sch_initialize();
 
 	/**
-	 * @<b>scenario<\b>: One task added - enabled, period 30ms.
-	 * @<b>expected<\b>: Task added correctly.
+	 * <b>scenario</b>: One task added - enabled, period 30ms.<br>
+	 * <b>expected</b>: Task added correctly.<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(RETURN_OK, sch_subscribe(&fake_callback1));
 	EXPECT_EQ(RETURN_OK, sch_set_task_state(&fake_callback1, TASKSTATE_RUNNING));
@@ -166,8 +175,9 @@ TEST_F(timeFixture, task_schedule_test_one_task)
 	EXPECT_EQ(TASKSTATE_RUNNING, sch_get_task_state(&fake_callback1));
 
 	/**
-	 * @<b>scenario<\b>: Task disabled.
-	 * @<b>expected<\b>: Task not called.
+	 * <b>scenario</b>: Task disabled.<br>
+	 * <b>expected</b>: Task not called.<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(RETURN_OK, sch_set_task_state(&fake_callback1, TASKSTATE_STOPPED));
 
@@ -182,8 +192,9 @@ TEST_F(timeFixture, task_schedule_test_one_task)
 	EXPECT_EQ(TASKSTATE_STOPPED, sch_get_task_state(&fake_callback1));
 
 	/**
-	 * @<b>scenario<\b>: Task enabled, period changed.
-	 * @<b>expected<\b>: Task called with new period.
+	 * <b>scenario</b>: Task enabled, period changed.<br>
+	 * <b>expected</b>: Task called with new period.<br>
+    * ************************************************
 	 */
 
 	EXPECT_EQ(RETURN_OK, sch_set_task_state(&fake_callback1, TASKSTATE_RUNNING));
@@ -200,8 +211,9 @@ TEST_F(timeFixture, task_schedule_test_one_task)
 	EXPECT_EQ(TASKSTATE_RUNNING, sch_get_task_state(&fake_callback1));
 
 	/**
-	 * @<b>scenario<\b>: Task type set to once.
-	 * @<b>expected<\b>: Task called only once.
+	 * <b>scenario</b>: Task type set to once.<br>
+	 * <b>expected</b>: Task called only once.<br>
+    * ************************************************
 	 */
 
 	EXPECT_EQ(RETURN_OK, sch_set_task_type(&fake_callback1, TASKTYPE_TRIGGER));
@@ -216,8 +228,9 @@ TEST_F(timeFixture, task_schedule_test_one_task)
 	EXPECT_EQ(TASKTYPE_TRIGGER, sch_get_task_type(&fake_callback1));
 	EXPECT_EQ(TASKSTATE_STOPPED, sch_get_task_state(&fake_callback1));
 	/**
-	 * @<b>scenario<\b>: Task type is set to once, task triggerred.
-	 * @<b>expected<\b>: Task called after timeout.
+	 * <b>scenario</b>: Task type is set to once, task triggerred.<br>
+	 * <b>expected</b>: Task called after timeout.<br>
+    * ************************************************
 	 */
 
 	EXPECT_EQ(RETURN_OK, sch_trigger_task(&fake_callback1));
@@ -251,8 +264,9 @@ TEST_F(timeFixture, three_tasks_handling)
 	sch_initialize();
 
 	/**
-	 * @<b>scenario<\b>: Three tasks active with different period.
-	 * @<b>expected<\b>: Tasks called in correct sequence and timing.
+	 * <b>scenario</b>: Three tasks active with different period.<br>
+	 * <b>expected</b>: Tasks called in correct sequence and timing.<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(RETURN_OK, sch_subscribe(&fake_callback1));
 	EXPECT_EQ(RETURN_OK, sch_subscribe(&fake_callback2));
@@ -279,8 +293,9 @@ TEST_F(timeFixture, three_tasks_handling)
 	}
 
 	/**
-	 * @<b>scenario<\b>: Second task period changed.
-	 * @<b>expected<\b>: Tasks called in correct sequence and timing.
+	 * <b>scenario</b>: Second task period changed.<br>
+	 * <b>expected</b>: Tasks called in correct sequence and timing.<br>
+    * ************************************************
 	 */
 
 	EXPECT_EQ(RETURN_OK, sch_set_task_period(&fake_callback2, 10));
@@ -296,8 +311,9 @@ TEST_F(timeFixture, three_tasks_handling)
 	}
 
 	/**
-	 * @<b>scenario<\b>: First task set to once.
-	 * @<b>expected<\b>: Tasks called in correct sequence and timing.
+	 * <b>scenario</b>: First task set to once.<br>
+	 * <b>expected</b>: Tasks called in correct sequence and timing.<br>
+    * ************************************************
 	 */
 
 	EXPECT_EQ(RETURN_OK, sch_set_task_type(&fake_callback1, TASKTYPE_TRIGGER));
@@ -313,8 +329,9 @@ TEST_F(timeFixture, three_tasks_handling)
 	}
 
 	/**
-	 * @<b>scenario<\b>: First task of type once retrigerred.
-	 * @<b>expected<\b>: Tasks called in correct sequence and timing.
+	 * <b>scenario</b>: First task of type once retrigerred.<br>
+	 * <b>expected</b>: Tasks called in correct sequence and timing.<br>
+    * ************************************************
 	 */
 
 	EXPECT_EQ(RETURN_OK, sch_trigger_task(&fake_callback1));
@@ -331,8 +348,9 @@ TEST_F(timeFixture, three_tasks_handling)
 	}
 
 	/**
-	 * @<b>scenario<\b>: Second task removed.
-	 * @<b>expected<\b>: Tasks called in correct sequence and timing.
+	 * <b>scenario</b>: Second task removed.<br>
+	 * <b>expected</b>: Tasks called in correct sequence and timing.<br>
+    * ************************************************
 	 */
 
 	EXPECT_EQ(RETURN_OK, sch_set_task_type(&fake_callback1, TASKTYPE_PERIODIC));
@@ -350,8 +368,9 @@ TEST_F(timeFixture, three_tasks_handling)
 	}
 
 	/**
-	 * @<b>scenario<\b>: Third task disabled.
-	 * @<b>expected<\b>: Tasks called in correct sequence and timing.
+	 * <b>scenario</b>: Third task disabled.<br>
+	 * <b>expected</b>: Tasks called in correct sequence and timing.<br>
+    * ************************************************
 	 */
 
 	EXPECT_EQ(RETURN_OK, sch_set_task_state(&fake_callback3, TASKSTATE_STOPPED));
@@ -368,8 +387,9 @@ TEST_F(timeFixture, three_tasks_handling)
 	}
 
 	/**
-	 * @<b>scenario<\b>: Third task enabled again.
-	 * @<b>expected<\b>: Tasks called in correct sequence and timing.
+	 * <b>scenario</b>: Third task enabled again.<br>
+	 * <b>expected</b>: Tasks called in correct sequence and timing.<br>
+    * ************************************************
 	 */
 
 	EXPECT_EQ(RETURN_OK, sch_set_task_state(&fake_callback3, TASKSTATE_RUNNING));
@@ -399,8 +419,9 @@ TEST_F(timeFixture, dynamic_tasks_handling)
 	sch_initialize();
 
 	/**
-	 * @<b>scenario<\b>: Three tasks active with different period.
-	 * @<b>expected<\b>: Tasks called in correct sequence and timing.
+	 * <b>scenario</b>: Three tasks active with different period.<br>
+	 * <b>expected</b>: Tasks called in correct sequence and timing.<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(RETURN_OK, sch_subscribe(&fake_callback1));
 	EXPECT_EQ(RETURN_OK, sch_subscribe(&fake_callback2));
@@ -424,8 +445,9 @@ TEST_F(timeFixture, dynamic_tasks_handling)
 	}
 
 	/**
-	 * @<b>scenario<\b>: Dynamic task added.
-	 * @<b>expected<\b>: Tasks called in correct sequence and timing.
+	 * <b>scenario</b>: Dynamic task added.<br>
+	 * <b>expected</b>: Tasks called in correct sequence and timing.<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(RETURN_OK, sch_schedule_task(&fake_callback3, 20));
 	EXPECT_EQ(items_list.size, 3);
@@ -457,46 +479,52 @@ TEST_F(timeFixture, negative_cases)
 	sch_initialize();
 
 	/**
-	 * @<b>scenario<\b>: Subscribe invalid task.
-	 * @<b>expected<\b>: False returned.
+	 * <b>scenario</b>: Subscribe invalid task.<br>
+	 * <b>expected</b>: False returned.<br>
+    * ************************************************
 	 */
 
 	EXPECT_EQ(RETURN_NOK, sch_subscribe(NULL));
 
 	/**
-	 * @<b>scenario<\b>: Unsubscribe not existing task.
-	 * @<b>expected<\b>: False returned.
+	 * <b>scenario</b>: Unsubscribe not existing task.<br>
+	 * <b>expected</b>: False returned.<br>
+    * ************************************************
 	 */
 
 	EXPECT_EQ(RETURN_NOK, sch_unsubscribe(&fake_callback1));
 
 	/**
-	 * @<b>scenario<\b>: Schedule task with invalid period.
-	 * @<b>expected<\b>: False returned.
+	 * <b>scenario</b>: Schedule task with invalid period.<br>
+	 * <b>expected</b>: False returned.<br>
+    * ************************************************
 	 */
 
 	EXPECT_EQ(RETURN_NOK, sch_schedule_task(&fake_callback2, 1));
 	EXPECT_EQ(items_list.size, 0);
 
 	/**
-	 * @<b>scenario<\b>: Set/Get period for not existing task.
-	 * @<b>expected<\b>: False returned.
+	 * <b>scenario</b>: Set/Get period for not existing task.<br>
+	 * <b>expected</b>: False returned.<br>
+    * ************************************************
 	 */
 
 	EXPECT_EQ(RETURN_NOK, sch_set_task_period(&fake_callback1, 100));
 	EXPECT_EQ(0, sch_get_task_period(&fake_callback1));
 
 	/**
-	 * @<b>scenario<\b>: Set/Get task state for not existing task.
-	 * @<b>expected<\b>: False returned.
+	 * <b>scenario</b>: Set/Get task state for not existing task.<br>
+	 * <b>expected</b>: False returned.<br>
+    * ************************************************
 	 */
 
 	EXPECT_EQ(RETURN_NOK, sch_set_task_state(&fake_callback1, TASKSTATE_RUNNING));
 	EXPECT_EQ(TASKSTATE_UNKNOWN, sch_get_task_state(&fake_callback1));
 
 	/**
-	 * @<b>scenario<\b>: Set incorrect task state for existing task.
-	 * @<b>expected<\b>: False returned.
+	 * <b>scenario</b>: Set incorrect task state for existing task.<br>
+	 * <b>expected</b>: False returned.<br>
+    * ************************************************
 	 */
 
 	EXPECT_EQ(RETURN_OK, sch_subscribe(&fake_callback1));
@@ -504,8 +532,9 @@ TEST_F(timeFixture, negative_cases)
 	EXPECT_EQ(RETURN_OK, sch_unsubscribe(&fake_callback1));
 
 	/**
-	 * @<b>scenario<\b>: Set/Get task type for non existing task.
-	 * @<b>expected<\b>: False returned.
+	 * <b>scenario</b>: Set/Get task type for non existing task.<br>
+	 * <b>expected</b>: False returned.<br>
+    * ************************************************
 	 */
 
 	EXPECT_EQ(RETURN_NOK, sch_set_task_type(&fake_callback1, TASKTYPE_PERIODIC));
