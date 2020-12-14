@@ -22,15 +22,54 @@ void ts_itoa(char **buf, unsigned int d, int base)
 	}
 }
 
+int ts_atoi(const char *string)
+{
+    int res = 0;
+    int sign = 1;
+    if (*string == '-')
+    {
+        sign = -1;
+        string++;
+    }
+    if (*string == '+') string++;
+
+    while (*string >= '0' && *string <= '9')
+    {
+        res = res * 10 + (*string - '0');
+        string++;
+    }
+    return (sign < 0) ? (-res) : res;
+}
+
+int number_to_count(int n)
+{
+    int count = 0;
+    while (n != 0)
+    {
+        count++;
+        n /= 10;
+    }
+    return count;
+}
+
 int ts_formatstring(char *buf, const char *fmt, va_list va)
 {
 	char *start_buf = buf;
+	unsigned int precision = 0;
 	while(*fmt)
 	{
 		/* Character needs formating? */
 		if (*fmt == '%')
 		{
-			switch (*(++fmt))
+		    ++fmt;
+		    if (*(fmt) == '.')
+		    {
+		        ++fmt;
+		        //means that precision requested
+		        precision = ts_atoi(fmt);
+		        fmt++;
+		    }
+		    switch (*(fmt))
 			{
 			  case 'c':
 				*buf++ = va_arg(va, int);
@@ -39,6 +78,11 @@ int ts_formatstring(char *buf, const char *fmt, va_list va)
 			  case 'i':
 				{
 					signed int val = va_arg(va, signed int);
+					while (precision > (unsigned int)number_to_count(val))
+					{
+					    *buf++ = '0';
+					    precision--;
+					}
 					if (val < 0)
 					{
 						val *= -1;
@@ -57,7 +101,15 @@ int ts_formatstring(char *buf, const char *fmt, va_list va)
 				}
 				break;
 			  case 'u':
-					ts_itoa(&buf, va_arg(va, unsigned int), 10);
+			  {
+			        unsigned int val = va_arg(va, unsigned int);
+			        while (precision > (unsigned int)number_to_count(val))
+					{
+					    *buf++ = '0';
+					    precision--;
+					}
+					ts_itoa(&buf, val, 10);
+			  }
 				break;
 			  case 'x':
 			  case 'X':
