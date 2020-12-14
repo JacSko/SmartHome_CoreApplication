@@ -1,16 +1,26 @@
+/* =============================
+ *   Includes of common headers
+ * =============================*/
 #include <stdlib.h>
 #include <stdarg.h>
-
+/* =============================
+ *  Includes of project headers
+ * =============================*/
 #include "Logger.h"
 #include "time_counter.h"
 #include "string_formatter.h"
-
+/* =============================
+ *          Defines
+ * =============================*/
 #define LOGGER_MAX_SENDERS 2
+/* =============================
+ *   Internal module functions
+ * =============================*/
 const char* logger_get_group_name(LogGroup group);
 void logger_notify_data(const char* data);
-
-uint8_t LOGGER_GROUPS_STATE [LOG_ENUM_MAX] = {};
-
+/* =============================
+ *       Internal types
+ * =============================*/
 typedef struct
 {
 	uint8_t is_enabled;
@@ -18,9 +28,13 @@ typedef struct
 	char* buffer;
 	uint16_t buffer_size;
 } Logger;
-
+/* =============================
+ *      Module variables
+ * =============================*/
 Logger logger;
 RET_CODE (*LOGGER_SENDERS[LOGGER_MAX_SENDERS])(const char *);
+uint8_t LOGGER_GROUPS_STATE [LOG_ENUM_MAX] = {};
+
 
 RET_CODE logger_initialize(uint16_t buffer_size)
 {

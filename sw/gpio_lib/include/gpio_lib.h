@@ -1,8 +1,25 @@
 #ifndef PORT_CONFIG_HELPER_H_
 #define PORT_CONFIG_HELPER_H_
+/* ============================= */
+/**
+ * @file gpio_lib.h
+ *
+ * @brief Library provides function allows to set STM32F4xx GPIO's
 
+ * @author Jacek Skowronek
+ * @date 13/12/2020
+ */
+/* ============================= */
+
+/* =============================
+ *  Includes of project headers
+ * =============================*/
 #include "stm32f4xx.h"
+/* =============================
+ *       Data structures
+ * =============================*/
 
+/** Represents all possible GPIO working modes */
 typedef enum
 {
 	/* Push-Pull; Low, Medium, Full, High Speed. */
@@ -420,6 +437,7 @@ typedef enum
 	gpio_mode_analog = 1536
 } GpioMode_t;
 
+/** Represents all STM32F4xx GPIOs */
 typedef enum {
 PA0 = 0x00000001,
 PA1 = 0x00000002,
@@ -477,7 +495,14 @@ PD1 = 0x00000002,
 PD2 = 0x00000004,
 } GpioPin_t;
 
+/**
+ * @brief Configure pin to desired mode.
+ * @param[in] port - GPIO register
+ * @param[in] port - GPIO Pin
+ * @param[in] port - GPIO mode
+ * @return See RETURN_CODES.
+ */
 void gpio_pin_cfg(GPIO_TypeDef * const __restrict__ port, GpioPin_t pin, GpioMode_t mode);
 
 
-#endif /* PORT_CONFIG_HELPER_H_ */
+#endif

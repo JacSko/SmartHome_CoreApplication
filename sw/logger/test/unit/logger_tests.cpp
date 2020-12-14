@@ -10,15 +10,19 @@ extern "C" {
 
 #include "time_counter_mock.h"
 
+/* ============================= */
 /**
- * @brief Unit test of task scheduler module.
- *
- * All tests that verify behavior of scheduler module
- *
  * @file logger_tests.cpp
- * @author  Jacek Skowronek
- * @date    02/12/2020
+ *
+ * @brief Unit tests of Logger module
+ *
+ * @details
+ * This tests verifies behavior of Logger module
+ *
+ * @author Jacek Skowronek
+ * @date 02/12/2020
  */
+/* ============================= */
 
 
 using namespace ::testing;
@@ -65,8 +69,9 @@ TEST_F(loggerFixture, send_log)
 	t1.day = 1; t1.month = 2, t1.year = 2020, t1.hour = 11, t1.minute = 12, t1.second = 13, t1.msecond = 400;
 
 	/**
-	 * @<b>scenario<\b>: Send debug string.
-	 * @<b>expected<\b>: Callback called.
+	 * <b>scenario</b>: Send debug string.<br>
+	 * <b>expected</b>: Callback called.<br>
+    * ************************************************
 	 */
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1));
 	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](const char* data) -> RET_CODE
@@ -77,16 +82,18 @@ TEST_F(loggerFixture, send_log)
 	logger_send(LOG_DEBUG, "FILE", "DATA");
 
 	/**
-	 * @<b>scenario<\b>: Send debug string with invalid group.
-	 * @<b>expected<\b>: Callback not called.
+	 * <b>scenario</b>: Send debug string with invalid group.<br>
+	 * <b>expected</b>: Callback not called.<br>
+    * ************************************************
 	 */
 	EXPECT_CALL(*time_cnt_mock, time_get()).Times(0);
 	EXPECT_CALL(*callMock, callback(_)).Times(0);
 	logger_send(LOG_ENUM_MAX, "FILE", "DATA");
 
 	/**
-	 * @<b>scenario<\b>: Send debug string when logger diabled.
-	 * @<b>expected<\b>: Callback not called.
+	 * <b>scenario</b>: Send debug string when logger diabled.<br>
+	 * <b>expected</b>: Callback not called.<br>
+    * ************************************************
 	 */
 	logger_disable();
 	EXPECT_CALL(*time_cnt_mock, time_get()).Times(0);
@@ -107,8 +114,9 @@ TEST_F(loggerFixture, send_log_conditional)
 	t1.day = 1; t1.month = 2, t1.year = 2020, t1.hour = 11, t1.minute = 12, t1.second = 13, t1.msecond = 400;
 
 	/**
-	 * @<b>scenario<\b>: Send debug string when condition is True.
-	 * @<b>expected<\b>: Callback called.
+	 * <b>scenario</b>: Send debug string when condition is True.<br>
+	 * <b>expected</b>: Callback called.<br>
+    * ************************************************
 	 */
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1));
 	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](const char* data) -> RET_CODE
@@ -119,24 +127,27 @@ TEST_F(loggerFixture, send_log_conditional)
 	logger_send_if(1==1, LOG_DEBUG, "FILE", "DATA");
 
 	/**
-	 * @<b>scenario<\b>: Send debug string when condition is False.
-	 * @<b>expected<\b>: Callback not called.
+	 * <b>scenario</b>: Send debug string when condition is False.<br>
+	 * <b>expected</b>: Callback not called.<br>
+    * ************************************************
 	 */
 	EXPECT_CALL(*time_cnt_mock, time_get()).Times(0);
 	EXPECT_CALL(*callMock, callback(_)).Times(0);
 	logger_send_if(1!=1, LOG_ENUM_MAX, "FILE", "DATA");
 
 	/**
-	 * @<b>scenario<\b>: Send debug string with invalid group.
-	 * @<b>expected<\b>: Callback not called.
+	 * <b>scenario</b>: Send debug string with invalid group.<br>
+	 * <b>expected</b>: Callback not called.<br>
+    * ************************************************
 	 */
 	EXPECT_CALL(*time_cnt_mock, time_get()).Times(0);
 	EXPECT_CALL(*callMock, callback(_)).Times(0);
 	logger_send_if(1==1, LOG_ENUM_MAX, "FILE", "DATA");
 
 	/**
-	 * @<b>scenario<\b>: Send debug string when logger diabled.
-	 * @<b>expected<\b>: Callback not called.
+	 * <b>scenario</b>: Send debug string when logger diabled.<br>
+	 * <b>expected</b>: Callback not called.<br>
+    * ************************************************
 	 */
 	logger_disable();
 	EXPECT_CALL(*time_cnt_mock, time_get()).Times(0);
@@ -156,8 +167,9 @@ TEST_F(loggerFixture, send_log_group_disabled)
 	t1.day = 1; t1.month = 2, t1.year = 2020, t1.hour = 11, t1.minute = 12, t1.second = 13, t1.msecond = 400;
 
 	/**
-	 * @<b>scenario<\b>: Send DEBUG message when DEBUG is disabled
-	 * @<b>expected<\b>: Callback called.
+	 * <b>scenario</b>: Send DEBUG message when DEBUG is disabled<br>
+	 * <b>expected</b>: Callback called.<br>
+    * ************************************************
 	 */
 	EXPECT_CALL(*time_cnt_mock, time_get()).Times(0);
 	EXPECT_CALL(*callMock, callback(_)).Times(0);
@@ -165,8 +177,9 @@ TEST_F(loggerFixture, send_log_group_disabled)
 
 
 	/**
-	 * @<b>scenario<\b>: Send LOG_TIME message when DEBUG is disabled
-	 * @<b>expected<\b>: Callback called.
+	 * <b>scenario</b>: Send LOG_TIME message when DEBUG is disabled<br>
+	 * <b>expected</b>: Callback called.<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(RETURN_OK, logger_set_group_state(LOG_TIME, 1));
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1));
@@ -189,8 +202,9 @@ TEST_F(loggerFixture, send_log_conditional_group_disabled)
 	t1.day = 1; t1.month = 2, t1.year = 2020, t1.hour = 11, t1.minute = 12, t1.second = 13, t1.msecond = 400;
 
 	/**
-	 * @<b>scenario<\b>: Send DEBUG message when DEBUG is disabled
-	 * @<b>expected<\b>: Callback called.
+	 * <b>scenario</b>: Send DEBUG message when DEBUG is disabled<br>
+	 * <b>expected</b>: Callback called.<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(logger_get_group_state(LOG_DEBUG), 0);
 	EXPECT_CALL(*time_cnt_mock, time_get()).Times(0);
@@ -199,8 +213,9 @@ TEST_F(loggerFixture, send_log_conditional_group_disabled)
 
 
 	/**
-	 * @<b>scenario<\b>: Send ERROR message when DEBUG is disabled
-	 * @<b>expected<\b>: Callback called.
+	 * <b>scenario</b>: Send ERROR message when DEBUG is disabled<br>
+	 * <b>expected</b>: Callback called.<br>
+    * ************************************************
 	 */
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1));
 	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](const char* data) -> RET_CODE
@@ -211,8 +226,9 @@ TEST_F(loggerFixture, send_log_conditional_group_disabled)
 	logger_send_if(1==1, LOG_ERROR, "FILE", "DATA");
 
 	/**
-	 * @<b>scenario<\b>: Send WIFI_DRIVER message when DEBUG is disabled
-	 * @<b>expected<\b>: Callback called.
+	 * <b>scenario</b>: Send WIFI_DRIVER message when DEBUG is disabled<br>
+	 * <b>expected</b>: Callback called.<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(RETURN_OK, logger_set_group_state(LOG_WIFI_DRIVER, 1));
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1));
@@ -224,8 +240,9 @@ TEST_F(loggerFixture, send_log_conditional_group_disabled)
 	logger_send_if(1==1, LOG_WIFI_DRIVER, "FILE", "DATA");
 
 	/**
-	 * @<b>scenario<\b>: Send TIME message when DEBUG is disabled
-	 * @<b>expected<\b>: Callback called.
+	 * <b>scenario</b>: Send TIME message when DEBUG is disabled<br>
+	 * <b>expected</b>: Callback called.<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(RETURN_OK, logger_set_group_state(LOG_TIME, 1));
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1));
@@ -237,8 +254,9 @@ TEST_F(loggerFixture, send_log_conditional_group_disabled)
 	logger_send_if(1==1, LOG_TIME, "FILE", "DATA");
 
 	/**
-	 * @<b>scenario<\b>: Send TASK_SCHEDULER message when DEBUG is disabled
-	 * @<b>expected<\b>: Callback called.
+	 * <b>scenario</b>: Send TASK_SCHEDULER message when DEBUG is disabled<br>
+	 * <b>expected</b>: Callback called.<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(RETURN_OK, logger_set_group_state(LOG_TASK_SCHEDULER, 1));
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1));
@@ -258,43 +276,49 @@ TEST_F(loggerFixture, setting_getting_group_states)
 {
 
 	/**
-	 * @<b>scenario<\b>: Get state of correct group
-	 * @<b>expected<\b>: Correct state returned.
+	 * <b>scenario</b>: Get state of correct group<br>
+	 * <b>expected</b>: Correct state returned.<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(0, logger_get_group_state(LOG_DEBUG));
 	EXPECT_EQ(1, logger_get_group_state(LOG_ERROR));
 
 	/**
-	 * @<b>scenario<\b>: Get/Set state of incorrect group
-	 * @<b>expected<\b>: 0xFF state returned.
+	 * <b>scenario</b>: Get/Set state of incorrect group<br>
+	 * <b>expected</b>: 0xFF state returned.<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(255, logger_get_group_state(LOG_ENUM_MAX));
 	EXPECT_EQ(RETURN_NOK, logger_set_group_state(LOG_ENUM_MAX,1));
 
 	/**
-	 * @<b>scenario<\b>: Enable currently disabled group
-	 * @<b>expected<\b>: RETURN_OK returned.
+	 * <b>scenario</b>: Enable currently disabled group<br>
+	 * <b>expected</b>: RETURN_OK returned.<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(RETURN_OK, logger_set_group_state(LOG_DEBUG,1));
 	EXPECT_EQ(1, logger_get_group_state(LOG_DEBUG));
 
 	/**
-	 * @<b>scenario<\b>: Enable currently enabled group
-	 * @<b>expected<\b>: RETURN_NOK returned.
+	 * <b>scenario</b>: Enable currently enabled group<br>
+	 * <b>expected</b>: RETURN_NOK returned.<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(RETURN_NOK, logger_set_group_state(LOG_DEBUG,1));
 	EXPECT_EQ(1, logger_get_group_state(LOG_DEBUG));
 
 	/**
-	 * @<b>scenario<\b>: Disable currently enabled group
-	 * @<b>expected<\b>: RETURN_OK returned.
+	 * <b>scenario</b>: Disable currently enabled group<br>
+	 * <b>expected</b>: RETURN_OK returned.<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(RETURN_OK, logger_set_group_state(LOG_DEBUG,0));
 	EXPECT_EQ(0, logger_get_group_state(LOG_DEBUG));
 
 	/**
-	 * @<b>scenario<\b>: Disable currently disabled group
-	 * @<b>expected<\b>: RETURN_NOK returned.
+	 * <b>scenario</b>: Disable currently disabled group<br>
+	 * <b>expected</b>: RETURN_NOK returned.<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(RETURN_NOK, logger_set_group_state(LOG_DEBUG,0));
 	EXPECT_EQ(0, logger_get_group_state(LOG_DEBUG));
@@ -306,22 +330,25 @@ TEST_F(loggerFixture, setting_getting_group_states)
 TEST_F(loggerFixture, sender_add_remove_tests)
 {
 	/**
-	 * @<b>scenario<\b>: Register three sender functions
-	 * @<b>expected<\b>: 2x RETURN_OK, 1x RETURN_NOK returned.
+	 * <b>scenario</b>: Register three sender functions<br>
+	 * <b>expected</b>: 2x RETURN_OK, 1x RETURN_NOK returned.<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(RETURN_OK, logger_register_sender(&fake_callback));
 	EXPECT_EQ(RETURN_OK, logger_register_sender(&fake_callback));
 	EXPECT_EQ(RETURN_NOK, logger_register_sender(&fake_callback));
 
 	/**
-	 * @<b>scenario<\b>: Unregister all occurences of sender functions
-	 * @<b>expected<\b>: Sender function removed.
+	 * <b>scenario</b>: Unregister all occurences of sender functions<br>
+	 * <b>expected</b>: Sender function removed.<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(RETURN_OK, logger_unregister_sender(&fake_callback));
 
 	/**
-	 * @<b>scenario<\b>: Unregister not existing function
-	 * @<b>expected<\b>: RETURN_NOK returned.
+	 * <b>scenario</b>: Unregister not existing function<br>
+	 * <b>expected</b>: RETURN_NOK returned.<br>
+    * ************************************************
 	 */
 	EXPECT_EQ(RETURN_NOK, logger_unregister_sender(&fake_callback));
 
