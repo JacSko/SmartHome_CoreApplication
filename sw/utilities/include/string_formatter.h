@@ -5,6 +5,17 @@
  * =============================*/
 #include <stdarg.h>
 
+/* ============================= */
+/**
+ * @file string_formatter.h
+ *
+ * @brief Set of functions which allows to format strings
+ *
+ * @author Jacek Skowronek
+ * @date 13/12/2020
+ */
+/* ============================= */
+
 /**
  * @brief Convert integer value to ASCII.
  * @param[out] buf - Place to store integer string
