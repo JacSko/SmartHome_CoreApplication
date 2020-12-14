@@ -2,4 +2,7 @@
 .*
 !/.gitignore
 *.pdf
+doc/*
+!doc/Documentation.ods
+!doc/doxyfile
 /ext_lib/googletest/
