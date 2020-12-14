@@ -1,16 +1,32 @@
 #ifndef _TIME_COUNTER_H
 #define _TIME_COUNTER_H
 
+
+
+/* ============================= */
+/**
+ * @file time_counter.h
+ *
+ * @brief Module responsible for time counting.
+ *
+ * @details
+ * Module has basetime of 10ms. It is using SysTick to measure time period.
+ * There is possibility to set current time (obtained e.g. from NTP server).
+ *
+ *
+ * @author Jacek Skowronek
+ * @date 13/12/2020
+ */
+/* ============================= */
+
+/* =============================
+ *  Includes of project headers
+ * =============================*/
 #include "stm32f4xx.h"
 #include "return_codes.h"
-
-
-/*
- * This module provides system time.
- * SysTick interrupt is used as time base.
- * Time accuracy is fixed at 10ms to avoid high CPU load.
-*/
-
+/* =============================
+ *       Data structures
+ * =============================*/
 typedef struct
 {
 	uint8_t day;
@@ -24,54 +40,61 @@ typedef struct
 }TimeItem;
 
 
-/*
- * Initialize time module, e.g. SysTick configuration
-*/
+/**
+ * @brief Initialize module.
+ * @return None.
+ */
 void time_init();
 
-/*
- * Deinitialize time module, e.g. removes all callbacks
-*/
+/**
+ * @brief Shut down the module.
+ * @return None.
+ */
 void time_deinit();
-/*
- * Set current system time - to be used e.g. to synchornize time with NTP server
-*/
+/**
+ * @brief Set current system time as UTC.
+ * @details
+ * Time is converted to local time taking into consideration winter time flag.
+ * @return See RETURN_CODES.
+ */
 RET_CODE time_set_utc(TimeItem* item);
-
-/*
- * Set current winter time state - needed to convert time from UTC.
-*/
+/**
+ * @brief Set winter time flag.
+ * @return None.
+ */
 void time_set_winter_time(uint8_t state);
-
-/*
- * Get current time
-*/
+/**
+ * @brief Returns current time.
+ * @return Current time.
+ */
 TimeItem* time_get();
-
-/*
- * Wait function. Allow to suspend execution for defined time.
- * Timeout should be multiply of 10ms
-*/
+/**
+ * @brief Delay execution for defined period.
+ * @param[in] timeout - time to wait in ms.
+ * @return None.
+ */
 void time_wait(uint16_t timeout);
-
-/*
- * Register callback for time notifications
-*/
+/**
+ * @brief Register callback to be called on time change.
+ * @param[in] callback - Pointer to function
+ * @return See RETURN_CODES.
+ */
 RET_CODE time_register_callback(void(*callback)(TimeItem*));
-
-/*
- * Unregister callback
-*/
+/**
+ * @brief Unregister callback.
+ * @param[in] callback - Pointer to function
+ * @return See RETURN_CODES.
+ */
 RET_CODE time_unregister_callback(void(*callback)(TimeItem*));
-
-/*
- * Watcher to be called on main thread - responsible for calling callbacks
-*/
+/**
+ * @brief Watcher to be called in main thread loop - responsible for calling callbacks.
+ * @return None.
+ */
 void time_watcher();
-
-/*
- * Returns current time base
-*/
+/**
+ * @brief Returns current base time - e.g. 10ms.
+ * @return Time counter basetime.
+ */
 uint16_t time_get_basetime();
 
 

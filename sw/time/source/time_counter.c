@@ -1,17 +1,32 @@
+/* =============================
+ *   Includes of common headers
+ * =============================*/
 #include <stdlib.h>
+/* =============================
+ *  Includes of project headers
+ * =============================*/
 #include "time_counter.h"
 #include "core_cmFunc.h"
 #include "Logger.h"
-
+/* =============================
+ *          Defines
+ * =============================*/
 #define TIME_CNT_CALLBACK_MAX_SIZE 10
 #define TIME_BASETIME_MS 10
+/* =============================
+ *   Internal module functions
+ * =============================*/
 
+/* =============================
+ *      Module variables
+ * =============================*/
 TimeItem timestamp;
 volatile uint8_t time_changed;
 void (*CALLBACKS[TIME_CNT_CALLBACK_MAX_SIZE])(TimeItem*);
 uint8_t winter_time_active = 1;
-
 uint8_t month_day_cnt[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+
 
 void time_init()
 {

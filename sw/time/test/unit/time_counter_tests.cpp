@@ -11,16 +11,19 @@ extern "C" {
 
 #include "logger_mock.h"
 
+/* ============================= */
 /**
- * @brief Unit test of time module.
- *
- * All tests that verify behavior of time module
- *
  * @file time_counter_tests.cpp
- * @author  Jacek Skowronek
- * @date    06/11/2020
+ *
+ * @brief Unit tests of Time module
+ *
+ * @details
+ * This tests verifies behavior of Time module
+ *
+ * @author Jacek Skowronek
+ * @date 01/11/2020
  */
-
+/* ============================= */
 
 using namespace ::testing;
 
@@ -58,8 +61,9 @@ TEST_F(timeFixture, time_increment_test)
 {
 	time_init();
 	/**
-	 * @<b>scenario<\b>: Module initialized, interrupt fired.
-	 * @<b>expected<\b>: msecond incremented.
+	 * <b>scenario</b>: Module initialized, interrupt fired.<br>
+	 * <b>expected</b>: msecond incremented.<br>
+    * ************************************************
 	 */
 
 	/* interrupt fired */
@@ -77,8 +81,9 @@ TEST_F(timeFixture, time_increment_test)
 	EXPECT_EQ(t->msecond, 10);
 
 	/**
-	 * @<b>scenario<\b>: Switching from msecond to seconds.
-	 * @<b>expected<\b>: Correct time.
+	 * <b>scenario</b>: Switching from msecond to seconds.<br>
+	 * <b>expected</b>: Correct time.<br>
+    * ************************************************
 	 */
 
 	for (uint8_t i = 0; i < 99; i++)
@@ -96,8 +101,9 @@ TEST_F(timeFixture, time_increment_test)
 	EXPECT_EQ(t->msecond, 0);
 
 	/**
-	 * @<b>scenario<\b>: Switching from seconds to minutes.
-	 * @<b>expected<\b>: Correct time.
+	 * <b>scenario</b>: Switching from seconds to minutes.<br>
+	 * <b>expected</b>: Correct time.<br>
+    * ************************************************
 	 */
 
 	t->second = 59;
@@ -115,8 +121,9 @@ TEST_F(timeFixture, time_increment_test)
 	EXPECT_EQ(t->msecond, 0);
 
 	/**
-	 * @<b>scenario<\b>: Switching from minutes to hours.
-	 * @<b>expected<\b>: Correct time.
+	 * <b>scenario</b>: Switching from minutes to hours.<br>
+	 * <b>expected</b>: Correct time.<br>
+    * ************************************************
 	 */
 
 	t->minute = 59;
@@ -135,8 +142,9 @@ TEST_F(timeFixture, time_increment_test)
 	EXPECT_EQ(t->msecond, 0);
 
 	/**
-	 * @<b>scenario<\b>: Switching from hours to days.
-	 * @<b>expected<\b>: Correct time.
+	 * <b>scenario</b>: Switching from hours to days.<br>
+	 * <b>expected</b>: Correct time.<br>
+    * ************************************************
 	 */
 
 	t->hour = 23;
@@ -156,8 +164,9 @@ TEST_F(timeFixture, time_increment_test)
 	EXPECT_EQ(t->msecond, 0);
 
 	/**
-	 * @<b>scenario<\b>: Switching from days to months.
-	 * @<b>expected<\b>: Correct time.
+	 * <b>scenario</b>: Switching from days to months.<br>
+	 * <b>expected</b>: Correct time.<br>
+    * ************************************************
 	 */
 
 	t->day = 31;
@@ -179,8 +188,9 @@ TEST_F(timeFixture, time_increment_test)
 	EXPECT_EQ(t->msecond, 0);
 
 	/**
-	 * @<b>scenario<\b>: Switching from months to years.
-	 * @<b>expected<\b>: Correct time.
+	 * <b>scenario</b>: Switching from months to years.<br>
+	 * <b>expected</b>: Correct time.<br>
+    * ************************************************
 	 */
 
 	t->day = 31;
@@ -202,8 +212,9 @@ TEST_F(timeFixture, time_increment_test)
 	EXPECT_EQ(t->msecond, 0);
 
 	/**
-	 * @<b>scenario<\b>: Switching from days to month - non-leap year.
-	 * @<b>expected<\b>: Correct time.
+	 * <b>scenario</b>: Switching from days to month - non-leap year.<br>
+	 * <b>expected</b>: Correct time.<br>
+    * ************************************************
 	 */
 
 	t->day = 28;
@@ -231,8 +242,9 @@ TEST_F(timeFixture, leap_year_tests)
 	uint16_t non_leap_years[] = {2001, 2002, 2003, 2005, 2006, 2006, 2009, 2010, 2011, 2013, 2014, 2015, 2017, 2018, 2019, 2021, 2022, 2023};
 	uint16_t leap_years[] = {2000, 2004, 2008, 2012, 2016, 2020};
 	/**
-	 * @<b>scenario<\b>: Non-leap years checked
-	 * @<b>expected<\b>: Correct leap-ness.
+	 * <b>scenario</b>: Non-leap years checked<br>
+	 * <b>expected</b>: Correct leap-ness.<br>
+    * ************************************************
 	 */
 	for (auto year : non_leap_years)
 	{
@@ -241,8 +253,9 @@ TEST_F(timeFixture, leap_year_tests)
 	}
 
 	/**
-	 * @<b>scenario<\b>: Leap years checked
-	 * @<b>expected<\b>: Correct leap-ness.
+	 * <b>scenario</b>: Leap years checked<br>
+	 * <b>expected</b>: Correct leap-ness.<br>
+    * ************************************************
 	 */
 	for (auto year : leap_years)
 	{
@@ -259,8 +272,9 @@ TEST_F(timeFixture, callback_tests)
 	time_init();
 	TimeItem t;
 	/**
-	 * @<b>scenario<\b>: Time changed when the callback is registered.
-	 * @<b>expected<\b>: Callback should be called.
+	 * <b>scenario</b>: Time changed when the callback is registered.<br>
+	 * <b>expected</b>: Callback should be called.<br>
+    * ************************************************
 	 */
 
 	EXPECT_EQ(RETURN_OK, time_register_callback(&fake_callback));
@@ -291,8 +305,9 @@ TEST_F(timeFixture, callback_tests)
 
 
 	/**
-	 * @<b>scenario<\b>: Time changed when all callbacks is registered.
-	 * @<b>expected<\b>: Callback should be called.
+	 * <b>scenario</b>: Time changed when all callbacks is registered.<br>
+	 * <b>expected</b>: Callback should be called.<br>
+    * ************************************************
 	 */
 
 	for (uint8_t i = 0; i < TIME_CNT_CALLBACK_MAX_SIZE; i++)
@@ -337,15 +352,17 @@ TEST_F(timeFixture, set_get_time)
 	TimeItem t;
 
 	/**
-	 * @<b>scenario<\b>: Setting time with NULL.
-	 * @<b>expected<\b>: False returned
+	 * <b>scenario</b>: Setting time with NULL.<br>
+	 * <b>expected</b>: False returned<br>
+    * ************************************************
 	 */
 
 	EXPECT_EQ(RETURN_NOK, time_set_utc(NULL));
 
 	/**
-	 * @<b>scenario<\b>: Setting time with incorrect day.
-	 * @<b>expected<\b>: False returned
+	 * <b>scenario</b>: Setting time with incorrect day.<br>
+	 * <b>expected</b>: False returned<br>
+    * ************************************************
 	 */
 
 	t.day = 32;
@@ -359,8 +376,9 @@ TEST_F(timeFixture, set_get_time)
 	EXPECT_EQ(RETURN_NOK, time_set_utc(&t));
 
 	/**
-	 * @<b>scenario<\b>: Setting time with correct day.
-	 * @<b>expected<\b>: True returned
+	 * <b>scenario</b>: Setting time with correct day.<br>
+	 * <b>expected</b>: True returned<br>
+    * ************************************************
 	 */
 
 	t.day = 31;
@@ -374,8 +392,9 @@ TEST_F(timeFixture, set_get_time)
 	EXPECT_EQ(RETURN_OK, time_set_utc(&t));
 
 	/**
-	 * @<b>scenario<\b>: Setting time with incorrect month.
-	 * @<b>expected<\b>: False returned
+	 * <b>scenario</b>: Setting time with incorrect month.<br>
+	 * <b>expected</b>: False returned<br>
+    * ************************************************
 	 */
 
 	t.day = 30;
@@ -389,8 +408,9 @@ TEST_F(timeFixture, set_get_time)
 	EXPECT_EQ(RETURN_NOK, time_set_utc(&t));
 
 	/**
-	 * @<b>scenario<\b>: Setting time with correct month.
-	 * @<b>expected<\b>: True returned
+	 * <b>scenario</b>: Setting time with correct month.<br>
+	 * <b>expected</b>: True returned<br>
+    * ************************************************
 	 */
 
 	t.day = 30;
@@ -404,8 +424,9 @@ TEST_F(timeFixture, set_get_time)
 	EXPECT_EQ(RETURN_OK, time_set_utc(&t));
 
 	/**
-	 * @<b>scenario<\b>: Setting time with incorrect hour.
-	 * @<b>expected<\b>: False returned
+	 * <b>scenario</b>: Setting time with incorrect hour.<br>
+	 * <b>expected</b>: False returned<br>
+    * ************************************************
 	 */
 
 	t.day = 30;
@@ -419,8 +440,9 @@ TEST_F(timeFixture, set_get_time)
 	EXPECT_EQ(RETURN_NOK, time_set_utc(&t));
 
 	/**
-	 * @<b>scenario<\b>: Setting time with correct hour.
-	 * @<b>expected<\b>: True returned
+	 * <b>scenario</b>: Setting time with correct hour.<br>
+	 * <b>expected</b>: True returned<br>
+    * ************************************************
 	 */
 
 	t.day = 30;
@@ -434,8 +456,9 @@ TEST_F(timeFixture, set_get_time)
 	EXPECT_EQ(RETURN_OK, time_set_utc(&t));
 
 	/**
-	 * @<b>scenario<\b>: Setting time with incorrect minute.
-	 * @<b>expected<\b>: False returned
+	 * <b>scenario</b>: Setting time with incorrect minute.<br>
+	 * <b>expected</b>: False returned<br>
+    * ************************************************
 	 */
 
 	t.day = 30;
@@ -449,8 +472,9 @@ TEST_F(timeFixture, set_get_time)
 	EXPECT_EQ(RETURN_NOK, time_set_utc(&t));
 
 	/**
-	 * @<b>scenario<\b>: Setting time with correct minute.
-	 * @<b>expected<\b>: True returned
+	 * <b>scenario</b>: Setting time with correct minute.<br>
+	 * <b>expected</b>: True returned<br>
+    * ************************************************
 	 */
 
 	t.day = 30;
@@ -464,8 +488,9 @@ TEST_F(timeFixture, set_get_time)
 	EXPECT_EQ(RETURN_OK, time_set_utc(&t));
 
 	/**
-	 * @<b>scenario<\b>: Setting time with incorrect second.
-	 * @<b>expected<\b>: False returned
+	 * <b>scenario</b>: Setting time with incorrect second.<br>
+	 * <b>expected</b>: False returned<br>
+    * ************************************************
 	 */
 
 	t.day = 30;
@@ -479,8 +504,9 @@ TEST_F(timeFixture, set_get_time)
 	EXPECT_EQ(RETURN_NOK, time_set_utc(&t));
 
 	/**
-	 * @<b>scenario<\b>: Setting time with correct second.
-	 * @<b>expected<\b>: True returned
+	 * <b>scenario</b>: Setting time with correct second.<br>
+	 * <b>expected</b>: True returned<br>
+    * ************************************************
 	 */
 
 	t.day = 30;
@@ -494,8 +520,9 @@ TEST_F(timeFixture, set_get_time)
 	EXPECT_EQ(RETURN_OK, time_set_utc(&t));
 
 	/**
-	 * @<b>scenario<\b>: Setting time with incorrect mseconds.
-	 * @<b>expected<\b>: False returned
+	 * <b>scenario</b>: Setting time with incorrect mseconds.<br>
+	 * <b>expected</b>: False returned<br>
+    * ************************************************
 	 */
 
 	t.day = 30;
@@ -509,8 +536,9 @@ TEST_F(timeFixture, set_get_time)
 	EXPECT_EQ(RETURN_NOK, time_set_utc(&t));
 
 	/**
-	 * @<b>scenario<\b>: Setting time with incorrect mseconds.
-	 * @<b>expected<\b>: False returned
+	 * <b>scenario</b>: Setting time with incorrect mseconds.<br>
+	 * <b>expected</b>: False returned<br>
+    * ************************************************
 	 */
 
 	t.day = 30;
@@ -524,8 +552,9 @@ TEST_F(timeFixture, set_get_time)
 	EXPECT_EQ(RETURN_NOK, time_set_utc(&t));
 
 	/**
-	 * @<b>scenario<\b>: Setting time with correct mseconds.
-	 * @<b>expected<\b>: True returned
+	 * <b>scenario</b>: Setting time with correct mseconds.<br>
+	 * <b>expected</b>: True returned<br>
+    * ************************************************
 	 */
 
 	t.day = 30;
@@ -547,8 +576,9 @@ TEST_F(timeFixture, time_set_utc)
 	TimeItem t;
 	EXPECT_EQ(RETURN_OK, time_register_callback(&fake_callback));
 	/**
-	 * @<b>scenario<\b>: Setting time when winter time is active.
-	 * @<b>expected<\b>: Hour incremented by 1.
+	 * <b>scenario</b>: Setting time when winter time is active.<br>
+	 * <b>expected</b>: Hour incremented by 1.<br>
+    * ************************************************
 	 */
 	t.day = 20;
 	t.month = 12;
@@ -576,8 +606,9 @@ TEST_F(timeFixture, time_set_utc)
 
 
 	/**
-	 * @<b>scenario<\b>: Setting time when winter time is active and is about to midnight.
-	 * @<b>expected<\b>: Hour incremented by 1 and correctly switched to next day.
+	 * <b>scenario</b>: Setting time when winter time is active and is about to midnight.<br>
+	 * <b>expected</b>: Hour incremented by 1 and correctly switched to next day.<br>
+    * ************************************************
 	 */
 	t.day = 20;
 	t.month = 12;
@@ -604,8 +635,9 @@ TEST_F(timeFixture, time_set_utc)
 	time_watcher();
 
 	/**
-	 * @<b>scenario<\b>: Setting time when winter time is active and is about to midnight, last day of month.
-	 * @<b>expected<\b>: Hour incremented by 1 and correctly switched to next year.
+	 * <b>scenario</b>: Setting time when winter time is active and is about to midnight, last day of month.<br>
+	 * <b>expected</b>: Hour incremented by 1 and correctly switched to next year.<br>
+    * ************************************************
 	 */
 	t.day = 31;
 	t.month = 12;
@@ -632,8 +664,9 @@ TEST_F(timeFixture, time_set_utc)
 	time_watcher();
 
 	/**
-	 * @<b>scenario<\b>: Setting time when summer time is active and is about to midnight, last day of month.
-	 * @<b>expected<\b>: Hour incremented by 2 and correctly switched to next year.
+	 * <b>scenario</b>: Setting time when summer time is active and is about to midnight, last day of month.<br>
+	 * <b>expected</b>: Hour incremented by 2 and correctly switched to next year.<br>
+    * ************************************************
 	 */
 	 time_set_winter_time(0);
 
