@@ -1,11 +1,9 @@
+/* =============================
+ *  Includes of project headers
+ * =============================*/
 #include "string_formatter.h"
 
-/**
-**---------------------------------------------------------------------------
-**  Abstract: Convert integer to ascii
-**  Returns:  void
-**---------------------------------------------------------------------------
-*/
+
 void ts_itoa(char **buf, unsigned int d, int base)
 {
 	int div = 1;
@@ -24,12 +22,6 @@ void ts_itoa(char **buf, unsigned int d, int base)
 	}
 }
 
-/**
-**---------------------------------------------------------------------------
-**  Abstract: Writes arguments va to buffer buf according to format fmt
-**  Returns:  Length of string
-**---------------------------------------------------------------------------
-*/
 int ts_formatstring(char *buf, const char *fmt, va_list va)
 {
 	char *start_buf = buf;
@@ -88,14 +80,6 @@ int ts_formatstring(char *buf, const char *fmt, va_list va)
 	return (int)(buf - start_buf);
 }
 
-
-/**
-**---------------------------------------------------------------------------
-**  Abstract: Calculate maximum length of the resulting string from the
-**            format string and va_list va
-**  Returns:  Maximum length
-**---------------------------------------------------------------------------
-*/
 int ts_formatlength(const char *fmt, va_list va)
 {
 	int length = 0;
