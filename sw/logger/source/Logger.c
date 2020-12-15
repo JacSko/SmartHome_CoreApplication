@@ -145,7 +145,7 @@ void logger_send(LogGroup group, const char* prefix, const char* fmt, ...)
 			va_end(va);
 			{
 				TimeItem* time = time_get();
-				int offset = string_format(logger.buffer, "[%d-%d-%d %d:%d:%d:%d] - %s - %s:", time->day, time->month, time->year, time->hour, time->minute, time->second, time->msecond,
+				int offset = string_format(logger.buffer, "[%.2d-%.2d-%d %.2d:%.2d:%.2d:%.3d] - %s - %s:", time->day, time->month, time->year, time->hour, time->minute, time->second, time->msecond,
 																									logger_get_group_name(group), prefix);
 				va_start(va, fmt);
 				length = sf_format_string(logger.buffer+offset, fmt, va);
@@ -181,7 +181,7 @@ void logger_send_if(uint8_t cond_bool, LogGroup group, const char* prefix, const
 			va_end(va);
 			{
 				TimeItem* time = time_get();
-				int offset = string_format(logger.buffer, "[%d-%d-%d %d:%d:%d:%d] - %s - %s:", time->day, time->month, time->year, time->hour, time->minute, time->second, time->msecond,
+				int offset = string_format(logger.buffer, "[%.2d-%.2d-%d %.2d:%.2d:%.2d:%.3d] - %s - %s:", time->day, time->month, time->year, time->hour, time->minute, time->second, time->msecond,
 																									logger_get_group_name(group), prefix);
 				va_start(va, fmt);
 				length = sf_format_string(logger.buffer+offset, fmt, va);

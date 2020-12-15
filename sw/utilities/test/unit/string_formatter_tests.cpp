@@ -59,4 +59,12 @@ TEST_F(stringFormatterFixture, string_formatting_tests)
     */
    string_format(result, "RESULT: %d %x %.4u %s\n", -10, 11, 12, "STR");
    EXPECT_STREQ(result, "RESULT: -10 B 0012 STR\n");
+
+   /**
+    * <b>scenario</b>: Formatting string according to pattern with precision and value 0.<br>
+    * <b>expected</b>: String formatted as expected.<br>
+    * ************************************************
+    */
+   string_format(result, "RESULT: %d %.2d %.3d\n", 0, 0, 0);
+   EXPECT_STREQ(result, "RESULT: 0 00 000\n");
 }
