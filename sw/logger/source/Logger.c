@@ -142,7 +142,7 @@ void logger_send(LogGroup group, const char* prefix, const char* fmt, ...)
 			int length = 0;
 			va_list va;
 			va_start(va, fmt);
-			length = ts_formatlength(fmt, va);
+			length = sf_format_length(fmt, va);
 			length = length + 100;
 			va_end(va);
 			{
@@ -151,7 +151,7 @@ void logger_send(LogGroup group, const char* prefix, const char* fmt, ...)
 				int offset = string_format(buf, "[%d-%d-%d %d:%d:%d:%d] - %s - %s:", time->day, time->month, time->year, time->hour, time->minute, time->second, time->msecond,
 																									logger_get_group_name(group), prefix);
 				va_start(va, fmt);
-				length = ts_formatstring(buf+offset, fmt, va);
+				length = sf_format_string(buf+offset, fmt, va);
 				va_end(va);
 				buf[offset + length++] = '\n';
 				buf[offset + length] = 0x00;
@@ -181,7 +181,7 @@ void logger_send_if(uint8_t cond_bool, LogGroup group, const char* prefix, const
 			int length = 0;
 			va_list va;
 			va_start(va, fmt);
-			length = ts_formatlength(fmt, va);
+			length = sf_format_length(fmt, va);
 			length = length + 100;
 			va_end(va);
 			{
@@ -190,7 +190,7 @@ void logger_send_if(uint8_t cond_bool, LogGroup group, const char* prefix, const
 				int offset = string_format(buf, "[%d-%d-%d %d:%d:%d:%d] - %s - %s:", time->day, time->month, time->year, time->hour, time->minute, time->second, time->msecond,
 																									logger_get_group_name(group), prefix);
 				va_start(va, fmt);
-				length = ts_formatstring(buf+offset, fmt, va);
+				length = sf_format_string(buf+offset, fmt, va);
 				va_end(va);
 				buf[offset + length++] = '\n';
 				buf[offset + length] = 0x00;

@@ -4,7 +4,7 @@
 #include "string_formatter.h"
 
 
-void ts_itoa(char **buf, unsigned int d, int base)
+void sf_itoa(char **buf, unsigned int d, int base)
 {
 	int div = 1;
 	while (d/div >= base)
@@ -22,7 +22,7 @@ void ts_itoa(char **buf, unsigned int d, int base)
 	}
 }
 
-int ts_atoi(const char *string)
+int sf_atoi(const char *string)
 {
     int res = 0;
     int sign = 1;
@@ -41,7 +41,7 @@ int ts_atoi(const char *string)
     return (sign < 0) ? (-res) : res;
 }
 
-int number_to_count(int n)
+int sf_count_number(int n)
 {
     int count = 0;
     while (n != 0)
@@ -52,7 +52,7 @@ int number_to_count(int n)
     return count;
 }
 
-int ts_formatstring(char *buf, const char *fmt, va_list va)
+int sf_format_string(char *buf, const char *fmt, va_list va)
 {
 	char *start_buf = buf;
 	unsigned int precision = 0;
@@ -66,7 +66,7 @@ int ts_formatstring(char *buf, const char *fmt, va_list va)
 		    {
 		        ++fmt;
 		        //means that precision requested
-		        precision = ts_atoi(fmt);
+		        precision = sf_atoi(fmt);
 		        fmt++;
 		    }
 		    switch (*(fmt))
@@ -78,7 +78,7 @@ int ts_formatstring(char *buf, const char *fmt, va_list va)
 			  case 'i':
 				{
 					signed int val = va_arg(va, signed int);
-					while (precision > (unsigned int)number_to_count(val))
+					while (precision > (unsigned int)sf_count_number(val))
 					{
 					    *buf++ = '0';
 					    precision--;
@@ -88,7 +88,7 @@ int ts_formatstring(char *buf, const char *fmt, va_list va)
 						val *= -1;
 						*buf++ = '-';
 					}
-					ts_itoa(&buf, val, 10);
+					sf_itoa(&buf, val, 10);
 				}
 				break;
 			  case 's':
@@ -103,17 +103,17 @@ int ts_formatstring(char *buf, const char *fmt, va_list va)
 			  case 'u':
 			  {
 			        unsigned int val = va_arg(va, unsigned int);
-			        while (precision > (unsigned int)number_to_count(val))
+			        while (precision > (unsigned int)sf_count_number(val))
 					{
 					    *buf++ = '0';
 					    precision--;
 					}
-					ts_itoa(&buf, val, 10);
+					sf_itoa(&buf, val, 10);
 			  }
 				break;
 			  case 'x':
 			  case 'X':
-					ts_itoa(&buf, va_arg(va, int), 16);
+					sf_itoa(&buf, va_arg(va, int), 16);
 				break;
 			  case '%':
 				  *buf++ = '%';
@@ -132,7 +132,7 @@ int ts_formatstring(char *buf, const char *fmt, va_list va)
 	return (int)(buf - start_buf);
 }
 
-int ts_formatlength(const char *fmt, va_list va)
+int sf_format_length(const char *fmt, va_list va)
 {
 	int length = 0;
 	while (*fmt)
@@ -185,7 +185,7 @@ int string_format (char* buffer, const char *fmt, ...)
 	int result = 0;
 	va_list va;
 	va_start(va, fmt);
-	result = ts_formatstring(buffer, fmt, va);
+	result = sf_format_string(buffer, fmt, va);
 	va_end(va);
 	return result;
 }
