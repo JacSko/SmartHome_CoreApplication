@@ -71,7 +71,24 @@ target_link_libraries(wifi_manager_tests PUBLIC
 add_test(NAME wifi_manager_tests COMMAND wifi_manager_tests)
 
 ###########################################################
+add_executable(dht_driver_tests
+            unit/dht_driver_tests.cpp
+)
 
+target_include_directories(dht_driver_tests PUBLIC
+        ../include
+)
+target_link_libraries(dht_driver_tests PUBLIC
+        gtest_main
+        gmock_main
+        loggerMock
+        gpio_configMocks
+        STM_HEADERS
+)
+
+add_test(NAME dht_driver_tests COMMAND dht_driver_tests)
+
+###########################################################
 
 
 

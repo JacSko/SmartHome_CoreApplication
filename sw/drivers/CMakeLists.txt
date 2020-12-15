@@ -65,6 +65,19 @@ target_link_libraries(wifi_manager PUBLIC
         logger
 )
 
+add_library(dht_driver STATIC
+        source/dht_driver.c
+)
+
+target_include_directories(dht_driver PUBLIC
+        include
+)
+
+target_link_libraries(dht_driver PUBLIC
+		STM_HEADERS
+		logger
+)
+
 else()
 
 	add_subdirectory(test)
