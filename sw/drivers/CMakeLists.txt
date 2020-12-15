@@ -76,6 +76,7 @@ target_include_directories(dht_driver PUBLIC
 target_link_libraries(dht_driver PUBLIC
 		STM_HEADERS
 		logger
+		task_scheduler
 )
 
 else()

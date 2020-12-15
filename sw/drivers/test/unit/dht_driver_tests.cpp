@@ -9,6 +9,7 @@ extern "C" {
 #endif
 
 #include "gpio_lib_mock.h"
+#include "task_scheduler_mock.h"
 
 /* ============================= */
 /**
@@ -45,6 +46,7 @@ struct dhtDriverFixture : public ::testing::Test
 	{
 		stm_stub_init();
 		mock_gpio_init();
+		mock_sch_init();
 		callMock = new callbackMock();
 	}
 
@@ -52,6 +54,7 @@ struct dhtDriverFixture : public ::testing::Test
 	{
 		stm_stub_deinit();
 		mock_gpio_deinit();
+		mock_sch_deinit();
 		delete callMock;
 	}
 };

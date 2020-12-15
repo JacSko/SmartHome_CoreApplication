@@ -9,11 +9,18 @@
  *
  * @details
  * Supported device types: <br>
- * - <b>DHT11</b>
- * - <b>DHT22</b><br>
+ * <b>DHT11</b>
+ * <b>DHT22</b><br>
  * The device type is auto-detected.
  * It performs data integrity check by checksum calculation.
- * Module is prepared to handle six DHTXX devices.
+ * Module is prepared to handle six DHTXX devices.<br>
+ * STM Resources used:<br>
+ * SENSOR1 - <b>PB9</b><br>
+ * SENSOR2 - <b>PB10</b><br>
+ * SENSOR3 - <b>PB12</b><br>
+ * SENSOR4 - <b>PB13</b><br>
+ * SENSOR5 - <b>PB14</b><br>
+ * SENSOR6 - <b>PB15</b><br>
  *
  * @author Jacek Skowronek
  * @date 15/12/2020
@@ -71,15 +78,16 @@ typedef enum DHT_STATUS
 	DHT_STATUS_OK, 				/**< Measurement performed successfully, data is valid */
 	DHT_STATUS_NO_RESPONSE, 	/**< No response from device in defined time */
 	DHT_STATUS_CHECKSUM_ERROR, 	/**< Transmission fault - checksum is incorrect */
+	DHT_STATUS_UNKNOWN,
 } DHT_STATUS;
 
-typedef void(*DHT_CALLBACK)(DHT_SENSOR*);
+typedef void(*DHT_CALLBACK)(DHT_STATUS, DHT_SENSOR*);
 
 /**
  * @brief Initialize DHT driver.
- * @return See RETURN_CODES
+ * @return None
  */
-RET_CODE dht_initialize();
+void dht_initialize();
 /**
  * @brief Read data from DHTXX device.
  * @details

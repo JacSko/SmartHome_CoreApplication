@@ -84,6 +84,7 @@ target_link_libraries(dht_driver_tests PUBLIC
         loggerMock
         gpio_configMocks
         STM_HEADERS
+        task_scheduler_mock
 )
 
 add_test(NAME dht_driver_tests COMMAND dht_driver_tests)

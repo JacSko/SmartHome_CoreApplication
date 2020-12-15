@@ -14,6 +14,9 @@ void stm_stub_init()
 	USART1 = (USART_TypeDef*) malloc(sizeof(USART_TypeDef));
 	USART2 = (USART_TypeDef*) malloc(sizeof(USART_TypeDef));
 	NVIC = (NVIC_Type*) malloc(sizeof(NVIC_Type));
+	SYSCFG = (SYSCFG_TypeDef*) malloc(sizeof(SYSCFG_TypeDef));
+	EXTI = (EXTI_TypeDef*) malloc(sizeof(EXTI_TypeDef));
+	TIM2 = (TIM_TypeDef*) malloc(sizeof(TIM_TypeDef));
 
 	for (uint8_t i = 0; i < irq_arr_size; i++)
 	{
@@ -30,6 +33,9 @@ void stm_stub_deinit()
 	free(USART1);
 	free(USART2);
 	free(NVIC);
+	free(SYSCFG);
+	free(EXTI);
+	free(TIM2);
 }
 void NVIC_EnableIRQ(IRQn_Type IRQn)
 {
