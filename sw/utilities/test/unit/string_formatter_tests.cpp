@@ -49,8 +49,8 @@ TEST_F(stringFormatterFixture, string_formatting_tests)
     * <b>expected</b>: String formatted as expected.<br>
     * ************************************************
     */
-   string_format(result, "RESULT: %d %x %u %c\n", -10, 11, 12, 'x');
-   EXPECT_STREQ(result, "RESULT: -10 B 12 x\n");
+   string_format(result, "RESULT: %d %x %u %c %%\n", -10, 11, 12, 'x');
+   EXPECT_STREQ(result, "RESULT: -10 B 12 x %\n");
 
    /**
     * <b>scenario</b>: Formatting string according to pattern with precision.<br>

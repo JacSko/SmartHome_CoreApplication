@@ -93,11 +93,9 @@ void logger_send(LogGroup group, const char* prefix, const char* fmt, ...)
 	int length = 0;
 	va_list va;
 	va_start(va, fmt);
-	length = sf_format_length(fmt, va);
-	length = length + 100;
 	va_end(va);
 	{
-		char buf[length];
+		char buf[1024];
 		int offset = string_format(buf, "[0-0-0 0:0:0:0] - %s - %s:", logger_get_group_name(group), prefix);
 		va_start(va, fmt);
 		length = sf_format_string(buf+offset, fmt, va);

@@ -38,7 +38,7 @@ int sf_format_string(char *buf, const char *fmt, va_list va);
  * @param[in] va - list of arguments
  * @return Length of formatted string.
  */
-int sf_format_length(const char *fmt, va_list va);
+//int sf_format_length(const char *fmt, va_list va);
 /**
  * @brief Format string with variable arguments.
  * @param[out] buf - Place to store prepared string

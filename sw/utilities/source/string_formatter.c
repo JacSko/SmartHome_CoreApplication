@@ -132,53 +132,53 @@ int sf_format_string(char *buf, const char *fmt, va_list va)
 	return (int)(buf - start_buf);
 }
 
-int sf_format_length(const char *fmt, va_list va)
-{
-	int length = 0;
-	while (*fmt)
-	{
-		if (*fmt == '%')
-		{
-			++fmt;
-			switch (*fmt)
-			{
-			  case 'c':
-		  		  va_arg(va, int);
-				  ++length;
-				  break;
-			  case 'd':
-			  case 'i':
-			  case 'u':
-				  /* 32 bits integer is max 11 characters with minus sign */
-				  length += 11;
-				  va_arg(va, int);
-				  break;
-			  case 's':
-			  	  {
-			  		  char * str = va_arg(va, char *);
-			  		  while (*str++)
-			  			  ++length;
-			  	  }
-				  break;
-			  case 'x':
-			  case 'X':
-				  /* 32 bits integer as hex is max 8 characters */
-				  length += 8;
-				  va_arg(va, unsigned int);
-				  break;
-			  default:
-				  ++length;
-				  break;
-			}
-		}
-		else
-		{
-			++length;
-		}
-		++fmt;
-	}
-	return length;
-}
+//int sf_format_length(const char *fmt, va_list va)
+//{
+//	int length = 0;
+//	while (*fmt)
+//	{
+//		if (*fmt == '%')
+//		{
+//			++fmt;
+//			switch (*fmt)
+//			{
+//			  case 'c':
+//		  		  va_arg(va, int);
+//				  ++length;
+//				  break;
+//			  case 'd':
+//			  case 'i':
+//			  case 'u':
+//				  /* 32 bits integer is max 11 characters with minus sign */
+//				  length += 11;
+//				  va_arg(va, int);
+//				  break;
+//			  case 's':
+//			  	  {
+//			  		  char * str = va_arg(va, char *);
+//			  		  while (*str++)
+//			  			  ++length;
+//			  	  }
+//				  break;
+//			  case 'x':
+//			  case 'X':
+//				  /* 32 bits integer as hex is max 8 characters */
+//				  length += 8;
+//				  va_arg(va, unsigned int);
+//				  break;
+//			  default:
+//				  ++length;
+//				  break;
+//			}
+//		}
+//		else
+//		{
+//			++length;
+//		}
+//		++fmt;
+//	}
+//	return length;
+//}
 
 int string_format (char* buffer, const char *fmt, ...)
 {
