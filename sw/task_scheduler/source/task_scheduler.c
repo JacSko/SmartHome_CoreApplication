@@ -218,6 +218,7 @@ RET_CODE sch_trigger_task (TASK task)
 	{
 		if(item->type == TASKTYPE_TRIGGER)
 		{
+		   item->count = 0;
 			item->state = TASKSTATE_RUNNING;
 			result = RETURN_OK;
 		}
@@ -277,11 +278,11 @@ void sch_call_tasks (SchTaskPriority prio)
          if (item->count >= item->period)
          {
             item->count = 0;
-            if (item->callback) item->callback();
             if (item->type == TASKTYPE_TRIGGER)
             {
                item->state = TASKSTATE_STOPPED;
             }
+            if (item->callback) item->callback();
             if (item->type == TASKTYPE_ONCE)
             {
                sch_unsubscribe(item->callback);

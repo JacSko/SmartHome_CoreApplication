@@ -1,4 +1,4 @@
-
+#include <stdlib.h>
 #include "stm32f4xx.h"
 #include "time_counter.h"
 #include "wifi_manager.h"
@@ -35,23 +35,29 @@
 #define UART_COMMON_STRING_SIZE 512
 #define UART_COMMON_BAUD_RATE 115200
 
+void on_dht_data(DHT_STATUS status, DHT_SENSOR* sensor)
+{
+   logger_send(LOG_ERROR, __func__, "DHT callback s:%d, data: %d %d %d %d", status, sensor->data.temp_h, sensor->data.temp_l,
+                                                       sensor->data.hum_h,sensor->data.hum_l);
+}
+
 void print_log()
 {
-	TimeItem item = {};
-	RET_CODE result = wifimgr_get_time(&item);
-	logger_send(LOG_DEBUG, __func__,"Get time result %d: %d:%d%d %d-%d-%d", result,
-							item.day, item.month, item.year,
-							item.hour, item.minute, item.second);
+   sch_trigger_task(&print_log);
+   DHT_SENSOR sensor = {};
+   DHT_STATUS result = dht_read(DHT_SENSOR2, &sensor);
+
+   (void)result;
 }
 
 int main(void)
 {
 	time_init();
 	sch_initialize();
-//	sch_subscribe(&print_log);
-//	sch_set_task_period(&print_log, 20000);
-//	sch_set_task_type(&print_log, TASKTYPE_PERIODIC);
-//	sch_set_task_state(&print_log, TASKSTATE_RUNNING);
+	sch_subscribe(&print_log);
+	sch_set_task_period(&print_log, 2000);
+	sch_set_task_type(&print_log, TASKTYPE_TRIGGER);
+
 
 	BT_Config config = {UART_COMMON_BAUD_RATE, UART_COMMON_BUFFER_SIZE, UART_COMMON_STRING_SIZE};
 	WIFI_UART_Config wifi_config = {UART_COMMON_BAUD_RATE, UART_COMMON_BUFFER_SIZE, UART_COMMON_STRING_SIZE};
@@ -64,11 +70,11 @@ int main(void)
 	logger_set_group_state(LOG_WIFI_MANAGER, LOGGER_GROUP_ENABLE);
 	logger_send(LOG_DEBUG, __FILE__, "Booting up!");
 
-	if (wifimgr_initialize(&wifi_config) == RETURN_OK)
-	{
-		logger_register_sender(&wifimgr_broadcast_data);
-		logger_send(LOG_DEBUG, __func__, "Wifi manager started");
-	}
+//	if (wifimgr_initialize(&wifi_config) == RETURN_OK)
+//	{
+//		logger_register_sender(&wifimgr_broadcast_data);
+//		logger_send(LOG_DEBUG, __func__, "Wifi manager started");
+//	}
 
 	cmd_register_bt_sender(&btengine_send_string);
 	cmd_register_wifi_sender(&wifimgr_send_data);
@@ -76,15 +82,17 @@ int main(void)
 	{
 		logger_send(LOG_ERROR, __FILE__, "Cannot add BT callback!");
 	}
-	if (wifimgr_register_data_callback(&cmd_handle_wifi_data) != RETURN_OK)
-	{
-		logger_send(LOG_ERROR, __FILE__, "Cannot add WIFI callback!");
-	}
+//	if (wifimgr_register_data_callback(&cmd_handle_wifi_data) != RETURN_OK)
+//	{
+//		logger_send(LOG_ERROR, __FILE__, "Cannot add WIFI callback!");
+//	}
 
 	logger_send(LOG_DEBUG, __FILE__, "Booting completed!");
 	dht_initialize();
+	sch_trigger_task(&print_log);
 	while (1)
 	{
+	   dht_data_watcher();
 		sch_task_watcher(TASKPRIO_LOW);
 		btengine_string_watcher();
 		uartengine_string_watcher();

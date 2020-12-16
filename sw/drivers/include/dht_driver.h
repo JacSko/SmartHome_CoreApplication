@@ -41,7 +41,7 @@
 /** Represents HW device - DHT sensor */
 typedef enum DHT_SENSOR_ID
 {
-	DHT_SENSOR1,
+   DHT_SENSOR1,
 	DHT_SENSOR2,
 	DHT_SENSOR3,
 	DHT_SENSOR4,
@@ -62,7 +62,7 @@ typedef struct DHT_SENSOR_DATA
 typedef enum DHT_SENSOR_TYPE
 {
 	DHT_TYPE_DHT11,
-	DHT_TYPE_DHT12
+	DHT_TYPE_DHT22
 } DHT_SENSOR_TYPE;
 
 /** Struct to represent one OneWire device*/
@@ -77,7 +77,8 @@ typedef enum DHT_STATUS
 {
 	DHT_STATUS_OK, 				/**< Measurement performed successfully, data is valid */
 	DHT_STATUS_NO_RESPONSE, 	/**< No response from device in defined time */
-	DHT_STATUS_CHECKSUM_ERROR, 	/**< Transmission fault - checksum is incorrect */
+	DHT_STATUS_CHECKSUM_ERROR, /**< Transmission fault - checksum is incorrect */\
+	DHT_STATUS_ERROR,          /**< Common error */
 	DHT_STATUS_UNKNOWN,
 } DHT_STATUS;
 
@@ -118,5 +119,10 @@ RET_CODE dht_set_timeout(uint16_t timeout);
  * @return Timeout in ms.
  */
 uint16_t dht_get_timeout();
+/**
+ * @brief Watcher responsible for calling callbacks - should be executed in main thread loop.
+ * @return See RETURN_CODES.
+ */
+void dht_data_watcher();
 
 #endif
