@@ -39,6 +39,12 @@ typedef struct
 	uint32_t time_raw;
 }TimeItem;
 
+typedef enum TimeCallbackPriority
+{
+   TIME_PRIORITY_HIGH, /**< Callback with this priority will be called directly from interrupt handler */
+   TIME_PRIORITY_LOW,  /**< Callback with this priority will be called from main loop */
+} TimeCallbackPriority;
+
 
 /**
  * @brief Initialize module.
@@ -77,9 +83,10 @@ void time_wait(uint16_t timeout);
 /**
  * @brief Register callback to be called on time change.
  * @param[in] callback - Pointer to function
+ * @param[in] prio - priority of the callback
  * @return See RETURN_CODES.
  */
-RET_CODE time_register_callback(void(*callback)(TimeItem*));
+RET_CODE time_register_callback(void(*callback)(TimeItem*), TimeCallbackPriority prio);
 /**
  * @brief Unregister callback.
  * @param[in] callback - Pointer to function

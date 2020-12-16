@@ -21,6 +21,7 @@ typedef struct SchItem
 	TASK callback;
 	SchTaskState state;
 	SchTaskType type;
+	SchTaskPriority priority;
 	TASK_PERIOD period;
 	TASK_PERIOD count;
 }SchItem;
@@ -39,6 +40,7 @@ void sch_on_time_change(TimeItem* item);
 void sch_realloc_data(SchItem* source, SchItem* dest);
 SchItem* sch_get_item(TASK task);
 RET_CODE sch_is_period_correct(TASK_PERIOD period);
+void sch_call_tasks (SchTaskPriority prio);
 /* =============================
  *      Module variables
  * =============================*/
@@ -54,7 +56,7 @@ void sch_initialize ()
 	items_list.capacity = DEFAULT_TASKLIST_SIZE;
 	if (items_list.list)
 	{
-		time_register_callback(&sch_on_time_change);
+		time_register_callback(&sch_on_time_change, TIME_PRIORITY_HIGH);
 		items_list.capacity = DEFAULT_TASKLIST_SIZE;
 	}
 	else
@@ -86,6 +88,7 @@ RET_CODE sch_subscribe (TASK task)
 				items_list.list[i].callback = task;
 				items_list.list[i].count = 0;
 				items_list.list[i].period = 0;
+				items_list.list[i].priority = TASKPRIO_LOW;
 				items_list.list[i].state = TASKSTATE_STOPPED;
 				items_list.size++;
 				break;
@@ -97,6 +100,22 @@ RET_CODE sch_subscribe (TASK task)
 		result = RETURN_NOK;
 	}
 	return result;
+}
+
+RET_CODE sch_subscribe_and_set(TASK task, SchTaskPriority prio, TASK_PERIOD period, SchTaskState state, SchTaskType type)
+{
+   RET_CODE result = RETURN_NOK;
+   do
+   {
+      if (sch_subscribe(task) != RETURN_OK){break;}
+      if (sch_set_task_priority(task, prio) != RETURN_OK){break;}
+      if (sch_set_task_period(task, period) != RETURN_OK){break;}
+      if (sch_set_task_state(task, state) != RETURN_OK){break;}
+      if (sch_set_task_type(task, type) != RETURN_OK){break;}
+      result = RETURN_OK;
+   }while(0);
+
+   return result;
 }
 RET_CODE sch_unsubscribe (TASK task)
 {
@@ -178,6 +197,18 @@ RET_CODE sch_set_task_type (TASK task, enum SchTaskType type)
 	}
 	return result;
 }
+RET_CODE sch_set_task_priority (TASK task, SchTaskPriority prio)
+{
+   RET_CODE result = RETURN_NOK;
+
+   SchItem* item = sch_get_item(task);
+   if (item && prio < TASKPRIO_UNKNOWN)
+   {
+      item->priority = prio;
+      result = RETURN_OK;
+   }
+   return result;
+}
 RET_CODE sch_trigger_task (TASK task)
 {
 	RET_CODE result = RETURN_NOK;
@@ -231,31 +262,39 @@ void sch_task_watcher ()
 	if (time_changed)
 	{
 		time_changed--;
-		for (uint8_t i = 0; i < items_list.capacity; i++)
-		{
-			SchItem* item = &items_list.list[i];
-			if (item->state == TASKSTATE_RUNNING)
-			{
-				item->count += time_get_basetime();
-				if (item->count >= item->period)
-				{
-					item->count = 0;
-					if (item->callback) item->callback();
-					if (item->type == TASKTYPE_TRIGGER)
-					{
-						item->state = TASKSTATE_STOPPED;
-					}
-					if (item->type == TASKTYPE_ONCE)
-					{
-						sch_unsubscribe(item->callback);
-					}
-				}
-			}
-		}
+		sch_call_tasks(TASKPRIO_LOW);
 	}
 }
+
+void sch_call_tasks (SchTaskPriority prio)
+{
+   for (uint8_t i = 0; i < items_list.capacity; i++)
+   {
+      SchItem* item = &items_list.list[i];
+      if (item->state == TASKSTATE_RUNNING && item->priority == prio)
+      {
+         item->count += time_get_basetime();
+         if (item->count >= item->period)
+         {
+            item->count = 0;
+            if (item->callback) item->callback();
+            if (item->type == TASKTYPE_TRIGGER)
+            {
+               item->state = TASKSTATE_STOPPED;
+            }
+            if (item->type == TASKTYPE_ONCE)
+            {
+               sch_unsubscribe(item->callback);
+            }
+         }
+      }
+   }
+}
+
 void sch_on_time_change(TimeItem* item)
 {
+   /* This is called from TIME module interrupt, do not place here so many stuff */
+	sch_call_tasks(TASKPRIO_HIGH);
 	time_changed++;
 }
 

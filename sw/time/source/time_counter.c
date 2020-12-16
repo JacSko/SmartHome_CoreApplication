@@ -16,13 +16,25 @@
 /* =============================
  *   Internal module functions
  * =============================*/
-
+RET_CODE time_is_time_ok(TimeItem* item);
+RET_CODE time_is_leap_year();
+void time_increment_time();
+void time_call_low_prio_callbacks();
+void time_call_high_prio_callbacks();
+/* =============================
+ *       Internal types
+ * =============================*/
+typedef struct TimeCallbackItem
+{
+   TimeCallbackPriority priority;
+   void(*fnc)(TimeItem*);
+} TimeCallbackItem;
 /* =============================
  *      Module variables
  * =============================*/
 TimeItem timestamp;
 volatile uint8_t time_changed;
-void (*CALLBACKS[TIME_CNT_CALLBACK_MAX_SIZE])(TimeItem*);
+TimeCallbackItem TIME_CALLBACKS[TIME_CNT_CALLBACK_MAX_SIZE];
 uint8_t winter_time_active = 1;
 uint8_t month_day_cnt[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
@@ -46,11 +58,11 @@ void time_deinit()
 {
 	for (uint8_t i = 0; i < TIME_CNT_CALLBACK_MAX_SIZE; i ++)
 	{
-		CALLBACKS[i] = NULL;
+	   TIME_CALLBACKS[i].fnc = NULL;
 	}
 }
 
-RET_CODE is_time_ok(TimeItem* item)
+RET_CODE time_is_time_ok(TimeItem* item)
 {
 	uint8_t result = 1;
 	result &= item->month <= 12;
@@ -77,7 +89,7 @@ RET_CODE time_set_utc(TimeItem* item)
 	RET_CODE result = RETURN_NOK;
 	if (item)
 	{
-		if (is_time_ok(item))
+		if (time_is_time_ok(item))
 		{
 			__disable_irq();
 			timestamp = *item;
@@ -127,15 +139,16 @@ void time_wait(uint16_t timeout)
 	while(time_get()->time_raw < tim);
 
 }
-RET_CODE time_register_callback(void(*callback)(TimeItem*))
+RET_CODE time_register_callback(void(*callback)(TimeItem*), TimeCallbackPriority prio)
 {
 	RET_CODE result = RETURN_NOK;
 
 	for (uint8_t i = 0; i < TIME_CNT_CALLBACK_MAX_SIZE; i++)
 	{
-		if (CALLBACKS[i] == NULL)
+		if (TIME_CALLBACKS[i].fnc == NULL)
 		{
-			CALLBACKS[i] = callback;
+		   TIME_CALLBACKS[i].priority = prio;
+		   TIME_CALLBACKS[i].fnc = callback;
 			result = RETURN_OK;
 			break;
 		}
@@ -148,21 +161,21 @@ RET_CODE time_unregister_callback(void(*callback)(TimeItem*))
 	RET_CODE result = RETURN_NOK;
 	for (uint8_t i = 0; i < TIME_CNT_CALLBACK_MAX_SIZE; i++)
 	{
-		if (CALLBACKS[i] == callback)
+		if (TIME_CALLBACKS[i].fnc == callback)
 		{
-			CALLBACKS[i] = NULL;
+		   TIME_CALLBACKS[i].fnc = NULL;
 			result = RETURN_OK;
 		}
 	}
 	return result;
 }
 
-RET_CODE is_leap_year()
+RET_CODE time_is_leap_year()
 {
 	return (timestamp.year % 4) == 0? RETURN_OK : RETURN_NOK;
 }
 
-void increment_time()
+void time_increment_time()
 {
 	timestamp.time_raw += TIME_BASETIME_MS;
 	timestamp.msecond += TIME_BASETIME_MS;
@@ -185,7 +198,7 @@ void increment_time()
 	{
 		timestamp.day++;
 		timestamp.hour = 0;
-		uint8_t exp_days = (is_leap_year() == RETURN_OK) && (timestamp.month == 2)? month_day_cnt[timestamp.month] +1 : month_day_cnt[timestamp.month];
+		uint8_t exp_days = (time_is_leap_year() == RETURN_OK) && (timestamp.month == 2)? month_day_cnt[timestamp.month] +1 : month_day_cnt[timestamp.month];
 		if (timestamp.day >= exp_days)
 		{
 			timestamp.month++;
@@ -201,15 +214,26 @@ void increment_time()
 
 }
 
-void call_callbacks()
+void time_call_low_prio_callbacks()
 {
 	for (uint8_t i = 0; i < TIME_CNT_CALLBACK_MAX_SIZE; i++)
 	{
-		if (CALLBACKS[i] != NULL)
+		if (TIME_CALLBACKS[i].fnc != NULL && TIME_CALLBACKS[i].priority == TIME_PRIORITY_LOW)
 		{
-			CALLBACKS[i](&timestamp);
+		   TIME_CALLBACKS[i].fnc(&timestamp);
 		}
 	}
+}
+
+void time_call_high_prio_callbacks()
+{
+   for (uint8_t i = 0; i < TIME_CNT_CALLBACK_MAX_SIZE; i++)
+   {
+      if (TIME_CALLBACKS[i].fnc != NULL && TIME_CALLBACKS[i].priority == TIME_PRIORITY_HIGH)
+      {
+         TIME_CALLBACKS[i].fnc(&timestamp);
+      }
+   }
 }
 
 void time_watcher()
@@ -217,7 +241,7 @@ void time_watcher()
 	if (time_changed)
 	{
 		time_changed = 0;
-		call_callbacks();
+		time_call_low_prio_callbacks();
 	}
 }
 uint16_t time_get_basetime()
@@ -227,7 +251,8 @@ uint16_t time_get_basetime()
 
 void SysTick_Handler(void)
 {
-	increment_time();
-	time_changed++;
+	time_increment_time();
+	time_call_high_prio_callbacks();
+   time_changed++;
 }
 

@@ -76,7 +76,7 @@ TEST_F(timeFixture, module_init_task_adding)
 	 * <b>expected</b>: Callback registered.<br>
     * ************************************************
 	 */
-	EXPECT_CALL(*time_cnt_mock, time_register_callback(_));
+	EXPECT_CALL(*time_cnt_mock, time_register_callback(_,TIME_PRIORITY_HIGH));
 	sch_initialize();
 
 	/**
@@ -107,7 +107,7 @@ TEST_F(timeFixture, module_init_task_adding)
  */
 TEST_F(timeFixture, task_add_remove_test)
 {
-	EXPECT_CALL(*time_cnt_mock, time_register_callback(_));
+	EXPECT_CALL(*time_cnt_mock, time_register_callback(_,TIME_PRIORITY_HIGH));
 	sch_initialize();
 
 	/**
@@ -148,7 +148,7 @@ TEST_F(timeFixture, task_schedule_test_one_task)
 
 	TimeItem item = {};
 
-	EXPECT_CALL(*time_cnt_mock, time_register_callback(_));
+	EXPECT_CALL(*time_cnt_mock, time_register_callback(_,TIME_PRIORITY_HIGH));
 	EXPECT_CALL(*time_cnt_mock, time_get_basetime()).WillRepeatedly(Return(10));
 	sch_initialize();
 
@@ -259,7 +259,7 @@ TEST_F(timeFixture, three_tasks_handling)
 {
 	TimeItem item = {};
 
-	EXPECT_CALL(*time_cnt_mock, time_register_callback(_));
+	EXPECT_CALL(*time_cnt_mock, time_register_callback(_,TIME_PRIORITY_HIGH));
 	EXPECT_CALL(*time_cnt_mock, time_get_basetime()).WillRepeatedly(Return(10));
 	sch_initialize();
 
@@ -409,12 +409,14 @@ TEST_F(timeFixture, three_tasks_handling)
 	sch_deinitialize();
 }
 
-
+/**
+ * @test Dynamic task handling
+ */
 TEST_F(timeFixture, dynamic_tasks_handling)
 {
 	TimeItem item = {};
 
-	EXPECT_CALL(*time_cnt_mock, time_register_callback(_));
+	EXPECT_CALL(*time_cnt_mock, time_register_callback(_,TIME_PRIORITY_HIGH));
 	EXPECT_CALL(*time_cnt_mock, time_get_basetime()).WillRepeatedly(Return(10));
 	sch_initialize();
 
@@ -469,12 +471,13 @@ TEST_F(timeFixture, dynamic_tasks_handling)
 	sch_deinitialize();
 
 }
-
-
+/**
+ * @test Negative cases for module
+ */
 TEST_F(timeFixture, negative_cases)
 {
 
-	EXPECT_CALL(*time_cnt_mock, time_register_callback(_));
+	EXPECT_CALL(*time_cnt_mock, time_register_callback(_,TIME_PRIORITY_HIGH));
 	EXPECT_CALL(*time_cnt_mock, time_get_basetime()).WillRepeatedly(Return(10));
 	sch_initialize();
 
@@ -542,16 +545,88 @@ TEST_F(timeFixture, negative_cases)
 
 }
 
+/**
+ * @test Subscribing tasks with setting all properties in the same time
+ */
+TEST_F(timeFixture, task_subscribe_and_set_tests)
+{
 
+   EXPECT_CALL(*time_cnt_mock, time_register_callback(_,TIME_PRIORITY_HIGH));
+   EXPECT_CALL(*time_cnt_mock, time_get_basetime()).WillRepeatedly(Return(10));
+   sch_initialize();
 
+   /**
+    * <b>scenario</b>: Wrong task priority.<br>
+    * <b>expected</b>: Task not added.<br>
+    * ************************************************
+    */
+   EXPECT_EQ(RETURN_NOK, sch_subscribe_and_set(&fake_callback1, TASKPRIO_UNKNOWN, 1,
+                        TASKSTATE_UNKNOWN, TASKTYPE_UNKNOWN));
 
+   /**
+    * <b>scenario</b>: Wrong task period.<br>
+    * <b>expected</b>: Task not added.<br>
+    * ************************************************
+    */
+   EXPECT_EQ(RETURN_NOK, sch_subscribe_and_set(&fake_callback1, TASKPRIO_LOW, 1,
+                        TASKSTATE_UNKNOWN, TASKTYPE_UNKNOWN));
 
+   /**
+    * <b>scenario</b>: Wrong task state.<br>
+    * <b>expected</b>: Task not added.<br>
+    * ************************************************
+    */
+   EXPECT_EQ(RETURN_NOK, sch_subscribe_and_set(&fake_callback1, TASKPRIO_LOW, 1000,
+                        TASKSTATE_UNKNOWN, TASKTYPE_UNKNOWN));
+   /**
+    * <b>scenario</b>: Wrong task type.<br>
+    * <b>expected</b>: Task not added.<br>
+    * ************************************************
+    */
+   EXPECT_EQ(RETURN_NOK, sch_subscribe_and_set(&fake_callback1, TASKPRIO_LOW, 1000,
+                        TASKSTATE_RUNNING, TASKTYPE_UNKNOWN));
+   /**
+    * <b>scenario</b>: All data correct.<br>
+    * <b>expected</b>: Task added.<br>
+    * ************************************************
+    */
+   EXPECT_EQ(RETURN_OK, sch_subscribe_and_set(&fake_callback1, TASKPRIO_LOW, 1000,
+                        TASKSTATE_RUNNING, TASKTYPE_PERIODIC));
+}
 
+/**
+ * @test Low and High priority task calling
+ */
+TEST_F(timeFixture, task_low_high_priority_calling_test)
+{
+   TimeItem item = {};
+   EXPECT_CALL(*time_cnt_mock, time_register_callback(_,TIME_PRIORITY_HIGH));
+   EXPECT_CALL(*time_cnt_mock, time_get_basetime()).WillRepeatedly(Return(10));
+   sch_initialize();
 
+   /**
+    * <b>scenario</b>: Two tasks added - one with high priority, seconds with low.<br>
+    * <b>expected</b>: Task with high priority called from interrupt routine,
+    *                  but low priority task called from main thread.<br>
+    * ************************************************
+    */
+   EXPECT_EQ(RETURN_OK, sch_subscribe_and_set(&fake_callback1, TASKPRIO_HIGH, 20,
+                         TASKSTATE_RUNNING, TASKTYPE_PERIODIC));
+   EXPECT_EQ(RETURN_OK, sch_subscribe_and_set(&fake_callback2, TASKPRIO_LOW, 20,
+                         TASKSTATE_RUNNING, TASKTYPE_PERIODIC));
 
+   EXPECT_CALL(*callMock, task1_callback()).Times(4);
+   EXPECT_CALL(*callMock, task2_callback()).Times(2);
 
+   for (uint8_t i = 0; i < 4; i++)
+   { /* only fake_callback1 called */
+      sch_on_time_change(&item);
+   }
 
-
-//negative cases
-
+   for (uint8_t i = 0; i < 4; i++)
+   { /* both callback called called */
+      sch_on_time_change(&item);
+      sch_task_watcher();
+   }
+}
 

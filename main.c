@@ -81,7 +81,7 @@ int main(void)
 	logger_send(LOG_DEBUG, __FILE__, "Booting completed!");
 	while (1)
 	{
-		sch_task_watcher();
+		sch_task_watcher(TASKPRIO_LOW);
 		btengine_string_watcher();
 		uartengine_string_watcher();
 	}

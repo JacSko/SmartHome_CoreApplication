@@ -249,7 +249,7 @@ TEST_F(timeFixture, leap_year_tests)
 	for (auto year : non_leap_years)
 	{
 		timestamp.year = year;
-		EXPECT_EQ(RETURN_NOK, is_leap_year());
+		EXPECT_EQ(RETURN_NOK, time_is_leap_year());
 	}
 
 	/**
@@ -260,7 +260,7 @@ TEST_F(timeFixture, leap_year_tests)
 	for (auto year : leap_years)
 	{
 		timestamp.year = year;
-		EXPECT_EQ(RETURN_OK, is_leap_year());
+		EXPECT_EQ(RETURN_OK, time_is_leap_year());
 	}
 }
 
@@ -277,7 +277,7 @@ TEST_F(timeFixture, callback_tests)
     * ************************************************
 	 */
 
-	EXPECT_EQ(RETURN_OK, time_register_callback(&fake_callback));
+	EXPECT_EQ(RETURN_OK, time_register_callback(&fake_callback,TIME_PRIORITY_LOW));
 	t.day = 20;
 	t.month = 12;
 	t.year = 2020;
@@ -312,10 +312,10 @@ TEST_F(timeFixture, callback_tests)
 
 	for (uint8_t i = 0; i < TIME_CNT_CALLBACK_MAX_SIZE; i++)
 	{
-		EXPECT_EQ(RETURN_OK, time_register_callback(&fake_callback));
+		EXPECT_EQ(RETURN_OK, time_register_callback(&fake_callback,TIME_PRIORITY_LOW));
 	}
 
-	EXPECT_EQ(RETURN_NOK, time_register_callback(&fake_callback));
+	EXPECT_EQ(RETURN_NOK, time_register_callback(&fake_callback,TIME_PRIORITY_LOW));
 
 	t.day = 20;
 	t.month = 12;
@@ -574,7 +574,7 @@ TEST_F(timeFixture, time_set_utc)
 {
 	time_init();
 	TimeItem t;
-	EXPECT_EQ(RETURN_OK, time_register_callback(&fake_callback));
+	EXPECT_EQ(RETURN_OK, time_register_callback(&fake_callback,TIME_PRIORITY_LOW));
 	/**
 	 * <b>scenario</b>: Setting time when winter time is active.<br>
 	 * <b>expected</b>: Hour incremented by 1.<br>

@@ -11,7 +11,7 @@ struct timeCounerMock
 	MOCK_METHOD1(time_set_winter_time, void(uint8_t state));
 	MOCK_METHOD0(time_get, TimeItem*());
 	MOCK_METHOD1(time_wait, void(uint16_t));
-	MOCK_METHOD1(time_register_callback, RET_CODE(void(*callback)(TimeItem*)));
+	MOCK_METHOD2(time_register_callback, RET_CODE(void(*callback)(TimeItem*), TimeCallbackPriority));
 	MOCK_METHOD1(time_unregister_callback, RET_CODE(void(*callback)(TimeItem*)));
 	MOCK_METHOD0(time_watcher, void());
 	MOCK_METHOD0(time_get_basetime, uint16_t());
@@ -50,9 +50,9 @@ void time_wait(uint16_t timeout)
 {
 	time_cnt_mock->time_wait(timeout);
 }
-RET_CODE time_register_callback(void(*callback)(TimeItem*))
+RET_CODE time_register_callback(void(*callback)(TimeItem*), TimeCallbackPriority prio)
 {
-	return time_cnt_mock->time_register_callback(callback);
+	return time_cnt_mock->time_register_callback(callback, prio);
 }
 RET_CODE time_unregister_callback(void(*callback)(TimeItem*))
 {

@@ -43,7 +43,12 @@ typedef enum SchTaskState
 	TASKSTATE_STOPPED,      /**< Task stopped and waiting for start */
 	TASKSTATE_UNKNOWN,      /**< Unknown task state - enums count */
 } SchTaskState;
-
+typedef enum SchTaskPriority
+{
+   TASKPRIO_LOW,     /**< This task will be called in main thread */
+   TASKPRIO_HIGH,    /**< This task will be called from interrupt routine */
+   TASKPRIO_UNKNOWN, /**< Unknown task priorty - enums count */
+} SchTaskPriority;
 /* =============================
  *          Defines
  * =============================*/
@@ -66,6 +71,19 @@ void sch_initialize ();
  * @return See RETURN_CODES.
  */
 RET_CODE sch_subscribe (TASK task);
+/**
+ * @brief Subscribe permanent task to scheduler and set all properties.
+ * @details
+ * Permanent means, that even if task became inactive (task type ONCE)
+ * it is not removed from internal list ready to become active.
+ * @param[in] task - Pointer to function
+ * @param[in] prio - Task priority
+ * @param[in] period - Task period
+ * @param[in] state - Task state
+ * @param[in] type - Task type
+ * @return See RETURN_CODES.
+ */
+RET_CODE sch_subscribe_and_set(TASK task, SchTaskPriority prio, TASK_PERIOD period, SchTaskState state, SchTaskType type);
 /**
  * @brief Unsubscribe permanent task.
  * @param[in] task - Pointer to function
@@ -104,6 +122,13 @@ RET_CODE sch_set_task_state (TASK task, SchTaskState state);
  * @return See RETURN_CODES.
  */
 RET_CODE sch_set_task_type (TASK task, SchTaskType type);
+/**
+ * @brief Set task priority.
+ * @param[in] task - Pointer to task
+ * @param[in] prio - task priority
+ * @return See RETURN_CODES.
+ */
+RET_CODE sch_set_task_priority (TASK task, SchTaskPriority prio);
 /**
  * @brief Starts task which type is ONCE.
  * @param[in] task - Pointer to task.

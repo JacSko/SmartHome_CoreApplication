@@ -8,11 +8,13 @@ struct taskSchedulerMock
 {
 	MOCK_METHOD0(sch_initialize, void());
 	MOCK_METHOD1(sch_subscribe, RET_CODE(TASK));
+	MOCK_METHOD5(sch_subscribe_and_set, RET_CODE(TASK, SchTaskPriority, TASK_PERIOD, SchTaskState, SchTaskType));
 	MOCK_METHOD1(sch_unsubscribe, RET_CODE(TASK));
 	MOCK_METHOD2(sch_schedule_task, RET_CODE(TASK, TASK_PERIOD));
 	MOCK_METHOD2(sch_set_task_period, RET_CODE(TASK, TASK_PERIOD));
 	MOCK_METHOD2(sch_set_task_state, RET_CODE(TASK, SchTaskState));
 	MOCK_METHOD2(sch_set_task_type, RET_CODE(TASK, SchTaskType));
+	MOCK_METHOD2(sch_set_task_priority, RET_CODE(TASK, SchTaskPriority));
 	MOCK_METHOD1(sch_trigger_task, RET_CODE(TASK));
 	MOCK_METHOD1(sch_get_task_period, TASK_PERIOD(TASK));
 	MOCK_METHOD1(sch_get_task_state, SchTaskState(TASK));
@@ -40,6 +42,10 @@ RET_CODE sch_subscribe (TASK task)
 {
 	return sch_mock->sch_subscribe(task);
 }
+RET_CODE sch_subscribe_and_set(TASK task, SchTaskPriority prio, TASK_PERIOD period, SchTaskState state, SchTaskType type)
+{
+   return sch_mock->sch_subscribe_and_set(task, prio, period, state, type);
+}
 RET_CODE sch_unsubscribe (TASK task)
 {
 	return sch_mock->sch_unsubscribe(task);
@@ -59,6 +65,10 @@ RET_CODE sch_set_task_state (TASK task, SchTaskState state)
 RET_CODE sch_set_task_type (TASK task, SchTaskType type)
 {
 	return sch_mock->sch_set_task_type(task, type);
+}
+RET_CODE sch_set_task_priority (TASK task, SchTaskPriority prio)
+{
+   return sch_mock->sch_set_task_priority(task, prio);
 }
 RET_CODE sch_trigger_task (TASK task)
 {
