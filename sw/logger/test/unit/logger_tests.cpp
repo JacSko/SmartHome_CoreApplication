@@ -76,7 +76,7 @@ TEST_F(loggerFixture, send_log)
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1));
 	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](const char* data) -> RET_CODE
 								{
-									EXPECT_STREQ(data, "[1-2-2020 11:12:13:400] - DEBUG - FILE:DATA\n");
+									EXPECT_STREQ(data, "[01-02-2020 11:12:13:400] - DEBUG - FILE:DATA\n");
 									return RETURN_OK;
 								}));
 	logger_send(LOG_DEBUG, "FILE", "DATA");
@@ -121,7 +121,7 @@ TEST_F(loggerFixture, send_log_conditional)
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1));
 	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](const char* data) -> RET_CODE
 								{
-									EXPECT_STREQ(data, "[1-2-2020 11:12:13:400] - DEBUG - FILE:DATA\n");
+									EXPECT_STREQ(data, "[01-02-2020 11:12:13:400] - DEBUG - FILE:DATA\n");
 									return RETURN_OK;
 								}));
 	logger_send_if(1==1, LOG_DEBUG, "FILE", "DATA");
@@ -185,7 +185,7 @@ TEST_F(loggerFixture, send_log_group_disabled)
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1));
 	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](const char* data) -> RET_CODE
 								{
-									EXPECT_STREQ(data, "[1-2-2020 11:12:13:400] - TIME - FILE:DATA\n");
+									EXPECT_STREQ(data, "[01-02-2020 11:12:13:400] - TIME - FILE:DATA\n");
 									return RETURN_OK;
 								}));
 	logger_send(LOG_TIME, "FILE", "DATA");
@@ -220,7 +220,7 @@ TEST_F(loggerFixture, send_log_conditional_group_disabled)
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1));
 	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](const char* data) -> RET_CODE
 								{
-									EXPECT_STREQ(data, "[1-2-2020 11:12:13:400] - ERROR - FILE:DATA\n");
+									EXPECT_STREQ(data, "[01-02-2020 11:12:13:400] - ERROR - FILE:DATA\n");
 									return RETURN_OK;
 								}));
 	logger_send_if(1==1, LOG_ERROR, "FILE", "DATA");
@@ -234,7 +234,7 @@ TEST_F(loggerFixture, send_log_conditional_group_disabled)
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1));
 	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](const char* data) -> RET_CODE
 								{
-									EXPECT_STREQ(data, "[1-2-2020 11:12:13:400] - WIFI_DRV - FILE:DATA\n");
+									EXPECT_STREQ(data, "[01-02-2020 11:12:13:400] - WIFI_DRV - FILE:DATA\n");
 									return RETURN_OK;
 								}));
 	logger_send_if(1==1, LOG_WIFI_DRIVER, "FILE", "DATA");
@@ -248,7 +248,7 @@ TEST_F(loggerFixture, send_log_conditional_group_disabled)
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1));
 	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](const char* data) -> RET_CODE
 								{
-									EXPECT_STREQ(data, "[1-2-2020 11:12:13:400] - TIME - FILE:DATA\n");
+									EXPECT_STREQ(data, "[01-02-2020 11:12:13:400] - TIME - FILE:DATA\n");
 									return RETURN_OK;
 								}));
 	logger_send_if(1==1, LOG_TIME, "FILE", "DATA");
@@ -262,7 +262,7 @@ TEST_F(loggerFixture, send_log_conditional_group_disabled)
 	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1));
 	EXPECT_CALL(*callMock, callback(_)).WillOnce(Invoke([&](const char* data) -> RET_CODE
 								{
-									EXPECT_STREQ(data, "[1-2-2020 11:12:13:400] - TASK_SCH - FILE:DATA\n");
+									EXPECT_STREQ(data, "[01-02-2020 11:12:13:400] - TASK_SCH - FILE:DATA\n");
 									return RETURN_OK;
 								}));
 	logger_send_if(1==1, LOG_TASK_SCHEDULER, "FILE", "DATA");
