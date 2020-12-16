@@ -85,9 +85,9 @@ typedef void(*DHT_CALLBACK)(DHT_STATUS, DHT_SENSOR*);
 
 /**
  * @brief Initialize DHT driver.
- * @return None
+ * @return See RETURN_CODES.
  */
-void dht_initialize();
+RET_CODE dht_initialize();
 /**
  * @brief Read data from DHTXX device.
  * @details

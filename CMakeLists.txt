@@ -70,6 +70,7 @@ if(NOT UNIT_TESTS)
 		logger
 		task_scheduler
 		command_parser
+		dht_driver
 	)
 	
 #	target_include_directories(${PROJECT_NAME}.elf PUBLIC ext_lib/CMSIS/device

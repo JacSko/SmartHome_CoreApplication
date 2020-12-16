@@ -7,6 +7,9 @@
 #include "task_scheduler.h"
 #include "command_parser.h"
 #include "Logger.h"
+
+//TODO remove
+#include "dht_driver.h"
 /**
  * 	System config:
  * 	HSI - 16MHz
@@ -79,6 +82,7 @@ int main(void)
 	}
 
 	logger_send(LOG_DEBUG, __FILE__, "Booting completed!");
+	dht_initialize();
 	while (1)
 	{
 		sch_task_watcher(TASKPRIO_LOW);
