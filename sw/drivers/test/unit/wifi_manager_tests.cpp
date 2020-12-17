@@ -692,6 +692,8 @@ TEST_F(wifiMgrFixture, reading_time_from_ntp_server_negative_cases)
 	 */
 	EXPECT_EQ(RETURN_NOK, wifimgr_get_time(&item));	/* cannot enable server */
 
+	teardown_test_subject();
+
 }
 
 /**
@@ -729,6 +731,7 @@ TEST_F(wifiMgrFixture, reading_time_from_ntp_server_positive_cases)
 
 	EXPECT_EQ(RETURN_OK, wifimgr_get_time(&item));
 	EXPECT_EQ(wifimgr_count_clients(), 0);
+	teardown_test_subject();
 }
 
 /**

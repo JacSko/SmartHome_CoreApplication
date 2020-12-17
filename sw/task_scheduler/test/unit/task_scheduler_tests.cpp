@@ -543,6 +543,7 @@ TEST_F(timeFixture, negative_cases)
 	EXPECT_EQ(RETURN_NOK, sch_set_task_type(&fake_callback1, TASKTYPE_PERIODIC));
 	EXPECT_EQ(TASKTYPE_UNKNOWN, sch_get_task_type(&fake_callback1));
 
+	sch_deinitialize();
 }
 
 /**
@@ -592,6 +593,7 @@ TEST_F(timeFixture, task_subscribe_and_set_tests)
     */
    EXPECT_EQ(RETURN_OK, sch_subscribe_and_set(&fake_callback1, TASKPRIO_LOW, 1000,
                         TASKSTATE_RUNNING, TASKTYPE_PERIODIC));
+   sch_deinitialize();
 }
 
 /**
@@ -628,5 +630,6 @@ TEST_F(timeFixture, task_low_high_priority_calling_test)
       sch_on_time_change(&item);
       sch_task_watcher();
    }
+   sch_deinitialize();
 }
 

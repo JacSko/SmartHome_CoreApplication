@@ -653,6 +653,8 @@ TEST_F(btengineFixture, string_read_special_data_pooling)
 	EXPECT_EQ(bt_rx_buf.tail, 6);
 
 	EXPECT_STREQ("OK", btengine_get_string());
+
+	btengine_deinitialize();
 }
 
 /**
@@ -772,5 +774,7 @@ TEST_F(btengineFixture, string_read_bytes)
 	EXPECT_EQ(result2[6], 0x17);
 
 	EXPECT_EQ(bt_rx_buf.head, bt_rx_buf.tail);
+
+	btengine_deinitialize();
 
 }

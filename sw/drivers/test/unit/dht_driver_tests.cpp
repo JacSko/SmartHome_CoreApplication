@@ -51,7 +51,6 @@ struct dhtDriverFixture : public ::testing::Test
 		mock_gpio_init();
 		mock_sch_init();
 		callMock = new callbackMock();
-		EXTI->PR = 0;
 	}
 
 	virtual void TearDown()

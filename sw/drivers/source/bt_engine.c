@@ -39,7 +39,7 @@ typedef struct
 BT_Config config;
 volatile BT_BUFFER bt_tx_buf;
 volatile BT_BUFFER bt_rx_buf;
-char* rx_string;
+char* bt_rx_string;
 void (*BT_CALLBACKS[BT_ENGINE_CALLBACK_SIZE])(const char *);
 
 
@@ -60,7 +60,7 @@ RET_CODE btengine_initialize(BT_Config* cfg)
 
 	bt_tx_buf.buf = (char*) malloc (sizeof(char)*config.buffer_size);
 	bt_rx_buf.buf = (char*) malloc (sizeof(char)*config.buffer_size);
-	rx_string = (char*) malloc (sizeof(char)*config.string_size);
+	bt_rx_string = (char*) malloc (sizeof(char)*config.string_size);
 
 	bt_tx_buf.head = 0;
 	bt_tx_buf.tail = 0;
@@ -72,7 +72,7 @@ RET_CODE btengine_initialize(BT_Config* cfg)
 	bt_rx_buf.string_cnt = 0;
 	bt_rx_buf.bytes_cnt = 0;
 
-	if (!bt_rx_buf.buf || !bt_rx_buf.buf || !rx_string)
+	if (!bt_rx_buf.buf || !bt_rx_buf.buf || !bt_rx_string)
 	{
 		result = RETURN_ERROR;
 	}
@@ -86,10 +86,10 @@ void btengine_deinitialize()
 {
 	free(bt_tx_buf.buf);
 	free(bt_rx_buf.buf);
-	free(rx_string);
+	free(bt_rx_string);
 	bt_tx_buf.buf = NULL;
 	bt_rx_buf.buf = NULL;
-	rx_string = NULL;
+	bt_rx_string = NULL;
 	for (uint8_t i = 0; i < BT_ENGINE_CALLBACK_SIZE; i++)
 	{
 		BT_CALLBACKS[i] = NULL;
@@ -129,7 +129,7 @@ RET_CODE btengine_can_read_string()
 	if (bt_rx_buf.string_cnt > 0)
 	{
 		btengine_get_string_from_buffer();
-		if (strlen(rx_string) > 0)
+		if (strlen(bt_rx_string) > 0)
 		{
 			result = RETURN_OK;
 		}
@@ -139,7 +139,7 @@ RET_CODE btengine_can_read_string()
 
 const char* btengine_get_string()
 {
-	return rx_string;
+	return bt_rx_string;
 }
 
 void btengine_clear_rx()
@@ -151,7 +151,7 @@ void btengine_clear_rx()
 
 RET_CODE btengine_get_string_from_buffer()
 {
-	char* buffer = rx_string;
+	char* buffer = bt_rx_string;
 	if (!bt_rx_buf.buf || bt_rx_buf.string_cnt == 0 || !buffer)
 	{
 		return RETURN_ERROR;
@@ -194,7 +194,7 @@ uint16_t btengine_count_bytes()
 
 const uint8_t* btengine_get_bytes()
 {
-	char* buffer = rx_string;
+	char* buffer = bt_rx_string;
 	if (!bt_rx_buf.buf || bt_rx_buf.bytes_cnt == 0 || !buffer)
 	{
 		return NULL;
@@ -212,7 +212,7 @@ const uint8_t* btengine_get_bytes()
 		buffer++;
 
 	}
-	return (uint8_t*)rx_string;
+	return (uint8_t*)bt_rx_string;
 }
 
 RET_CODE btengine_register_callback(void(*callback)(const char *))
@@ -251,7 +251,7 @@ void btengine_notify_callbacks()
 	{
 		if (BT_CALLBACKS[i] != NULL)
 		{
-			BT_CALLBACKS[i](rx_string);
+			BT_CALLBACKS[i](bt_rx_string);
 		}
 	}
 }

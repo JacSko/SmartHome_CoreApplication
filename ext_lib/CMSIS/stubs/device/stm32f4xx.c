@@ -7,16 +7,16 @@ uint8_t active_irq_size = 0;
 
 void stm_stub_init()
 {
-	GPIOA = (GPIO_TypeDef*) malloc(sizeof(GPIO_TypeDef));
-	GPIOB = (GPIO_TypeDef*) malloc(sizeof(GPIO_TypeDef));
-	GPIOC = (GPIO_TypeDef*) malloc(sizeof(GPIO_TypeDef));
-	RCC = (RCC_TypeDef*) malloc(sizeof(RCC_TypeDef));
-	USART1 = (USART_TypeDef*) malloc(sizeof(USART_TypeDef));
-	USART2 = (USART_TypeDef*) malloc(sizeof(USART_TypeDef));
-	NVIC = (NVIC_Type*) malloc(sizeof(NVIC_Type));
-	SYSCFG = (SYSCFG_TypeDef*) malloc(sizeof(SYSCFG_TypeDef));
-	EXTI = (EXTI_TypeDef*) malloc(sizeof(EXTI_TypeDef));
-	TIM2 = (TIM_TypeDef*) malloc(sizeof(TIM_TypeDef));
+	GPIOA = (GPIO_TypeDef*) calloc(1, sizeof(GPIO_TypeDef));
+	GPIOB = (GPIO_TypeDef*) calloc(1, sizeof(GPIO_TypeDef));
+	GPIOC = (GPIO_TypeDef*) calloc(1, sizeof(GPIO_TypeDef));
+	RCC = (RCC_TypeDef*) calloc(1, sizeof(RCC_TypeDef));
+	USART1 = (USART_TypeDef*) calloc(1, sizeof(USART_TypeDef));
+	USART2 = (USART_TypeDef*) calloc(1, sizeof(USART_TypeDef));
+	NVIC = (NVIC_Type*) calloc(1, sizeof(NVIC_Type));
+	SYSCFG = (SYSCFG_TypeDef*) calloc(1, sizeof(SYSCFG_TypeDef));
+	EXTI = (EXTI_TypeDef*) calloc(1, sizeof(EXTI_TypeDef));
+	TIM2 = (TIM_TypeDef*) calloc(1, sizeof(TIM_TypeDef));
 
 	for (uint8_t i = 0; i < irq_arr_size; i++)
 	{

@@ -497,56 +497,6 @@ TEST_F(uartengineFixture, string_bytes_read_mixed)
 	EXPECT_EQ(uart_rx_buf.head, uart_rx_buf.tail);
 
 	/**
-	 * <b>scenario</b>: Reading raw bytes from buffer.<br>
-	 * <b>expected</b>: Bytes written to external buffer, internal buffer indexes are equal.<br>
-    * ************************************************
-	 */
-	USART2->DR = '\r';
-	USART2_IRQHandler();
-	USART2->DR = '\n';
-	USART2_IRQHandler();
-	USART2->DR = '+';
-	USART2_IRQHandler();
-	USART2->DR = 'I';
-	USART2_IRQHandler();
-	USART2->DR = 'P';
-	USART2_IRQHandler();
-	USART2->DR = 'D';
-	USART2_IRQHandler();
-	USART2->DR = ',';
-	USART2_IRQHandler();
-	USART2->DR = '4';
-	USART2_IRQHandler();
-	USART2->DR = '8';
-	USART2_IRQHandler();
-	USART2->DR = ':';
-	USART2_IRQHandler();
-	USART2->DR = 'a';
-	USART2_IRQHandler();
-	USART2->DR = 'b';
-	USART2_IRQHandler();
-	USART2->DR = 'c';
-	USART2_IRQHandler();
-	USART2->DR = '\r';
-	USART2_IRQHandler();
-	USART2->DR = '\n';
-	USART2_IRQHandler();
-	USART2->DR = 'd';
-	USART2_IRQHandler();
-	USART2->DR = 'e';
-	USART2_IRQHandler();
-	USART2->DR = 'f';
-	USART2_IRQHandler();
-	EXPECT_EQ(uart_rx_buf.head, 10);
-	EXPECT_EQ(uart_rx_buf.tail, 12);
-
-	EXPECT_EQ(18, uartengine_count_bytes());
-	const uint8_t* bytes_received = uartengine_get_bytes();
-	(void) bytes_received;
-	EXPECT_EQ(0, uartengine_count_bytes());
-	EXPECT_EQ(uart_rx_buf.head, uart_rx_buf.tail);
-
-	/**
 	 * <b>scenario</b>: String received.<br>
 	 * <b>expected</b>: String written to external buffer, internal buffer indexes are equal.<br>
     * ************************************************
@@ -585,7 +535,9 @@ TEST_F(uartengineFixture, string_bytes_read_mixed)
 	EXPECT_EQ(1, uart_rx_buf.string_cnt);
 	EXPECT_EQ(RETURN_OK, uartengine_can_read_string());
 	EXPECT_STREQ("SEC_STRING", uartengine_get_string());
-EXPECT_EQ(uart_rx_buf.head, uart_rx_buf.tail);
+	EXPECT_EQ(uart_rx_buf.head, uart_rx_buf.tail);
+
+	uartengine_deinitialize();
 }
 
 /**
@@ -791,6 +743,8 @@ TEST_F(uartengineFixture, string_read_special_data_pooling)
 	EXPECT_EQ(uart_rx_buf.tail, 6);
 
 	EXPECT_STREQ("OK", uartengine_get_string());
+
+	uartengine_deinitialize();
 }
 
 /**
@@ -910,5 +864,7 @@ TEST_F(uartengineFixture, string_read_bytes)
 	EXPECT_EQ(result2[6], 0x17);
 
 	EXPECT_EQ(uart_rx_buf.head, uart_rx_buf.tail);
+
+	uartengine_deinitialize();
 
 }

@@ -39,7 +39,7 @@ typedef struct
 UARTEngine_Config uart_config;
 volatile UART_BUFFER uart_tx_buf;
 volatile UART_BUFFER uart_rx_buf;
-char* rx_string;
+char* uart_rx_string;
 void (*UART_CALLBACKS[UART_ENGINE_CALLBACK_SIZE])(const char *);
 
 
@@ -59,7 +59,7 @@ RET_CODE uartengine_initialize(const UARTEngine_Config* cfg)
 
 	uart_tx_buf.buf = (char*) malloc (sizeof(char)*uart_config.buffer_size);
 	uart_rx_buf.buf = (char*) malloc (sizeof(char)*uart_config.buffer_size);
-	rx_string = (char*) malloc (sizeof(char)*uart_config.string_size);
+	uart_rx_string = (char*) malloc (sizeof(char)*uart_config.string_size);
 
 	uart_tx_buf.head = 0;
 	uart_tx_buf.tail = 0;
@@ -71,7 +71,7 @@ RET_CODE uartengine_initialize(const UARTEngine_Config* cfg)
 	uart_rx_buf.string_cnt = 0;
 	uart_rx_buf.bytes_cnt = 0;
 
-	if (!uart_rx_buf.buf || !uart_rx_buf.buf || !rx_string)
+	if (!uart_rx_buf.buf || !uart_rx_buf.buf || !uart_rx_string)
 	{
 		result = RETURN_ERROR;
 	}
@@ -85,10 +85,10 @@ void uartengine_deinitialize()
 {
 	free(uart_tx_buf.buf);
 	free(uart_rx_buf.buf);
-	free(rx_string);
+	free(uart_rx_string);
 	uart_tx_buf.buf = NULL;
 	uart_rx_buf.buf = NULL;
-	rx_string = NULL;
+	uart_rx_string = NULL;
 	for (uint8_t i = 0; i < UART_ENGINE_CALLBACK_SIZE; i++)
 	{
 		UART_CALLBACKS[i] = NULL;
@@ -128,7 +128,7 @@ RET_CODE uartengine_can_read_string()
 	if (uart_rx_buf.string_cnt > 0)
 	{
 		uartengine_get_string_from_buffer();
-		if (strlen(rx_string) > 0)
+		if (strlen(uart_rx_string) > 0)
 		{
 			result = RETURN_OK;
 		}
@@ -138,7 +138,7 @@ RET_CODE uartengine_can_read_string()
 
 const char* uartengine_get_string()
 {
-	return rx_string;
+	return uart_rx_string;
 }
 void uartengine_clear_rx()
 {
@@ -149,7 +149,7 @@ void uartengine_clear_rx()
 
 RET_CODE uartengine_get_string_from_buffer()
 {
-	char* buffer = rx_string;
+	char* buffer = uart_rx_string;
 	if (!uart_rx_buf.buf || uart_rx_buf.string_cnt == 0 || !buffer)
 	{
 		return RETURN_ERROR;
@@ -192,7 +192,7 @@ uint16_t uartengine_count_bytes()
 
 const uint8_t* uartengine_get_bytes()
 {
-	char* buffer = rx_string;
+	char* buffer = uart_rx_string;
 	if (!uart_rx_buf.buf || uart_rx_buf.bytes_cnt == 0 || !buffer)
 	{
 		return NULL;
@@ -200,22 +200,16 @@ const uint8_t* uartengine_get_bytes()
 
 	while (uart_rx_buf.bytes_cnt)
 	{
-		char c = uart_rx_buf.buf[uart_rx_buf.tail];
-		*buffer = c;
-		if (c == '\n')
-		{
-			uart_rx_buf.string_cnt--;
-		}
-		uart_rx_buf.tail++;
-		uart_rx_buf.bytes_cnt--;
-		if (uart_rx_buf.tail == uart_config.buffer_size)
-		{
-			uart_rx_buf.tail = 0;
-		}
-		buffer++;
-
+      *buffer = uart_rx_buf.buf[uart_rx_buf.tail];
+      uart_rx_buf.tail++;
+      uart_rx_buf.bytes_cnt--;
+      if (uart_rx_buf.tail == uart_config.buffer_size)
+      {
+         uart_rx_buf.tail = 0;
+      }
+      buffer++;
 	}
-	return (uint8_t*)rx_string;
+	return (uint8_t*)uart_rx_string;
 }
 
 RET_CODE uartengine_register_callback(void(*callback)(const char *))
@@ -254,7 +248,7 @@ void uartengine_notify_callbacks()
 	{
 		if (UART_CALLBACKS[i] != NULL)
 		{
-			UART_CALLBACKS[i](rx_string);
+			UART_CALLBACKS[i](uart_rx_string);
 		}
 	}
 }
