@@ -41,7 +41,7 @@ typedef enum
 	LOG_TASK_SCHEDULER = 0x03, /**< Logs from Task Scheduler */
 	LOG_DEBUG = 0x04,          /**< Logs from Debug group */
 	LOG_WIFI_MANAGER = 0x05,   /**< Logs from WiFi Manager */
-
+	LOG_DHT_DRV,               /**< Logs from DHT driver - received data, etc */
 	LOG_ENUM_MAX               /**< Enums count */
 } LogGroup;
 

@@ -78,7 +78,7 @@ RET_CODE dht_initialize()
     * 	- interrupts only on rising edge (falling edge disabled)
     * 	TIM2 configured to ensure 1us period beteen interrupts fires
     */
-
+   logger_send(LOG_DHT_DRV, __func__, "start");
    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN;
    RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
    RCC->APB1ENR |= RCC_APB1ENR_TIM2EN;
@@ -152,7 +152,9 @@ RET_CODE dht_initialize()
       dht_driver.timeout = DHT_DEFAULT_TIMEOUT_MS;
       dht_measurement_ready = 0;
       result = RETURN_OK;
+      logger_send(LOG_DHT_DRV, __func__, "end");
    }
+   logger_send_if(result != RETURN_OK, LOG_DHT_DRV, __func__, "cannot init");
    return result;
 }
 
@@ -165,7 +167,7 @@ RET_CODE dht_read_async(DHT_SENSOR_ID id, DHT_CALLBACK clb)
 
    if (dht_driver.state == DHT_STATE_IDLE && id < DHT_ENUM_MAX)
    {
-      logger_send(LOG_ERROR, __func__, "Read sensor %d", id);
+      logger_send(LOG_DHT_DRV, __func__, "read s %d", id);
       dht_driver.sensor.id = id;
       result = dht_send_start();
    }
@@ -214,12 +216,14 @@ DHT_STATUS dht_read(DHT_SENSOR_ID id, DHT_SENSOR *sensor)
 
    if (dht_read_async(id, NULL) == RETURN_OK)
    {
+      logger_send(LOG_DHT_DRV, __func__, "read async");
       while(dht_measurement_ready == 0);
       dht_measurement_ready = 0;
       result = dht_get_result();
       *sensor = dht_driver.sensor;
       dht_driver.state = DHT_STATE_IDLE;
    }
+   logger_send(LOG_DHT_DRV, __func__, "read async status %d", result);
    return result;
 }
 
@@ -230,6 +234,7 @@ RET_CODE dht_set_timeout(uint16_t timeout)
    {
       dht_driver.timeout = timeout;
       result = RETURN_OK;
+      logger_send(LOG_DHT_DRV, __func__, "new timeout %d", timeout);
    }
    return result;
 }
@@ -241,6 +246,7 @@ RET_CODE dht_verify_timeout(uint16_t period)
    {
       result = RETURN_OK;
    }
+   logger_send_if(result != RETURN_OK, LOG_DHT_DRV, __func__, "incorrect timeout %d", period);
    return result;
 }
 
@@ -264,14 +270,12 @@ void dht_on_timeout()
       }
       else
       {
-         logger_send(LOG_ERROR, __func__, "Cannot start watchdog");
          dht_driver.state = DHT_STATE_ERROR;
          dht_measurement_ready = 1;
       }
       break;
    case DHT_STATE_READING:
       dht_driver.state = DHT_STATE_TIMEOUT;
-      logger_send(LOG_ERROR, __func__, "Timeout");
       TIM2->CR1 &= ~TIM_CR1_CEN;
       TIM2->CNT = 0;
       dht_measurement_ready = 1;
@@ -343,7 +347,7 @@ RET_CODE dht_parse_data()
       }
       byte_shift_idx--;
    }
-
+   logger_send(LOG_DHT_DRV, __func__, "DHT data %d %d %d %d %d", parsed_data[0], parsed_data[1], parsed_data[2], parsed_data[3], parsed_data[4]);
    uint8_t checksum = parsed_data[0] + parsed_data[1] + parsed_data[2] + parsed_data[3];
 
    if (checksum == parsed_data[4])
@@ -377,8 +381,9 @@ RET_CODE dht_parse_data()
             break;
          }
       }
-
-      logger_send(LOG_ERROR, __func__, "got data %d %d %d %d %d", parsed_data[0], parsed_data[1], parsed_data[2], parsed_data[3], parsed_data[4]);
+      logger_send(LOG_DHT_DRV, __func__, "s%d t:%d: %d.%d%% %d.%ddegC", dht_driver.sensor.id, dht_driver.sensor.type,
+                                                                      dht_driver.sensor.data.hum_h, dht_driver.sensor.data.hum_l,
+                                                                      dht_driver.sensor.data.temp_h, dht_driver.sensor.data.temp_l);
       result =  RETURN_OK;
    }
    else

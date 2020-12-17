@@ -82,6 +82,8 @@ const char* logger_get_group_name(LogGroup group)
 		return "DEBUG";
 	case LOG_WIFI_MANAGER:
 		return "WIFI_MGR";
+   case LOG_DHT_DRV:
+      return "DHT_DRV";
 	default:
 		return "";
 	}
