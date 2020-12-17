@@ -45,7 +45,7 @@ void print_log()
 {
    sch_trigger_task(&print_log);
    DHT_SENSOR sensor = {};
-   DHT_STATUS result = dht_read(DHT_SENSOR2, &sensor);
+   DHT_STATUS result = dht_read_async(DHT_SENSOR2, &on_dht_data);
 
    (void)result;
 }

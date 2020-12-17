@@ -35,6 +35,11 @@ DHT_SENSOR_TYPE dht_get_sensor_type(const uint8_t* data);
 /* =============================
  *       Internal types
  * =============================*/
+typedef struct DHT_SENSOR_MASKS
+{
+   uint32_t gpio_odr_mask;
+   uint32_t exti_pr_mask;
+} DHT_SENSOR_MASKS;
 typedef enum DHT_DRIVER_STATE
 {
    DHT_STATE_IDLE,
@@ -48,7 +53,6 @@ typedef enum DHT_DRIVER_STATE
 typedef struct DHT_DRIVER
 {
    uint16_t timeout;
-   uint8_t measurement_ongoing;
    uint8_t raw_data[5];
    DHT_DRIVER_STATE state;
    DHT_SENSOR sensor;
@@ -56,7 +60,8 @@ typedef struct DHT_DRIVER
 /* =============================
  *      Module variables
  * =============================*/
-uint32_t DHT_MEASURE_TIMESTAMPS[DHT_TIMESTAMPS_BUFFER_SIZE]; /*2x TS (DHT presence response + sending start) + 40 bits of data */
+uint32_t DHT_MEASURE_TIMESTAMPS[DHT_TIMESTAMPS_BUFFER_SIZE];
+DHT_SENSOR_MASKS DHT_REG_MAP[DHT_ENUM_MAX];
 volatile uint8_t dht_timestamp_idx;
 volatile uint8_t dht_measurement_ready;
 DHT_DRIVER dht_driver;
@@ -68,7 +73,7 @@ RET_CODE dht_initialize()
 
    /*
     * 	The STM peripherial initialization.
-    * 	All GPIOs used for sensors are confiured in default:
+    * 	All GPIOs used for sensors are confiured:
     * 	- as output (switched to input after start sequence),
     * 	- interrupts only on rising edge (falling edge disabled)
     * 	TIM2 configured to ensure 1us period beteen interrupts fires
@@ -84,12 +89,26 @@ RET_CODE dht_initialize()
    gpio_pin_cfg(GPIOB, PB13, gpio_mode_output_OD_HS);
    gpio_pin_cfg(GPIOB, PB14, gpio_mode_output_OD_HS);
    gpio_pin_cfg(GPIOB, PB15, gpio_mode_output_OD_HS);
-   GPIOB->ODR |= GPIO_ODR_ODR_9;
-   GPIOB->ODR |= GPIO_ODR_ODR_10;
-   GPIOB->ODR |= GPIO_ODR_ODR_12;
-   GPIOB->ODR |= GPIO_ODR_ODR_13;
-   GPIOB->ODR |= GPIO_ODR_ODR_14;
-   GPIOB->ODR |= GPIO_ODR_ODR_15;
+
+   DHT_REG_MAP[DHT_SENSOR1].gpio_odr_mask = GPIO_ODR_ODR_9;
+   DHT_REG_MAP[DHT_SENSOR2].gpio_odr_mask = GPIO_ODR_ODR_10;
+   DHT_REG_MAP[DHT_SENSOR3].gpio_odr_mask = GPIO_ODR_ODR_12;
+   DHT_REG_MAP[DHT_SENSOR4].gpio_odr_mask = GPIO_ODR_ODR_13;
+   DHT_REG_MAP[DHT_SENSOR5].gpio_odr_mask = GPIO_ODR_ODR_14;
+   DHT_REG_MAP[DHT_SENSOR6].gpio_odr_mask = GPIO_ODR_ODR_15;
+   DHT_REG_MAP[DHT_SENSOR1].exti_pr_mask = EXTI_PR_PR9;
+   DHT_REG_MAP[DHT_SENSOR2].exti_pr_mask = EXTI_PR_PR10;
+   DHT_REG_MAP[DHT_SENSOR3].exti_pr_mask = EXTI_PR_PR12;
+   DHT_REG_MAP[DHT_SENSOR4].exti_pr_mask = EXTI_PR_PR13;
+   DHT_REG_MAP[DHT_SENSOR5].exti_pr_mask = EXTI_PR_PR14;
+   DHT_REG_MAP[DHT_SENSOR6].exti_pr_mask = EXTI_PR_PR15;
+
+   dht_set_gpio_state(DHT_SENSOR1, 1);
+   dht_set_gpio_state(DHT_SENSOR2, 1);
+   dht_set_gpio_state(DHT_SENSOR3, 1);
+   dht_set_gpio_state(DHT_SENSOR4, 1);
+   dht_set_gpio_state(DHT_SENSOR5, 1);
+   dht_set_gpio_state(DHT_SENSOR6, 1);
 
    SYSCFG->EXTICR[2] |= SYSCFG_EXTICR3_EXTI9_PB;
    SYSCFG->EXTICR[2] |= SYSCFG_EXTICR3_EXTI10_PB;
@@ -179,65 +198,14 @@ RET_CODE dht_send_start()
 
 void dht_set_gpio_state(DHT_SENSOR_ID id, uint8_t state)
 {
-   switch (id)
-   {/* TODO set correct gpio here */
-      case DHT_SENSOR1:
-         if (state)
-         {
-            GPIOB->ODR |= GPIO_ODR_ODR_9;
-         } else
-         {
-            GPIOB->ODR &= ~GPIO_ODR_ODR_9;
-         }
-         break;
-      case DHT_SENSOR2:
-         if (state)
-         {
-            GPIOB->ODR |= GPIO_ODR_ODR_10;
-         } else
-         {
-            GPIOB->ODR &= ~GPIO_ODR_ODR_10;
-         }
-         break;
-      case DHT_SENSOR3:
-         if (state)
-         {
-            GPIOB->ODR |= GPIO_ODR_ODR_12;
-         } else
-         {
-            GPIOB->ODR &= ~GPIO_ODR_ODR_12;
-         }
-         break;
-      case DHT_SENSOR4:
-         if (state)
-         {
-            GPIOB->ODR |= GPIO_ODR_ODR_13;
-         } else
-         {
-            GPIOB->ODR &= ~GPIO_ODR_ODR_13;
-         }
-         break;
-      case DHT_SENSOR5:
-         if (state)
-         {
-            GPIOB->ODR |= GPIO_ODR_ODR_14;
-         } else
-         {
-            GPIOB->ODR &= ~GPIO_ODR_ODR_14;
-         }
-         break;
-      case DHT_SENSOR6:
-         if (state)
-         {
-            GPIOB->ODR |= GPIO_ODR_ODR_15;
-         } else
-         {
-            GPIOB->ODR &= ~GPIO_ODR_ODR_15;
-         }
-         break;
-      default:
-         break;
-      }
+   if (state)
+   {
+      GPIOB->ODR |= DHT_REG_MAP[id].gpio_odr_mask;
+   }
+   else
+   {
+      GPIOB->ODR &= ~DHT_REG_MAP[id].gpio_odr_mask;
+   }
 }
 
 DHT_STATUS dht_read(DHT_SENSOR_ID id, DHT_SENSOR *sensor)
@@ -434,27 +402,8 @@ DHT_SENSOR_TYPE dht_get_sensor_type(const uint8_t* data)
 
 void dht_handle_exti_interrupt(uint32_t pr_mask)
 {
-   if (pr_mask == EXTI_PR_PR9 && dht_driver.sensor.id == DHT_SENSOR1)
-   {
-      dht_handle_timestamp();
-   }
-   else if(pr_mask == EXTI_PR_PR10 && dht_driver.sensor.id == DHT_SENSOR2)
-   {
-      dht_handle_timestamp();
-   }
-   else if(pr_mask == EXTI_PR_PR12 && dht_driver.sensor.id == DHT_SENSOR3)
-   {
-      dht_handle_timestamp();
-   }
-   else if(pr_mask == EXTI_PR_PR13 && dht_driver.sensor.id == DHT_SENSOR4)
-   {
-      dht_handle_timestamp();
-   }
-   else if(pr_mask == EXTI_PR_PR14 && dht_driver.sensor.id == DHT_SENSOR5)
-   {
-      dht_handle_timestamp();
-   }
-   else if(pr_mask == EXTI_PR_PR15 && dht_driver.sensor.id == DHT_SENSOR6)
+   /* handle interrupt only from currently selected device */
+   if (pr_mask == DHT_REG_MAP[dht_driver.sensor.id].exti_pr_mask)
    {
       dht_handle_timestamp();
    }
@@ -477,56 +426,34 @@ void dht_handle_timestamp()
 
 void EXTI15_10_IRQHandler()
 {
-   if (EXTI->PR & EXTI_PR_PR10)
+   if (EXTI->PR & DHT_REG_MAP[dht_driver.sensor.id].exti_pr_mask)
    {
-      EXTI->PR = EXTI_PR_PR10;
+      EXTI->PR = DHT_REG_MAP[dht_driver.sensor.id].exti_pr_mask;
       if (dht_driver.state == DHT_STATE_READING)
       {
-         dht_handle_exti_interrupt(EXTI_PR_PR10);
+         dht_handle_exti_interrupt(DHT_REG_MAP[dht_driver.sensor.id].exti_pr_mask);
       }
    }
-   else if (EXTI->PR & EXTI_PR_PR12)
+   else
    {
-      EXTI->PR = EXTI_PR_PR12;
-      if (dht_driver.state == DHT_STATE_READING)
-      {
-         dht_handle_exti_interrupt(EXTI_PR_PR12);
-      }
-   }
-   else if (EXTI->PR & EXTI_PR_PR13)
-   {
-      EXTI->PR = EXTI_PR_PR13;
-      if (dht_driver.state == DHT_STATE_READING)
-      {
-         dht_handle_exti_interrupt(EXTI_PR_PR13);
-      }
-   }
-   else if (EXTI->PR & EXTI_PR_PR14)
-   {
-      EXTI->PR = EXTI_PR_PR14;
-      if (dht_driver.state == DHT_STATE_READING)
-      {
-         dht_handle_exti_interrupt(EXTI_PR_PR14);
-      }
-   }
-   else if (EXTI->PR & EXTI_PR_PR15)
-   {
-      EXTI->PR = EXTI_PR_PR15;
-      if (dht_driver.state == DHT_STATE_READING)
-      {
-         dht_handle_exti_interrupt(EXTI_PR_PR15);
-      }
+      /* clear all interrupts */
+
    }
 }
 
 void EXTI9_5_IRQHandler()
 {
-   if (EXTI->PR & EXTI_PR_PR9)
+   if (EXTI->PR & DHT_REG_MAP[dht_driver.sensor.id].exti_pr_mask)
    {
-      EXTI->PR = EXTI_PR_PR9;
+      EXTI->PR = DHT_REG_MAP[dht_driver.sensor.id].exti_pr_mask;
       if (dht_driver.state == DHT_STATE_READING)
       {
-         dht_handle_exti_interrupt(EXTI_PR_PR9);
+         dht_handle_exti_interrupt(DHT_REG_MAP[dht_driver.sensor.id].exti_pr_mask);
       }
+   }
+   else
+   {
+      /* clear all interrupts */
+
    }
 }
