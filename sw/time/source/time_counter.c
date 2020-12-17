@@ -33,7 +33,7 @@ typedef struct TimeCallbackItem
  *      Module variables
  * =============================*/
 TimeItem timestamp;
-volatile uint8_t time_changed;
+volatile uint8_t time_time_changed;
 TimeCallbackItem TIME_CALLBACKS[TIME_CNT_CALLBACK_MAX_SIZE];
 uint8_t winter_time_active = 1;
 uint8_t month_day_cnt[13] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
@@ -238,9 +238,9 @@ void time_call_high_prio_callbacks()
 
 void time_watcher()
 {
-	if (time_changed)
+	if (time_time_changed)
 	{
-		time_changed = 0;
+		time_time_changed = 0;
 		time_call_low_prio_callbacks();
 	}
 }
@@ -253,6 +253,6 @@ void SysTick_Handler(void)
 {
 	time_increment_time();
 	time_call_high_prio_callbacks();
-   time_changed++;
+   time_time_changed++;
 }
 

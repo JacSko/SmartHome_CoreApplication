@@ -44,7 +44,7 @@ void on_dht_data(DHT_STATUS status, DHT_SENSOR* sensor)
 void print_log()
 {
    sch_trigger_task(&print_log);
-   DHT_SENSOR sensor = {};
+
    DHT_STATUS result = dht_read_async(DHT_SENSOR2, &on_dht_data);
 
    (void)result;
@@ -55,7 +55,7 @@ int main(void)
 	time_init();
 	sch_initialize();
 	sch_subscribe(&print_log);
-	sch_set_task_period(&print_log, 2000);
+	sch_set_task_period(&print_log, 10000);
 	sch_set_task_type(&print_log, TASKTYPE_TRIGGER);
 
 

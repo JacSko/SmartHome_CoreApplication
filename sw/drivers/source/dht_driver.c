@@ -218,6 +218,7 @@ DHT_STATUS dht_read(DHT_SENSOR_ID id, DHT_SENSOR *sensor)
       dht_measurement_ready = 0;
       result = dht_get_result();
       *sensor = dht_driver.sensor;
+      dht_driver.state = DHT_STATE_IDLE;
    }
    return result;
 }
@@ -411,7 +412,6 @@ void dht_handle_exti_interrupt(uint32_t pr_mask)
 
 void dht_handle_timestamp()
 {
-   GPIOB->ODR ^= GPIO_ODR_ODR_9;//TODO to remove
    DHT_MEASURE_TIMESTAMPS[dht_timestamp_idx] = TIM2->CNT;
    dht_timestamp_idx++;
    if (dht_timestamp_idx == DHT_TIMESTAMPS_BUFFER_SIZE)
@@ -437,7 +437,7 @@ void EXTI15_10_IRQHandler()
    else
    {
       /* clear all interrupts */
-
+      EXTI->PR = 0xFFFFFFFF;
    }
 }
 
@@ -454,6 +454,6 @@ void EXTI9_5_IRQHandler()
    else
    {
       /* clear all interrupts */
-
+      EXTI->PR = 0xFFFFFFFF;
    }
 }

@@ -45,7 +45,7 @@ void sch_call_tasks (SchTaskPriority prio);
  *      Module variables
  * =============================*/
 SchList items_list;
-volatile uint8_t time_changed;
+volatile uint8_t sch_time_changed;
 
 
 
@@ -260,9 +260,9 @@ enum SchTaskType sch_get_task_type (TASK task)
 }
 void sch_task_watcher ()
 {
-	if (time_changed)
+	if (sch_time_changed)
 	{
-		time_changed--;
+		sch_time_changed--;
 		sch_call_tasks(TASKPRIO_LOW);
 	}
 }
@@ -296,7 +296,7 @@ void sch_on_time_change(TimeItem* item)
 {
    /* This is called from TIME module interrupt, do not place here so many stuff */
 	sch_call_tasks(TASKPRIO_HIGH);
-	time_changed++;
+	sch_time_changed++;
 }
 
 void sch_realloc_data(SchItem* source, SchItem* dest)
