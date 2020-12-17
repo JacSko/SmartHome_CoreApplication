@@ -136,3 +136,11 @@ target_include_directories(wifimanager_mock PUBLIC
           ../include
           mocks/
 )
+add_library(dhtdriver_mock STATIC
+			mocks/dht_driver_mock.h
+)
+set_target_properties(dhtdriver_mock PROPERTIES LINKER_LANGUAGE CXX)
+target_include_directories(dhtdriver_mock PUBLIC
+          ../include
+          mocks/
+)
