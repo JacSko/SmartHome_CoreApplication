@@ -259,6 +259,7 @@ RET_CODE dht_set_timeout(uint16_t timeout)
    RET_CODE result = RETURN_NOK;
    if (dht_verify_timeout(timeout) == RETURN_OK)
    {
+      dht_driver.timeout = timeout;
       result = RETURN_OK;
    }
    return result;
@@ -302,6 +303,8 @@ void dht_on_timeout()
    case DHT_STATE_READING:
       dht_driver.state = DHT_STATE_TIMEOUT;
       logger_send(LOG_ERROR, __func__, "Timeout");
+      TIM2->CR1 &= ~TIM_CR1_CEN;
+      TIM2->CNT = 0;
       dht_measurement_ready = 1;
       break;
    default:
@@ -414,16 +417,15 @@ RET_CODE dht_parse_data()
       logger_send(LOG_ERROR, __func__, "invalid cs: r %d c %d", parsed_data[4], checksum);
       result = RETURN_NOK;
    }
-
    return result;
 }
 
 DHT_SENSOR_TYPE dht_get_sensor_type(const uint8_t* data)
 {
    DHT_SENSOR_TYPE result = DHT_TYPE_DHT11;
-   int16_t humidity_result = data[1];
-   humidity_result |= (data[0] << 8);
-   if (humidity_result <= 1000)
+   int16_t hum = data[1];
+   hum |= (data[0] << 8);
+   if (hum <= 1000)
    {
       result = DHT_TYPE_DHT22;
    }
