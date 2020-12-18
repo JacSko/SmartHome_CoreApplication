@@ -37,6 +37,7 @@ typedef enum I2C_STATUS
 {
    I2C_STATUS_OK,    /** Requested command executed correctly */
    I2C_STATUS_ERROR, /** Command executed with errors */
+   I2C_STATUS_UNKNOWN,
 } I2C_STATUS;
 
 typedef void(*I2C_CALLBACK)(I2C_OP_TYPE, I2C_STATUS, const uint8_t* data, uint8_t size);
@@ -102,6 +103,8 @@ uint16_t i2c_get_timeout();
  * @return See RETURN_CODES.
  */
 RET_CODE i2c_set_timeout(uint16_t timeout);
+
+void i2c_watcher();
 /**
  * @brief Reset I2C driver.
  * @return None.

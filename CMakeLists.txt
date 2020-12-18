@@ -71,6 +71,7 @@ if(NOT UNIT_TESTS)
 		task_scheduler
 		command_parser
 		dht_driver
+		i2c_driver
 	)
 	
 #	target_include_directories(${PROJECT_NAME}.elf PUBLIC ext_lib/CMSIS/device

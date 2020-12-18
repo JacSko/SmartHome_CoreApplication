@@ -1,7 +1,7 @@
 /* =============================
  *   Includes of common headers
  * =============================*/
-
+#include <stdlib.h>
 /* =============================
  *  Includes of project headers
  * =============================*/
@@ -43,13 +43,13 @@ typedef struct I2C_DRIVER_TYPE
    uint16_t timeout;
    uint8_t bytes_requested;
    uint8_t bytes_handled;
-   volatile uint8_t transaction_ready;
+   uint8_t transaction_ready;
 } I2C_DRIVER_TYPE;
 /* =============================
  *      Module variables
  * =============================*/
 uint8_t I2C_DRV_BUF[I2C_DRV_BUFFER_SIZE];
-I2C_DRIVER_TYPE i2c_driver;
+volatile I2C_DRIVER_TYPE i2c_driver;
 I2C_CALLBACK i2c_drv_callback;
 
 RET_CODE i2c_initialize()
@@ -64,6 +64,7 @@ RET_CODE i2c_initialize()
       i2c_driver.timeout = I2C_DEFAULT_TIMEOUT_MS;
       i2c_driver.bytes_requested = 0;
       i2c_driver.bytes_handled = 0;
+      i2c_driver.transaction_ready = 0;
       i2c_reset();
       result = RETURN_OK;
    }
@@ -97,17 +98,31 @@ RET_CODE i2c_write_async(I2C_ADDRESS address, const uint8_t* data, uint8_t size,
       I2C1->CR1 |= I2C_CR1_START;
       I2C1->CR1 |= I2C_CR1_ACK;
       sch_trigger_task(&i2c_on_timeout);
+      result = RETURN_OK;
    }
    return result;
 }
 I2C_STATUS i2c_write(I2C_ADDRESS address, const uint8_t* data, uint8_t size)
 {
+   I2C_STATUS result = I2C_STATUS_UNKNOWN;
+   if (i2c_write_async(address, data, size, NULL) == RETURN_OK)
+   {
+      while(i2c_driver.transaction_ready == 0);
+      i2c_driver.transaction_ready = 0;
+      result = i2c_driver.state == I2C_STATE_END_OK? I2C_STATUS_OK : I2C_STATUS_ERROR;
+      if (i2c_driver.state == I2C_STATE_ERROR)
+      {
+         i2c_reset();
+      }
+      i2c_driver.state = I2C_STATE_IDLE;
+   }
+   return result;
 
 }
 RET_CODE i2c_read_async(I2C_ADDRESS address, uint8_t size, I2C_CALLBACK callback)
 {
    RET_CODE result = RETURN_NOK;
-   if (i2c_driver.state != I2C_STATE_IDLE && size <= I2C_DRV_BUFFER_SIZE)
+   if (i2c_driver.state == I2C_STATE_IDLE && size <= I2C_DRV_BUFFER_SIZE)
    {
       i2c_driver.address = address;
       i2c_driver.type = I2C_OP_READ;
@@ -125,7 +140,24 @@ RET_CODE i2c_read_async(I2C_ADDRESS address, uint8_t size, I2C_CALLBACK callback
 }
 I2C_STATUS i2c_read(I2C_ADDRESS address, uint8_t* data, uint8_t size)
 {
+   I2C_STATUS result = I2C_STATUS_UNKNOWN;
+   if (i2c_read_async(address, size, NULL) == RETURN_OK)
+   {
+      while(i2c_driver.transaction_ready == 0) {};
+      i2c_driver.transaction_ready = 0;
+      result = i2c_driver.state == I2C_STATE_END_OK? I2C_STATUS_OK : I2C_STATUS_ERROR;
+      for (uint8_t i = 0; i < i2c_driver.bytes_handled; i++)
+      {
+         data[i] = I2C_DRV_BUF[i];
+      }
 
+      if (i2c_driver.state == I2C_STATE_ERROR)
+      {
+         i2c_reset();
+      }
+      i2c_driver.state = I2C_STATE_IDLE;
+   }
+   return result;
 }
 uint16_t i2c_get_timeout()
 {

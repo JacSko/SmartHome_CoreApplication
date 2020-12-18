@@ -7,6 +7,7 @@
 #include "task_scheduler.h"
 #include "command_parser.h"
 #include "Logger.h"
+#include "i2c_driver.h"
 
 //TODO remove
 #include "dht_driver.h"
@@ -35,19 +36,17 @@
 #define UART_COMMON_STRING_SIZE 512
 #define UART_COMMON_BAUD_RATE 115200
 
-void on_dht_data(DHT_STATUS status, DHT_SENSOR* sensor)
+void on_i2c_data(I2C_OP_TYPE type, I2C_STATUS status, const uint8_t* data, uint8_t size)
 {
-   logger_send(LOG_ERROR, __func__, "DHT callback s:%d, data: %d %d %d %d", status, sensor->data.temp_h, sensor->data.temp_l,
-                                                       sensor->data.hum_h,sensor->data.hum_l);
+   logger_send(LOG_ERROR, __func__, "clb: %d %d", type, status);
 }
 
 void print_log()
 {
-   sch_trigger_task(&print_log);
-
-   DHT_STATUS result = dht_read_async(DHT_SENSOR2, &on_dht_data);
-
-   (void)result;
+//   uint8_t data[2] = {0x00, 0x00};
+//   i2c_read(0x49, data, 2);
+//   sch_trigger_task(&print_log);
+//   (void) data;
 }
 
 int main(void)
@@ -88,11 +87,12 @@ int main(void)
 //	}
 
 	logger_send(LOG_DEBUG, __FILE__, "Booting completed!");
-	dht_initialize();
+	i2c_initialize();
 	sch_trigger_task(&print_log);
+
 	while (1)
 	{
-	   dht_data_watcher();
+	   i2c_watcher();
 		sch_task_watcher(TASKPRIO_LOW);
 		btengine_string_watcher();
 		uartengine_string_watcher();
