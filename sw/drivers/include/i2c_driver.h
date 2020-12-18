@@ -26,12 +26,13 @@
  *       Data structures
  * =============================*/
 typedef uint8_t I2C_ADDRESS;
-
 typedef enum I2C_OP_TYPE
 {
-   I2C_OP_SEND,   /**< Sends data to device */
+   I2C_OP_WRITE,   /**< Write data to device */
    I2C_OP_READ,   /**< Reads data from device */
+   I2C_OP_UNKNOWN,
 } I2C_OP_TYPE;
+
 typedef enum I2C_STATUS
 {
    I2C_STATUS_OK,    /** Requested command executed correctly */
@@ -63,9 +64,9 @@ RET_CODE i2c_write_async(I2C_ADDRESS address, const uint8_t* data, uint8_t size,
  * @param[in] id - The address of the device.
  * @param[in] data - pointer to data.
  * @param[in] size - size of the data to write in bytes
- * @return See RETURN_CODES
+ * @return See I2C_STATUS
  */
-RET_CODE i2c_write(I2C_ADDRESS address, const uint8_t* data, uint8_t size);
+I2C_STATUS i2c_write(I2C_ADDRESS address, const uint8_t* data, uint8_t size);
 /**
  * @brief Read data over I2C bus.
  * @details
@@ -87,7 +88,7 @@ RET_CODE i2c_read_async(I2C_ADDRESS address, uint8_t size, I2C_CALLBACK callback
  * @param[in] id - The address of the device.
  * @param[in] data - pointer to data.
  * @param[in] size - size of the data to read (in bytes).
- * @return See RETURN_CODES
+ * @return See I2C_STATUS
  */
 I2C_STATUS i2c_read(I2C_ADDRESS address, uint8_t* data, uint8_t size);
 /**

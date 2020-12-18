@@ -48,10 +48,13 @@ struct i2cDriverFixture : public ::testing::Test
       mock_gpio_init();
       mock_sch_init();
       callMock = new callbackMock();
+      EXPECT_CALL(*sch_mock, sch_subscribe_and_set(_,TASKPRIO_HIGH,I2C_DEFAULT_TIMEOUT_MS,_,_));
+      i2c_initialize();
    }
 
    virtual void TearDown()
    {
+      i2c_deinitialize();
       mock_logger_deinit();
       stm_stub_deinit();
       mock_gpio_deinit();
@@ -71,5 +74,4 @@ TEST_F(i2cDriverFixture, reading_one_sensor_test)
     * <b>expected</b>:  <br>
     * ************************************************
     */
-   i2c_initialize();
 }

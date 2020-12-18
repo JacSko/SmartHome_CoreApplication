@@ -577,6 +577,75 @@ typedef struct
 #define  TIM_SR_CC3OF                        ((uint16_t)0x0800)            /*!<Capture/Compare 3 Overcapture Flag */
 #define  TIM_SR_CC4OF                        ((uint16_t)0x1000)            /*!<Capture/Compare 4 Overcapture Flag */
 
+#define  I2C_CR1_PE                          ((uint16_t)0x0001)            /*!<Peripheral Enable                             */
+#define  I2C_CR1_SMBUS                       ((uint16_t)0x0002)            /*!<SMBus Mode                                    */
+#define  I2C_CR1_SMBTYPE                     ((uint16_t)0x0008)            /*!<SMBus Type                                    */
+#define  I2C_CR1_ENARP                       ((uint16_t)0x0010)            /*!<ARP Enable                                    */
+#define  I2C_CR1_ENPEC                       ((uint16_t)0x0020)            /*!<PEC Enable                                    */
+#define  I2C_CR1_ENGC                        ((uint16_t)0x0040)            /*!<General Call Enable                           */
+#define  I2C_CR1_NOSTRETCH                   ((uint16_t)0x0080)            /*!<Clock Stretching Disable (Slave mode)         */
+#define  I2C_CR1_START                       ((uint16_t)0x0100)            /*!<Start Generation                              */
+#define  I2C_CR1_STOP                        ((uint16_t)0x0200)            /*!<Stop Generation                               */
+#define  I2C_CR1_ACK                         ((uint16_t)0x0400)            /*!<Acknowledge Enable                            */
+#define  I2C_CR1_POS                         ((uint16_t)0x0800)            /*!<Acknowledge/PEC Position (for data reception) */
+#define  I2C_CR1_PEC                         ((uint16_t)0x1000)            /*!<Packet Error Checking                         */
+#define  I2C_CR1_ALERT                       ((uint16_t)0x2000)            /*!<SMBus Alert                                   */
+#define  I2C_CR1_SWRST                       ((uint16_t)0x8000)            /*!<Software Reset                                */
+
+/*******************  Bit definition for I2C_CR2 register  ********************/
+#define  I2C_CR2_FREQ                        ((uint16_t)0x003F)            /*!<FREQ[5:0] bits (Peripheral Clock Frequency)   */
+#define  I2C_CR2_FREQ_0                      ((uint16_t)0x0001)            /*!<Bit 0 */
+#define  I2C_CR2_FREQ_1                      ((uint16_t)0x0002)            /*!<Bit 1 */
+#define  I2C_CR2_FREQ_2                      ((uint16_t)0x0004)            /*!<Bit 2 */
+#define  I2C_CR2_FREQ_3                      ((uint16_t)0x0008)            /*!<Bit 3 */
+#define  I2C_CR2_FREQ_4                      ((uint16_t)0x0010)            /*!<Bit 4 */
+#define  I2C_CR2_FREQ_5                      ((uint16_t)0x0020)            /*!<Bit 5 */
+
+#define  I2C_CR2_ITERREN                     ((uint16_t)0x0100)            /*!<Error Interrupt Enable  */
+#define  I2C_CR2_ITEVTEN                     ((uint16_t)0x0200)            /*!<Event Interrupt Enable  */
+#define  I2C_CR2_ITBUFEN                     ((uint16_t)0x0400)            /*!<Buffer Interrupt Enable */
+#define  I2C_CR2_DMAEN                       ((uint16_t)0x0800)            /*!<DMA Requests Enable     */
+#define  I2C_CR2_LAST                        ((uint16_t)0x1000)            /*!<DMA Last Transfer       */
+
+#define  I2C_SR1_SB                          ((uint16_t)0x0001)            /*!<Start Bit (Master mode)                         */
+#define  I2C_SR1_ADDR                        ((uint16_t)0x0002)            /*!<Address sent (master mode)/matched (slave mode) */
+#define  I2C_SR1_BTF                         ((uint16_t)0x0004)            /*!<Byte Transfer Finished                          */
+#define  I2C_SR1_ADD10                       ((uint16_t)0x0008)            /*!<10-bit header sent (Master mode)                */
+#define  I2C_SR1_STOPF                       ((uint16_t)0x0010)            /*!<Stop detection (Slave mode)                     */
+#define  I2C_SR1_RXNE                        ((uint16_t)0x0040)            /*!<Data Register not Empty (receivers)             */
+#define  I2C_SR1_TXE                         ((uint16_t)0x0080)            /*!<Data Register Empty (transmitters)              */
+#define  I2C_SR1_BERR                        ((uint16_t)0x0100)            /*!<Bus Error                                       */
+#define  I2C_SR1_ARLO                        ((uint16_t)0x0200)            /*!<Arbitration Lost (master mode)                  */
+#define  I2C_SR1_AF                          ((uint16_t)0x0400)            /*!<Acknowledge Failure                             */
+#define  I2C_SR1_OVR                         ((uint16_t)0x0800)            /*!<Overrun/Underrun                                */
+#define  I2C_SR1_PECERR                      ((uint16_t)0x1000)            /*!<PEC Error in reception                          */
+#define  I2C_SR1_TIMEOUT                     ((uint16_t)0x4000)            /*!<Timeout or Tlow Error                           */
+#define  I2C_SR1_SMBALERT                    ((uint16_t)0x8000)            /*!<SMBus Alert                                     */
+#define  RCC_APB1RSTR_I2C1RST                ((uint32_t)0x00200000)
+typedef struct
+{
+  uint16_t CR1;        /*!< I2C Control register 1,     Address offset: 0x00 */
+  uint16_t      RESERVED0;  /*!< Reserved, 0x02                                   */
+  uint16_t CR2;        /*!< I2C Control register 2,     Address offset: 0x04 */
+  uint16_t      RESERVED1;  /*!< Reserved, 0x06                                   */
+  uint16_t OAR1;       /*!< I2C Own address register 1, Address offset: 0x08 */
+  uint16_t      RESERVED2;  /*!< Reserved, 0x0A                                   */
+  uint16_t OAR2;       /*!< I2C Own address register 2, Address offset: 0x0C */
+  uint16_t      RESERVED3;  /*!< Reserved, 0x0E                                   */
+  uint16_t DR;         /*!< I2C Data register,          Address offset: 0x10 */
+  uint16_t      RESERVED4;  /*!< Reserved, 0x12                                   */
+  uint16_t SR1;        /*!< I2C Status register 1,      Address offset: 0x14 */
+  uint16_t      RESERVED5;  /*!< Reserved, 0x16                                   */
+  uint16_t SR2;        /*!< I2C Status register 2,      Address offset: 0x18 */
+  uint16_t      RESERVED6;  /*!< Reserved, 0x1A                                   */
+  uint16_t CCR;        /*!< I2C Clock control register, Address offset: 0x1C */
+  uint16_t      RESERVED7;  /*!< Reserved, 0x1E                                   */
+  uint16_t TRISE;      /*!< I2C TRISE register,         Address offset: 0x20 */
+  uint16_t      RESERVED8;  /*!< Reserved, 0x22                                   */
+  uint16_t FLTR;       /*!< I2C FLTR register,          Address offset: 0x24 */
+  uint16_t      RESERVED9;  /*!< Reserved, 0x26                                   */
+} I2C_TypeDef;
+
 typedef struct
 {
   uint32_t MEMRMP;       /*!< SYSCFG memory remap register,                      Address offset: 0x00      */
@@ -688,6 +757,7 @@ NVIC_Type* NVIC;
 SYSCFG_TypeDef* SYSCFG;
 EXTI_TypeDef* EXTI;
 TIM_TypeDef* TIM2;
+I2C_TypeDef* I2C1;
 
 
 void stm_stub_init();

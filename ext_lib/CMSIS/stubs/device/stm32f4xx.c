@@ -17,6 +17,7 @@ void stm_stub_init()
 	SYSCFG = (SYSCFG_TypeDef*) calloc(1, sizeof(SYSCFG_TypeDef));
 	EXTI = (EXTI_TypeDef*) calloc(1, sizeof(EXTI_TypeDef));
 	TIM2 = (TIM_TypeDef*) calloc(1, sizeof(TIM_TypeDef));
+	I2C1 = (I2C_TypeDef*) calloc(1, sizeof(I2C_TypeDef));
 
 	for (uint8_t i = 0; i < irq_arr_size; i++)
 	{
@@ -36,6 +37,7 @@ void stm_stub_deinit()
 	free(SYSCFG);
 	free(EXTI);
 	free(TIM2);
+	free(I2C1);
 }
 void NVIC_EnableIRQ(IRQn_Type IRQn)
 {
