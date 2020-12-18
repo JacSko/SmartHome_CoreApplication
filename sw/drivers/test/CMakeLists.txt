@@ -90,7 +90,25 @@ target_link_libraries(dht_driver_tests PUBLIC
 add_test(NAME dht_driver_tests COMMAND dht_driver_tests)
 
 ###########################################################
+add_executable(i2c_driver_tests
+            unit/i2c_driver_tests.cpp
+)
 
+target_include_directories(i2c_driver_tests PUBLIC
+        ../include
+)
+target_link_libraries(i2c_driver_tests PUBLIC
+        gtest_main
+        gmock_main
+        loggerMock
+        gpio_configMocks
+        STM_HEADERS
+        task_scheduler_mock
+)
+
+add_test(NAME i2c_driver_tests COMMAND i2c_driver_tests)
+
+###########################################################
 
 
 

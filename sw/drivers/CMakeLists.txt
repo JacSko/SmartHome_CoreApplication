@@ -65,6 +65,8 @@ target_link_libraries(wifi_manager PUBLIC
         logger
 )
 
+############################
+
 add_library(dht_driver STATIC
         source/dht_driver.c
 )
@@ -78,6 +80,24 @@ target_link_libraries(dht_driver PUBLIC
 		logger
 		task_scheduler
 )
+
+############################
+
+add_library(i2c_driver STATIC
+        source/i2c_driver.c
+)
+
+target_include_directories(i2c_driver PUBLIC
+        include
+)
+
+target_link_libraries(i2c_driver PUBLIC
+		STM_HEADERS
+		logger
+		task_scheduler
+)
+
+
 
 else()
 

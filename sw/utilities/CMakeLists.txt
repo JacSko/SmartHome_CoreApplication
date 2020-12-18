@@ -3,7 +3,7 @@ add_library(string_formatter STATIC
 )
 
 target_include_directories(string_formatter PUBLIC
-        include
+        include/
 )
 
 if (UNIT_TESTS)
