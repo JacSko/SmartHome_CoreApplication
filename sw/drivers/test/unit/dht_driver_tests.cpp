@@ -521,6 +521,7 @@ TEST_F(dhtDriverFixture, set_get_timeout_tests)
     * <b>expected</b>: Timeout changed <br>
     * ************************************************
     */
+   EXPECT_CALL(*sch_mock, sch_set_task_period(_,_)).WillOnce(Return(RETURN_OK));
    EXPECT_EQ(RETURN_OK, dht_set_timeout(DHT_DEFAULT_TIMEOUT_MS + 10));
    EXPECT_EQ(DHT_DEFAULT_TIMEOUT_MS + 10, dht_get_timeout());
 }

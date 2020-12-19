@@ -22,7 +22,7 @@
  * =============================*/
 void i2c_on_timeout();
 RET_CODE i2c_validate_timeout(uint16_t timeout);
-void i2c_print_buffer();
+void i2c_print_buffer(I2C_OP_TYPE type);
 I2C_STATUS i2c_get_status();
 /* =============================
  *       Internal types
@@ -148,6 +148,10 @@ I2C_STATUS i2c_read(I2C_ADDRESS address, uint8_t* data, uint8_t size)
    {
       while(i2c_driver.transaction_ready == 0);
       result = i2c_get_status();
+      for (uint8_t i = 0; i < i2c_driver.bytes_handled; i++)
+      {
+         data[i] = I2C_DRV_BUF[i];
+      }
       i2c_watcher();
    }
    return result;
