@@ -22,6 +22,8 @@
  * =============================*/
 void i2c_on_timeout();
 RET_CODE i2c_validate_timeout(uint16_t timeout);
+void i2c_print_buffer();
+I2C_STATUS i2c_get_status();
 /* =============================
  *       Internal types
  * =============================*/
@@ -113,14 +115,8 @@ I2C_STATUS i2c_write(I2C_ADDRESS address, const uint8_t* data, uint8_t size)
    if (i2c_write_async(address, data, size, NULL) == RETURN_OK)
    {
       while(i2c_driver.transaction_ready == 0);
-      i2c_driver.transaction_ready = 0;
-      result = i2c_driver.state == I2C_STATE_END_OK? I2C_STATUS_OK : I2C_STATUS_ERROR;
-      logger_send_if(result != I2C_STATUS_OK, LOG_ERROR, __func__, "error");
-      if (i2c_driver.state == I2C_STATE_ERROR)
-      {
-         i2c_reset();
-      }
-      i2c_driver.state = I2C_STATE_IDLE;
+      result = i2c_get_status();
+      i2c_watcher();
    }
    return result;
 
@@ -150,26 +146,27 @@ I2C_STATUS i2c_read(I2C_ADDRESS address, uint8_t* data, uint8_t size)
    I2C_STATUS result = I2C_STATUS_UNKNOWN;
    if (i2c_read_async(address, size, NULL) == RETURN_OK)
    {
-      while(i2c_driver.transaction_ready == 0) {};
-      i2c_driver.transaction_ready = 0;
-      if (i2c_driver.state == I2C_STATE_END_OK)
-      {
-         result = I2C_STATUS_OK;
-         for (uint8_t i = 0; i < i2c_driver.bytes_handled; i++)
-         {
-            data[i] = I2C_DRV_BUF[i];
-         }
-      }
-      else
-      {
-         result = I2C_STATUS_ERROR;
-         logger_send(LOG_ERROR, __func__, "error");
-         i2c_reset();
-      }
-      i2c_driver.state = I2C_STATE_IDLE;
+      while(i2c_driver.transaction_ready == 0);
+      result = i2c_get_status();
+      i2c_watcher();
    }
    return result;
 }
+
+void i2c_print_buffer(I2C_OP_TYPE type)
+{
+   if (logger_get_group_state(LOG_I2C_DRV) == LOGGER_GROUP_ENABLE)
+   {
+      char data_dump [80];
+      uint8_t idx = 0;
+      for (uint8_t i = 0; i < i2c_driver.bytes_handled; i++)
+      {
+         idx += string_format(&data_dump[idx], "%x ", I2C_DRV_BUF[i]);
+      }
+      logger_send(LOG_I2C_DRV, __func__, "%s:%s", type == I2C_OP_WRITE? "WRITE" : "READ", data_dump);
+   }
+}
+
 uint16_t i2c_get_timeout()
 {
    return i2c_driver.timeout;
@@ -227,20 +224,31 @@ void i2c_deinitialize()
    i2c_driver.type = I2C_OP_UNKNOWN;
 }
 
+I2C_STATUS i2c_get_status()
+{
+   I2C_STATUS result = i2c_driver.state == I2C_STATE_END_OK? I2C_STATUS_OK : I2C_STATUS_ERROR;
+   return result;
+}
+
 void i2c_watcher()
 {
    if (i2c_driver.transaction_ready)
    {
       i2c_driver.transaction_ready = 0;
+      I2C_STATUS status = i2c_get_status();
+      if (status == I2C_STATUS_OK)
+      {
+         logger_send(LOG_I2C_DRV, __func__, "trasnaction OK");
+         i2c_print_buffer(i2c_driver.type);
+      }
+      else
+      {
+         logger_send(LOG_I2C_DRV, __func__, "error, resetting");
+         i2c_reset();
+      }
       if (i2c_drv_callback)
       {
-         I2C_STATUS status = i2c_driver.state == I2C_STATE_END_OK? I2C_STATUS_OK : I2C_STATUS_ERROR;
          i2c_drv_callback(i2c_driver.type, status, I2C_DRV_BUF, i2c_driver.bytes_handled);
-      }
-
-      if (i2c_driver.state == I2C_STATE_ERROR)
-      {
-         i2c_reset();
       }
       i2c_driver.state = I2C_STATE_IDLE;
    }

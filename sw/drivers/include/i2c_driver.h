@@ -103,7 +103,10 @@ uint16_t i2c_get_timeout();
  * @return See RETURN_CODES.
  */
 RET_CODE i2c_set_timeout(uint16_t timeout);
-
+/**
+ * @brief Function responsible for calling callback - should be called in main thread loop.
+ * @return None.
+ */
 void i2c_watcher();
 /**
  * @brief Reset I2C driver.
