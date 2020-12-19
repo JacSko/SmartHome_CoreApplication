@@ -233,7 +233,7 @@ RET_CODE dht_set_timeout(uint16_t timeout)
    if (dht_verify_timeout(timeout) == RETURN_OK)
    {
       dht_driver.timeout = timeout;
-      result = RETURN_OK;
+      result = sch_set_task_period(&dht_on_timeout, timeout);
       logger_send(LOG_DHT_DRV, __func__, "new timeout %d", timeout);
    }
    return result;
