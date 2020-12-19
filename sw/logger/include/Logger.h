@@ -42,6 +42,7 @@ typedef enum
 	LOG_DEBUG = 0x04,          /**< Logs from Debug group */
 	LOG_WIFI_MANAGER = 0x05,   /**< Logs from WiFi Manager */
 	LOG_DHT_DRV,               /**< Logs from DHT driver - received data, etc */
+	LOG_I2C_DRV,               /**< Logs from I2C driver - received data, etc */
 	LOG_ENUM_MAX               /**< Enums count */
 } LogGroup;
 

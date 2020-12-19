@@ -84,6 +84,8 @@ const char* logger_get_group_name(LogGroup group)
 		return "WIFI_MGR";
    case LOG_DHT_DRV:
       return "DHT_DRV";
+   case LOG_I2C_DRV:
+      return "I2C_DRV";
 	default:
 		return "";
 	}

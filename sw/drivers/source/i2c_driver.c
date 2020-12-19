@@ -54,6 +54,7 @@ I2C_CALLBACK i2c_drv_callback;
 
 RET_CODE i2c_initialize()
 {
+   logger_send(LOG_I2C_DRV, __func__, "");
    RET_CODE result = RETURN_NOK;
    i2c_driver.state = I2C_STATE_UNKNOWN;
    if (sch_subscribe_and_set(&i2c_on_timeout, TASKPRIO_HIGH, I2C_DEFAULT_TIMEOUT_MS,
@@ -68,13 +69,14 @@ RET_CODE i2c_initialize()
       i2c_reset();
       result = RETURN_OK;
    }
+   logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "error");
    return result;
 }
 void i2c_on_timeout()
 {
    if (i2c_driver.state != I2C_STATE_IDLE)
    {
-      logger_send(LOG_ERROR,__func__,"ERROR-stucked");
+      logger_send(LOG_ERROR,__func__,"timeout");
       i2c_driver.state = I2C_STATE_ERROR;
       i2c_driver.transaction_ready = 1;
    }
@@ -83,6 +85,7 @@ void i2c_on_timeout()
 RET_CODE i2c_write_async(I2C_ADDRESS address, const uint8_t* data, uint8_t size, I2C_CALLBACK callback)
 {
    RET_CODE result = RETURN_NOK;
+   logger_send(LOG_I2C_DRV, __func__, "writing %u bytes to 0x%x", size, address);
    if (i2c_driver.state == I2C_STATE_IDLE && size <= I2C_DRV_BUFFER_SIZE)
    {
       i2c_driver.address = address;
@@ -100,16 +103,19 @@ RET_CODE i2c_write_async(I2C_ADDRESS address, const uint8_t* data, uint8_t size,
       sch_trigger_task(&i2c_on_timeout);
       result = RETURN_OK;
    }
+   logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "error");
    return result;
 }
 I2C_STATUS i2c_write(I2C_ADDRESS address, const uint8_t* data, uint8_t size)
 {
    I2C_STATUS result = I2C_STATUS_UNKNOWN;
+   logger_send(LOG_I2C_DRV, __func__, "writing %u bytes to 0x%x", size, address);
    if (i2c_write_async(address, data, size, NULL) == RETURN_OK)
    {
       while(i2c_driver.transaction_ready == 0);
       i2c_driver.transaction_ready = 0;
       result = i2c_driver.state == I2C_STATE_END_OK? I2C_STATUS_OK : I2C_STATUS_ERROR;
+      logger_send_if(result != I2C_STATUS_OK, LOG_ERROR, __func__, "error");
       if (i2c_driver.state == I2C_STATE_ERROR)
       {
          i2c_reset();
@@ -122,6 +128,7 @@ I2C_STATUS i2c_write(I2C_ADDRESS address, const uint8_t* data, uint8_t size)
 RET_CODE i2c_read_async(I2C_ADDRESS address, uint8_t size, I2C_CALLBACK callback)
 {
    RET_CODE result = RETURN_NOK;
+   logger_send(LOG_I2C_DRV, __func__, "reading %u bytes from 0x%x", size, address);
    if (i2c_driver.state == I2C_STATE_IDLE && size <= I2C_DRV_BUFFER_SIZE)
    {
       i2c_driver.address = address;
@@ -145,14 +152,18 @@ I2C_STATUS i2c_read(I2C_ADDRESS address, uint8_t* data, uint8_t size)
    {
       while(i2c_driver.transaction_ready == 0) {};
       i2c_driver.transaction_ready = 0;
-      result = i2c_driver.state == I2C_STATE_END_OK? I2C_STATUS_OK : I2C_STATUS_ERROR;
-      for (uint8_t i = 0; i < i2c_driver.bytes_handled; i++)
+      if (i2c_driver.state == I2C_STATE_END_OK)
       {
-         data[i] = I2C_DRV_BUF[i];
+         result = I2C_STATUS_OK;
+         for (uint8_t i = 0; i < i2c_driver.bytes_handled; i++)
+         {
+            data[i] = I2C_DRV_BUF[i];
+         }
       }
-
-      if (i2c_driver.state == I2C_STATE_ERROR)
+      else
       {
+         result = I2C_STATUS_ERROR;
+         logger_send(LOG_ERROR, __func__, "error");
          i2c_reset();
       }
       i2c_driver.state = I2C_STATE_IDLE;
@@ -168,6 +179,7 @@ RET_CODE i2c_set_timeout(uint16_t timeout)
    RET_CODE result = RETURN_NOK;
    if (i2c_validate_timeout(timeout) == RETURN_OK)
    {
+      logger_send(LOG_I2C_DRV, __func__, "new timeout %d", timeout);
       i2c_driver.timeout = timeout;
       result = sch_set_task_period(&i2c_on_timeout, timeout);
    }
@@ -181,11 +193,13 @@ RET_CODE i2c_validate_timeout(uint16_t timeout)
    {
       result = RETURN_OK;
    }
+   logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "invalid timeout", timeout);
    return result;
 }
 
 void i2c_reset()
 {
+   logger_send(LOG_ERROR, __func__, "resetting i2c");
    RCC->APB1RSTR |= RCC_APB1RSTR_I2C1RST;
    __DSB();
    RCC->APB1RSTR &= ~RCC_APB1RSTR_I2C1RST;
