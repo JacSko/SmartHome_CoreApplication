@@ -43,10 +43,12 @@ void on_i2c_data(I2C_OP_TYPE type, I2C_STATUS status, const uint8_t* data, uint8
 
 void print_log()
 {
-//   uint8_t data[2] = {0x00, 0x00};
-//   i2c_read(0x49, data, 2);
-//   sch_trigger_task(&print_log);
-//   (void) data;
+   uint8_t i2c_data [2];
+   I2C_STATUS result = i2c_read(0x49, i2c_data, 2);
+   logger_send(LOG_ERROR, __func__, "read result %d", result);
+   result = i2c_write(0x48, i2c_data, 2);
+   logger_send(LOG_ERROR, __func__, "write result %d", result);
+   sch_trigger_task(&print_log);
 }
 
 int main(void)
@@ -59,7 +61,6 @@ int main(void)
 
 
 	BT_Config config = {UART_COMMON_BAUD_RATE, UART_COMMON_BUFFER_SIZE, UART_COMMON_STRING_SIZE};
-	WIFI_UART_Config wifi_config = {UART_COMMON_BAUD_RATE, UART_COMMON_BUFFER_SIZE, UART_COMMON_STRING_SIZE};
 	btengine_initialize(&config);
 	logger_initialize(UART_COMMON_STRING_SIZE);
 	logger_register_sender(&btengine_send_string);
@@ -69,6 +70,8 @@ int main(void)
 	logger_set_group_state(LOG_WIFI_MANAGER, LOGGER_GROUP_ENABLE);
 	logger_send(LOG_DEBUG, __FILE__, "Booting up!");
 
+
+// WIFI_UART_Config wifi_config = {UART_COMMON_BAUD_RATE, UART_COMMON_BUFFER_SIZE, UART_COMMON_STRING_SIZE};
 //	if (wifimgr_initialize(&wifi_config) == RETURN_OK)
 //	{
 //		logger_register_sender(&wifimgr_broadcast_data);
@@ -87,6 +90,9 @@ int main(void)
 //	}
 
 	logger_send(LOG_DEBUG, __FILE__, "Booting completed!");
+
+
+
 	i2c_initialize();
 	sch_trigger_task(&print_log);
 

@@ -111,7 +111,6 @@ RET_CODE i2c_write_async(I2C_ADDRESS address, const uint8_t* data, uint8_t size,
 I2C_STATUS i2c_write(I2C_ADDRESS address, const uint8_t* data, uint8_t size)
 {
    I2C_STATUS result = I2C_STATUS_UNKNOWN;
-   logger_send(LOG_I2C_DRV, __func__, "writing %u bytes to 0x%x", size, address);
    if (i2c_write_async(address, data, size, NULL) == RETURN_OK)
    {
       while(i2c_driver.transaction_ready == 0);
@@ -312,13 +311,10 @@ void I2C1_EV_IRQHandler (void) {
       if (i2c_driver.bytes_requested == 1 && i2c_driver.type == I2C_OP_READ)
       {
          I2C1->CR1 &= ~I2C_CR1_ACK;
-         Status1 = I2C1->SR1;
-         Status2 = I2C1->SR2;
          I2C1->CR1 |= I2C_CR1_STOP;
-      } else {
-         Status1 = I2C1->SR1;
-         Status2 = I2C1->SR2;
       }
+      Status1 = I2C1->SR1;
+      Status2 = I2C1->SR2;
       if (i2c_driver.type == I2C_OP_READ)
       {
          i2c_driver.state = I2C_STATE_DATA_EXCHANGE;
