@@ -707,6 +707,7 @@ typedef struct
 
 typedef enum IRQn
 {
+   EXTI4_IRQn                  = 22,
 	EXTI9_5_IRQn                = 23,     /*!< External Line[9:5] Interrupts                                     */
 	TIM1_BRK_TIM9_IRQn          = 24,     /*!< TIM1 Break interrupt and TIM9 global interrupt                    */
 	TIM1_UP_TIM10_IRQn          = 25,     /*!< TIM1 Update Interrupt and TIM10 global interrupt                  */

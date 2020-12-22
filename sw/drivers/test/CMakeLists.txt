@@ -162,3 +162,11 @@ target_include_directories(dhtdriver_mock PUBLIC
           ../include
           mocks/
 )
+add_library(i2cdriver_mock STATIC
+			mocks/i2c_driver_mock.h
+)
+set_target_properties(i2cdriver_mock PROPERTIES LINKER_LANGUAGE CXX)
+target_include_directories(i2cdriver_mock PUBLIC
+          ../include
+          mocks/
+)
