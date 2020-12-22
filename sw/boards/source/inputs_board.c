@@ -29,6 +29,7 @@ void inp_read_inputs();
 void inp_on_timeout();
 void inp_notify_inputs_change(uint16_t change_mask);
 uint16_t inp_input_to_mask(uint8_t input);
+uint8_t inp_id_to_input_no(INPUT_ID id);
 RET_CODE inp_validate_debounce_time(uint16_t time);
 RET_CODE inp_validate_autoupdate_time(uint16_t time);
 void inp_notify_callbacks(INPUT_ID id, uint8_t state);
@@ -95,6 +96,43 @@ void inp_deinitialize()
       INP_CALLBACKS[i] = NULL;
    }
 }
+
+INPUT_STATE inp_get(INPUT_ID id)
+{
+   INPUT_STATE result = INPUT_STATE_INACTIVE;
+   uint16_t input_mask = inp_input_to_mask(inp_id_to_input_no(id));
+   if (input_mask)
+   {
+      result = (inp_module.current_inputs & input_mask) > 0? INPUT_STATE_ACTIVE : INPUT_STATE_INACTIVE;
+   }
+   return result;
+}
+RET_CODE inp_get_all(INPUT_STATUS* buffer)
+{
+   RET_CODE result = RETURN_ERROR;
+   if (buffer)
+   {
+      for (uint8_t i = 0; i < INPUTS_MAX_INPUT_LINES; i++)
+      {
+         INPUT_STATUS temp;
+         temp.id = inp_module.cfg.items[i].item;
+         temp.state = inp_get(temp.id);
+         buffer[i] = temp;
+      }
+      result = RETURN_OK;
+   }
+   return result;
+}
+RET_CODE inp_get_config(INPUTS_CONFIG* buffer)
+{
+   RET_CODE result = RETURN_ERROR;
+   if (buffer)
+   {
+      *buffer = inp_module.cfg;
+      result = RETURN_OK;
+   }
+   return result;
+}
 void inp_read_inputs()
 {
    logger_send(LOG_INPUTS, __func__, "");
@@ -155,6 +193,19 @@ uint16_t inp_input_to_mask(uint8_t input)
        result = 1 << (input-9);
    }
 
+   return result;
+}
+uint8_t inp_id_to_input_no(INPUT_ID id)
+{
+   uint8_t result = 0;
+   for (uint8_t i = 0; i < INPUTS_MAX_INPUT_LINES; i++)
+   {
+      if (inp_module.cfg.items[i].item == id)
+      {
+         result = inp_module.cfg.items[i].input_no;
+         break;
+      }
+   }
    return result;
 }
 

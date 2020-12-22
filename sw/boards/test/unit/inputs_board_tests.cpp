@@ -139,6 +139,16 @@ TEST(inputsBoardTests, initialization)
    EXPECT_CALL(*gpio_lib_mock, gpio_pin_cfg(_, PB4, gpio_mode_in_floating));
    EXPECT_EQ(RETURN_OK, inp_initialize(&cfg));
 
+   /**
+    * <b>scenario</b>: Getting inputs config <br>
+    * <b>expected</b>: Correct config returned <br>
+    * ************************************************
+    */
+   INPUTS_CONFIG result;
+   EXPECT_EQ(RETURN_ERROR, inp_get_config(nullptr));
+   EXPECT_EQ(RETURN_OK, inp_get_config(&result));
+   EXPECT_EQ(result.address, 0x10);
+
    mock_i2c_deinit();
    mock_logger_deinit();
    stm_stub_deinit();
@@ -178,6 +188,7 @@ TEST_F(inputsBoardFixture, inputs_read_periodic_event)
                                                    }));
    EXPECT_CALL(*callMock, callback(INPUT_WARDROBE_LED,1));
    inp_read_inputs();
+   EXPECT_EQ(INPUT_STATE_ACTIVE, inp_get(INPUT_WARDROBE_LED));
 
    /**
     * <b>scenario</b>: Inputs read on autoupdate timeout, wardrobe led not changed <br>
@@ -212,6 +223,7 @@ TEST_F(inputsBoardFixture, inputs_read_periodic_event)
                                                    }));
    EXPECT_CALL(*callMock, callback(INPUT_WARDROBE_LED,0));
    inp_read_inputs();
+   EXPECT_EQ(INPUT_STATE_INACTIVE, inp_get(INPUT_WARDROBE_LED));
 }
 
 /**
@@ -241,6 +253,8 @@ TEST_F(inputsBoardFixture, inputs_read_interrupt_event)
                                                    }));
    EXPECT_CALL(*callMock, callback(INPUT_KITCHEN_AC,1));
    inp_on_timeout();
+   EXPECT_EQ(INPUT_STATE_ACTIVE, inp_get(INPUT_KITCHEN_AC));
+
   /**
    * <b>scenario</b>: Inputs read interrupt, kitchen light turned off <br>
    * <b>expected</b>: Callbacks called <br>
@@ -262,6 +276,7 @@ TEST_F(inputsBoardFixture, inputs_read_interrupt_event)
                                                   }));
   EXPECT_CALL(*callMock, callback(INPUT_KITCHEN_AC,0));
   inp_on_timeout();
+  EXPECT_EQ(INPUT_STATE_INACTIVE, inp_get(INPUT_KITCHEN_AC));
 }
 
 /**
@@ -463,4 +478,20 @@ TEST_F(inputsBoardFixture, inputs_change_the_same_time)
    EXPECT_CALL(*callMock, callback(INPUT_BEDROOM_AC,1));
    EXPECT_CALL(*callMock, callback(INPUT_WARDROBE_AC,1));
    inp_read_inputs();
+
+   INPUT_STATUS result [INPUTS_MAX_INPUT_LINES];
+   EXPECT_EQ(RETURN_ERROR, inp_get_all(nullptr));
+   EXPECT_EQ(RETURN_OK, inp_get_all(result));
+
+   EXPECT_EQ(result[0].id, INPUT_WARDROBE_LED);
+   EXPECT_EQ(result[0].state, INPUT_STATE_INACTIVE);
+
+   EXPECT_EQ(result[2].id, INPUT_SOCKETS);
+   EXPECT_EQ(result[2].state, INPUT_STATE_ACTIVE);
+
+   EXPECT_EQ(result[3].id, INPUT_BEDROOM_AC);
+   EXPECT_EQ(result[3].state, INPUT_STATE_ACTIVE);
+
+   EXPECT_EQ(result[4].id, INPUT_WARDROBE_AC);
+   EXPECT_EQ(result[4].state, INPUT_STATE_ACTIVE);
 }
