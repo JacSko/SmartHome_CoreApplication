@@ -19,7 +19,21 @@ target_link_libraries(inputs_board PUBLIC
 		i2c_driver
 		gpio_config
 )
+##############################
+add_library(relays_board STATIC
+        source/relays_board.c
+)
 
+target_include_directories(relays_board PUBLIC
+        include
+)
+
+target_link_libraries(relays_board PUBLIC
+		STM_HEADERS
+		logger
+		task_scheduler
+		i2c_driver
+)
 
 
 else()

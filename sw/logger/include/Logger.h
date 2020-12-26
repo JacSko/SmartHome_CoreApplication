@@ -22,8 +22,11 @@
 /* =============================
  *  Includes of project headers
  * =============================*/
+#include <stdint.h>
+/* =============================
+ *  Includes of project headers
+ * =============================*/
 #include "return_codes.h"
-#include "stm32f4xx.h"
 #include "string_formatter.h"
 /* =============================
  *          Defines
@@ -43,7 +46,8 @@ typedef enum
 	LOG_WIFI_MANAGER = 0x05,   /**< Logs from WiFi Manager */
 	LOG_DHT_DRV,               /**< Logs from DHT driver - received data, etc */
 	LOG_I2C_DRV,               /**< Logs from I2C driver - received data, etc */
-	LOG_INPUTS,                /**< Logs from Inputs module - received inputs state, etc */
+	LOG_INPUTS,                /**< Logs from Inputs module */
+	LOG_RELAYS,                /**< Logs from Relays module */
 	LOG_ENUM_MAX               /**< Enums count */
 } LogGroup;
 

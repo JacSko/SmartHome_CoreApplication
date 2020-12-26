@@ -16,6 +16,25 @@ target_link_libraries(inputs_board_tests PUBLIC
 )
 
 add_test(NAME inputs_board_tests COMMAND inputs_board_tests)
+
+###############################
+add_executable(relays_board_tests
+            unit/relays_board_tests.cpp
+)
+
+target_include_directories(relays_board_tests PUBLIC
+        ../include
+)
+target_link_libraries(relays_board_tests PUBLIC
+        gtest_main
+        gmock_main
+        loggerMock
+        task_scheduler_mock
+        i2cdriver_mock
+)
+
+add_test(NAME relays_board_tests COMMAND relays_board_tests)
+
 ###############################
 #	  Driver mocks
 ###############################

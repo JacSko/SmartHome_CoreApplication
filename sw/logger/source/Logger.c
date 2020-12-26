@@ -216,6 +216,8 @@ const char* logger_get_group_name(LogGroup group)
       return "I2C_DRV";
    case LOG_INPUTS:
       return "INP";
+   case LOG_RELAYS:
+      return "REL";
 	default:
 		return "";
 	}

@@ -41,10 +41,11 @@ typedef enum RELAY_STATE
 {
    RELAY_STATE_OFF,     /**< Relay is turned OFF */
    RELAY_STATE_ON,      /**< Relay is turned ON */
+   RELAY_STATE_ENUM_MAX,      /**< Count of enum items */
 } RELAY_STATE;
 typedef enum RELAY_ID
 {
-   RELAY_WARDROBE_LED,
+   RELAY_WARDROBE_LED = 1,
    RELAY_WARDROBE_AC,
    RELAY_BATHROOM_LED,
    RELAY_BATHROOM_AC,
@@ -54,6 +55,8 @@ typedef enum RELAY_ID
    RELAY_KITCHEN_WALL,
    RELAY_KITCHEN_AC,
    RELAY_BEDROOM_AC,
+   RELAY_BATHROOM_FAN,
+   RELAY_ID_ENUM_MAX,
 } RELAY_ID;
 
 typedef struct RELAY_STATUS
@@ -71,7 +74,7 @@ typedef struct RELAY_ITEM
 typedef struct RELAYS_CONFIG
 {
    I2C_ADDRESS address; /**< Board address */
-   RELAY_ITEM cfg [RELAYS_BOARD_COUNT];   /**< Board configuration */
+   RELAY_ITEM items [RELAYS_BOARD_COUNT];   /**< Board configuration */
 } RELAYS_CONFIG;
 /**
  * @brief Initialize relays module.
@@ -98,17 +101,17 @@ RET_CODE rel_set(RELAY_ID id, RELAY_STATE state);
  */
 RELAY_STATE rel_get(RELAY_ID id);
 /**
- * @brief Get state of all relays - state is read directly from board.
+ * @brief Get state of all relays - state is read from last known relays state.
  * @param[in] buffer - place where relays status will be written - it have to be at least 16 elements array.
  * @return See RETURN_CODES.
  */
 RET_CODE rel_get_all(RELAY_STATUS* buffer);
 /**
  * @brief Get relays config.
- * @param[in] buffer - place where relays config will be written - it have to be at least 16 elements array.
+ * @param[in] buffer - place where relays config will be written.
  * @return See RETURN_CODES.
  */
-RET_CODE rel_get_config(RELAY_ITEM* buffer);
+RET_CODE rel_get_config(RELAYS_CONFIG* buffer);
 /**
  * @brief Set period of relays verification.
  * @return See RETURN_CODES.
