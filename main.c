@@ -8,6 +8,9 @@
 #include "command_parser.h"
 #include "Logger.h"
 #include "i2c_driver.h"
+#include "inputs_board.h"
+#include "relays_board.h"
+
 
 //TODO remove
 #include "dht_driver.h"
@@ -36,18 +39,9 @@
 #define UART_COMMON_STRING_SIZE 512
 #define UART_COMMON_BAUD_RATE 115200
 
-void on_i2c_data(I2C_OP_TYPE type, I2C_STATUS status, const uint8_t* data, uint8_t size)
-{
-   logger_send(LOG_ERROR, __func__, "clb: %d %d", type, status);
-}
-
 void print_log()
 {
-   uint8_t i2c_data [2];
-   I2C_STATUS result = i2c_read(0x49, i2c_data, 2);
-   logger_send(LOG_ERROR, __func__, "read result %d", result);
-   result = i2c_write(0x48, i2c_data, 2);
-   logger_send(LOG_ERROR, __func__, "write result %d", result);
+   uint8_t i2c_address = 0x48;
    sch_trigger_task(&print_log);
 }
 
@@ -68,6 +62,8 @@ int main(void)
 	logger_set_group_state(LOG_DEBUG, LOGGER_GROUP_ENABLE);
 	logger_set_group_state(LOG_WIFI_DRIVER, LOGGER_GROUP_ENABLE);
 	logger_set_group_state(LOG_WIFI_MANAGER, LOGGER_GROUP_ENABLE);
+	logger_set_group_state(LOG_INPUTS, LOGGER_GROUP_ENABLE);
+	logger_set_group_state(LOG_RELAYS, LOGGER_GROUP_ENABLE);
 	logger_send(LOG_DEBUG, __FILE__, "Booting up!");
 
 
@@ -90,11 +86,34 @@ int main(void)
 //	}
 
 	logger_send(LOG_DEBUG, __FILE__, "Booting completed!");
-
-
-
 	i2c_initialize();
 	sch_trigger_task(&print_log);
+
+//TODO to remove
+	INPUTS_CONFIG inp_config;
+	inp_config.address = 0x10;
+	inp_config.items[0].item = INPUT_WARDROBE_LED;
+	inp_config.items[0].input_no = 1;
+   inp_config.items[1].item = INPUT_BATHROOM_LED;
+   inp_config.items[1].input_no = 2;
+   inp_config.items[2].item = INPUT_SOCKETS;
+   inp_config.items[2].input_no = 9;
+   inp_config.items[3].item = INPUT_BEDROOM_AC;
+   inp_config.items[3].input_no = 10;
+   inp_config.items[4].item = INPUT_WARDROBE_AC;
+   inp_config.items[4].input_no = 11;
+   inp_config.items[5].item = INPUT_KITCHEN_AC;
+   inp_config.items[5].input_no = 12;
+   inp_config.items[6].item = INPUT_BATHROOM_AC;
+   inp_config.items[6].input_no = 13;
+   inp_config.items[7].item = INPUT_STAIRS_AC;
+   inp_config.items[7].input_no = 14;
+   inp_config.items[8].item = INPUT_STAIRS_SENSOR;
+   inp_config.items[8].input_no = 15;
+   inp_config.items[9].item = INPUT_KITCHEN_WALL;
+   inp_config.items[9].input_no = 16;
+
+	inp_initialize(&inp_config);
 
 	while (1)
 	{

@@ -45,6 +45,7 @@ RET_CODE rel_initialize(const RELAYS_CONFIG* config)
    RET_CODE result = RETURN_NOK;
    if (config)
    {
+      logger_send(LOG_RELAYS, __func__, "");
       rel_module.verification_enabled = RELAYS_VERIFICATION_STATE;
       rel_module.verification_time = RELAYS_VERIFICATION_DEF_TIME_MS;
       rel_module.current_relays = 0x0000;
@@ -52,6 +53,7 @@ RET_CODE rel_initialize(const RELAYS_CONFIG* config)
       result = sch_subscribe_and_set(&rel_on_timeout, TASKPRIO_LOW, rel_module.verification_time,
                rel_module.verification_enabled? TASKSTATE_RUNNING : TASKSTATE_STOPPED, TASKTYPE_PERIODIC);
    }
+   logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "error during initialization");
    return result;
 }
 void rel_deinitialize()
@@ -145,10 +147,12 @@ RET_CODE rel_set_verification_period(uint16_t period)
    {
       if (sch_set_task_period(&rel_on_timeout, period) == RETURN_OK)
       {
+         logger_send(LOG_RELAYS, __func__, "new verification period: %d", period);
          result = RETURN_OK;
          rel_module.verification_time = period;
       }
    }
+   logger_send_if(result != RETURN_OK, __func__, "cannot set verification period; %d", period);
    return result;
 }
 RET_CODE rel_verify_period(uint16_t period)
@@ -164,11 +168,13 @@ void rel_enable_verification()
 {
    sch_set_task_state(&rel_on_timeout, TASKSTATE_RUNNING);
    rel_module.verification_enabled = 1;
+   logger_send(LOG_RELAYS, __func__, "enabling relays autoupdate");
 }
 void rel_disable_verification()
 {
    sch_set_task_state(&rel_on_timeout, TASKSTATE_STOPPED);
    rel_module.verification_enabled = 0;
+   logger_send(LOG_RELAYS, __func__, "disabling relays autoupdate");
 }
 RET_CODE rel_get_verification_state()
 {
@@ -177,6 +183,7 @@ RET_CODE rel_get_verification_state()
 }
 void rel_on_timeout()
 {
+   logger_send(LOG_RELAYS, __func__, "relays timeout - reading");
    if (i2c_read_async(rel_module.cfg.address + 1, 2, &rel_on_new_data) != RETURN_OK)
    {
       logger_send(LOG_ERROR, __func__, "cannot read relays");
@@ -186,9 +193,11 @@ void rel_on_new_data(I2C_OP_TYPE type, I2C_STATUS status, const uint8_t* data, u
 {
    if (type == I2C_OP_READ && status == I2C_STATUS_OK && size == 2)
    {
+      logger_send(LOG_RELAYS, __func__, "new i2c data: %x %x", data[0], data[1]);
       uint16_t recv_relays = data[0];
       recv_relays |= (data[1] << 8);
       recv_relays = ~recv_relays;
+      logger_send(LOG_RELAYS, __func__, "new relays read: %x", recv_relays);
       if (rel_module.current_relays != recv_relays)
       {
          logger_send(LOG_ERROR, __func__, "relay mismatch detected: old %x new %x", rel_module.current_relays, recv_relays);
