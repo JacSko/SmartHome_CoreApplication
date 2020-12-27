@@ -35,28 +35,30 @@
 /* =============================
  *       Data structures
  * =============================*/
-typedef struct ENV_ERR_STAT
-{
-   uint8_t nr_err_rate;
-   uint8_t cs_err_rate;
-} ENV_ERR_STAT;
 typedef enum ENV_ITEM_ID
 {
+   ENV_UNKNOWN_ITEM,
    ENV_OUTSIDE,
    ENV_WARDROBE,
    ENV_BEDROOM,
    ENV_BATHROOM,
    ENV_KITCHEN,
    ENV_STAIRS,
+   ENV_ITEM_COUNT,
 } ENV_ITEM_ID;
+
+typedef struct ENV_DHT_MATCH
+{
+   ENV_ITEM_ID env_id;
+   DHT_SENSOR_ID dht_id;
+} ENV_DHT_MATCH;
 
 typedef struct ENV_CONFIG
 {
    uint8_t measure_running;
-   uint16_t measure_period;
    uint8_t max_nr_rate;
    uint8_t max_cs_rate;
-   ENV_ITEM_ID items [DHT_ENUM_MAX];
+   ENV_DHT_MATCH items [ENV_ITEM_COUNT];
 } ENV_CONFIG;
 
 typedef void(*ENV_CALLBACK)(ENV_ITEM_ID id, const DHT_SENSOR*);
@@ -68,11 +70,17 @@ typedef void(*ENV_CALLBACK)(ENV_ITEM_ID id, const DHT_SENSOR*);
  */
 RET_CODE env_initialize(const ENV_CONFIG* cfg);
 /**
+ * @brief Deinitialize the ENV module.
+ * @return None.
+ */
+void env_deinitialize();
+/**
  * @brief Read data from defined sensor.
  * @param[in] id - the id of the sensor to be read
+ * @param[out] buffer - place, where data will be written
  * @return Temperature and humidity data.
  */
-DHT_SENSOR_DATA env_read_sensor(ENV_ITEM_ID id);
+RET_CODE env_read_sensor(ENV_ITEM_ID id, DHT_SENSOR_DATA* buffer);
 /**
  * @brief Set time between next sensor reading.
  * @param[in] period - the period between measurements in ms.
