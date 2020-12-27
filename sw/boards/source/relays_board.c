@@ -152,7 +152,7 @@ RET_CODE rel_set_verification_period(uint16_t period)
          rel_module.verification_time = period;
       }
    }
-   logger_send_if(result != RETURN_OK, __func__, "cannot set verification period; %d", period);
+   logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "cannot set verification period; %d", period);
    return result;
 }
 RET_CODE rel_verify_period(uint16_t period)

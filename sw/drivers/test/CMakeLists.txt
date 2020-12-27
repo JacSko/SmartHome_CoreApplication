@@ -119,6 +119,11 @@ add_test(NAME i2c_driver_tests COMMAND i2c_driver_tests)
 ###############################
 #	  Driver mocks
 ###############################
+add_library(gpio_configMocks INTERFACE)
+target_include_directories(gpio_configMocks INTERFACE
+          mocks
+          ../include
+)
 
 add_library(btengine_mock STATIC
 			mocks/btengine_mock.h

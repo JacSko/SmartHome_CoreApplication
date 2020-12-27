@@ -72,6 +72,8 @@ if(NOT UNIT_TESTS)
 		command_parser
 		dht_driver
 		i2c_driver
+		relays_board
+		inputs_board
 	)
 	
 #	target_include_directories(${PROJECT_NAME}.elf PUBLIC ext_lib/CMSIS/device
@@ -126,7 +128,6 @@ endif()
 
     include_directories(sw/utilities/include)
 	add_subdirectory(sw/drivers)
-	add_subdirectory(sw/gpio_lib)
 	add_subdirectory(sw/logger)
 	add_subdirectory(sw/time)
 	add_subdirectory(sw/task_scheduler)
