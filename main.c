@@ -90,30 +90,39 @@ int main(void)
 	sch_trigger_task(&print_log);
 
 //TODO to remove
-	INPUTS_CONFIG inp_config;
-	inp_config.address = 0x10;
-	inp_config.items[0].item = INPUT_WARDROBE_LED;
-	inp_config.items[0].input_no = 1;
-   inp_config.items[1].item = INPUT_BATHROOM_LED;
-   inp_config.items[1].input_no = 2;
-   inp_config.items[2].item = INPUT_SOCKETS;
-   inp_config.items[2].input_no = 9;
-   inp_config.items[3].item = INPUT_BEDROOM_AC;
-   inp_config.items[3].input_no = 10;
-   inp_config.items[4].item = INPUT_WARDROBE_AC;
-   inp_config.items[4].input_no = 11;
-   inp_config.items[5].item = INPUT_KITCHEN_AC;
-   inp_config.items[5].input_no = 12;
-   inp_config.items[6].item = INPUT_BATHROOM_AC;
-   inp_config.items[6].input_no = 13;
-   inp_config.items[7].item = INPUT_STAIRS_AC;
-   inp_config.items[7].input_no = 14;
-   inp_config.items[8].item = INPUT_STAIRS_SENSOR;
-   inp_config.items[8].input_no = 15;
-   inp_config.items[9].item = INPUT_KITCHEN_WALL;
-   inp_config.items[9].input_no = 16;
+//	INPUTS_CONFIG inp_config;
+//	inp_config.address = 0x48;
+//	inp_config.items[0].item = INPUT_WARDROBE_LED;
+//	inp_config.items[0].input_no = 1;
+//   inp_config.items[1].item = INPUT_BATHROOM_LED;
+//   inp_config.items[1].input_no = 2;
+//   inp_config.items[2].item = INPUT_SOCKETS;
+//   inp_config.items[2].input_no = 9;
+//   inp_config.items[3].item = INPUT_BEDROOM_AC;
+//   inp_config.items[3].input_no = 10;
+//   inp_config.items[4].item = INPUT_WARDROBE_AC;
+//   inp_config.items[4].input_no = 11;
+//   inp_config.items[5].item = INPUT_KITCHEN_AC;
+//   inp_config.items[5].input_no = 12;
+//   inp_config.items[6].item = INPUT_BATHROOM_AC;
+//   inp_config.items[6].input_no = 13;
+//   inp_config.items[7].item = INPUT_STAIRS_AC;
+//   inp_config.items[7].input_no = 14;
+//   inp_config.items[8].item = INPUT_STAIRS_SENSOR;
+//   inp_config.items[8].input_no = 15;
+//   inp_config.items[9].item = INPUT_KITCHEN_WALL;
+//   inp_config.items[9].input_no = 16;
+//
+//	inp_initialize(&inp_config);
 
-	inp_initialize(&inp_config);
+//	RELAYS_CONFIG rel_config;
+//
+//	rel_config.address = 0x48;
+//	rel_config.items[0].id = RELAY_BATHROOM_FAN;
+//	rel_config.items[0].relay_no = 4;
+//
+//	rel_initialize(&rel_config);
+//	rel_set(RELAY_BATHROOM_FAN, RELAY_STATE_ON);
 
 	while (1)
 	{
