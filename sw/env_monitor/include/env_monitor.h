@@ -9,7 +9,8 @@
  *
  * @details
  * This module is responsible for gathering temperature and humidity data from outside and all rooms inside.
- * It is done via DHT driver.
+ * It is done via DHT driver. All devices are read in the loop.
+ * Every device has own error rates for checksum and no response error (in percents).
  *
  * @author Jacek Skowronek
  * @date 27/12/2020
