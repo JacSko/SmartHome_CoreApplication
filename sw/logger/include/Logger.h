@@ -48,6 +48,7 @@ typedef enum
 	LOG_I2C_DRV,               /**< Logs from I2C driver - received data, etc */
 	LOG_INPUTS,                /**< Logs from Inputs module */
 	LOG_RELAYS,                /**< Logs from Relays module */
+	LOG_FAN,                   /**< Logs from Bathroom fan module */
 	LOG_ENUM_MAX               /**< Enums count */
 } LogGroup;
 

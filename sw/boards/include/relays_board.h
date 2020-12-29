@@ -39,8 +39,8 @@
  * =============================*/
 typedef enum RELAY_STATE
 {
-   RELAY_STATE_OFF,     /**< Relay is turned OFF */
-   RELAY_STATE_ON,      /**< Relay is turned ON */
+   RELAY_STATE_OFF,           /**< Relay is turned OFF */
+   RELAY_STATE_ON,            /**< Relay is turned ON */
    RELAY_STATE_ENUM_MAX,      /**< Count of enum items */
 } RELAY_STATE;
 typedef enum RELAY_ID

@@ -36,6 +36,16 @@ target_link_libraries(relays_board_tests PUBLIC
 add_test(NAME relays_board_tests COMMAND relays_board_tests)
 
 ###############################
-#	  Driver mocks
+#	  Boards mocks
 ###############################
-
+add_library(relays_board_mock STATIC
+			mocks/relays_board_mock.h
+)
+set_target_properties(relays_board_mock PROPERTIES LINKER_LANGUAGE CXX)
+target_link_libraries(relays_board_mock PUBLIC
+			i2cdriver_mock
+)
+target_include_directories(relays_board_mock PUBLIC
+          ../include
+          mocks/
+)

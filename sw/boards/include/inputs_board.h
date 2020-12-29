@@ -65,13 +65,13 @@ typedef struct INPUT_ITEM
 
 typedef struct INPUT_STATUS
 {
-   INPUT_ID id;
-   INPUT_STATE state;
+   INPUT_ID id;         /**< ID of the input */
+   INPUT_STATE state;   /**< Input state */
 } INPUT_STATUS;
 typedef struct INPUTS_CONFIG
 {
-   I2C_ADDRESS address;
-   INPUT_ITEM items [INPUTS_MAX_INPUT_LINES];
+   I2C_ADDRESS address; /**< I2C address of the input board */
+   INPUT_ITEM items [INPUTS_MAX_INPUT_LINES]; /**< Matchers of inputs IDs to inputs numbers */
 } INPUTS_CONFIG;
 
 typedef void(*INPUT_LISTENER)(INPUT_ID type, uint8_t state);

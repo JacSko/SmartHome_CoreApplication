@@ -135,4 +135,5 @@ endif()
 	add_subdirectory(sw/utilities)
 	add_subdirectory(sw/command_parser)
 	add_subdirectory(sw/boards)
+	add_subdirectory(sw/env_monitor)
 	
