@@ -38,8 +38,8 @@
  * =============================*/
 typedef enum ENV_EVENT
 {
-   ENV_EV_NEW_DATA,
-   ENV_EV_ERROR,
+   ENV_EV_NEW_DATA,     /**< New data event */
+   ENV_EV_ERROR,        /**< Sensor error event */
 } ENV_EVENT;
 typedef enum ENV_ITEM_ID
 {
@@ -54,22 +54,22 @@ typedef enum ENV_ITEM_ID
 
 typedef struct ENV_ERROR_RATE
 {
-   uint8_t nr_err_rate;
-   uint8_t cs_err_rate;
+   uint8_t nr_err_rate; /**< Percent of NoResponse errors */
+   uint8_t cs_err_rate; /**< Percent of Checksum errors */
 } ENV_ERROR_RATE;
 
 typedef struct ENV_DHT_MATCH
 {
-   ENV_ITEM_ID env_id;
-   DHT_SENSOR_ID dht_id;
+   ENV_ITEM_ID env_id;  /**< ID of sensor from ENV module */
+   DHT_SENSOR_ID dht_id; /**< ID of sensor from DHT driver */
 } ENV_DHT_MATCH;
 
 typedef struct ENV_CONFIG
 {
-   uint8_t measure_running;
-   uint8_t max_nr_rate;
-   uint8_t max_cs_rate;
-   ENV_DHT_MATCH items [ENV_SENSORS_COUNT];
+   uint8_t measure_running;   /**< Flag to idicate whether loop measurement is running */
+   uint8_t max_nr_rate;       /**< Maximum NoResponse error percent */
+   uint8_t max_cs_rate;       /**< Maximum Checksym error percent */
+   ENV_DHT_MATCH items [ENV_SENSORS_COUNT];  /**< Matchers of ENV IDs to DHT IDs */
 } ENV_CONFIG;
 
 typedef void(*ENV_CALLBACK)(ENV_EVENT event, ENV_ITEM_ID id,  const DHT_SENSOR*);
