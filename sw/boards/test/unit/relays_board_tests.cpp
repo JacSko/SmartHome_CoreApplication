@@ -49,6 +49,14 @@ struct relaysBoardFixture : public ::testing::Test
 		mock_sch_init();
 
       EXPECT_CALL(*sch_mock, sch_subscribe_and_set(_, _, _, _, _)).WillOnce(Return(RETURN_OK));
+      EXPECT_CALL(*i2c_mock, i2c_read(_,_,_)).WillOnce(Invoke([&](I2C_ADDRESS addr , uint8_t* buf, uint8_t size) -> I2C_STATUS
+            {
+               EXPECT_EQ(size, 2);
+               EXPECT_EQ(cfg.address + 1, addr);
+               buf[0] = 0xFF;
+               buf[1] = 0xFF;
+               return I2C_STATUS_OK;
+            }));
       EXPECT_EQ(RETURN_OK, rel_initialize(&cfg));
 
 	}
@@ -110,6 +118,14 @@ TEST(relaysBoardTests, initialization)
     * ************************************************
     */
    EXPECT_CALL(*sch_mock, sch_subscribe_and_set(_, _, _, _, _)).WillOnce(Return(RETURN_OK));
+   EXPECT_CALL(*i2c_mock, i2c_read(_,_,_)).WillOnce(Invoke([&](I2C_ADDRESS addr , uint8_t* buf, uint8_t size) -> I2C_STATUS
+         {
+            EXPECT_EQ(size, 2);
+            EXPECT_EQ(cfg.address + 1, addr);
+            buf[0] = 0xFF;
+            buf[1] = 0xFF;
+            return I2C_STATUS_OK;
+         }));
    EXPECT_EQ(RETURN_OK, rel_initialize(&cfg));
 
 
@@ -280,27 +296,33 @@ TEST_F(relaysBoardFixture, relay_autoupdate_tests)
     * ************************************************
     */
    EXPECT_EQ(rel_module.current_relays, 0x0000);
-   EXPECT_CALL(*i2c_mock, i2c_read_async(0x11, 2, _)).WillOnce(Return(RETURN_OK));
-   rel_on_timeout();
-
-   uint8_t result [2] = {0xFF, 0xFF};
-   rel_on_new_data(I2C_OP_READ, I2C_STATUS_OK, result, 2);
+   EXPECT_CALL(*i2c_mock, i2c_read(_,_,_)).WillOnce(Invoke([&](I2C_ADDRESS addr , uint8_t* buf, uint8_t size) -> I2C_STATUS
+         {
+            EXPECT_EQ(size, 2);
+            EXPECT_EQ(cfg.address + 1, addr);
+            buf[0] = 0xFF;
+            buf[1] = 0xFF;
+            return I2C_STATUS_OK;
+         }));
+   rel_read_state();
 
    EXPECT_EQ(rel_module.current_relays, 0x0000);
 
    /**
-    * <b>scenario</b>: Simulate autoupdate request, i2c callback error received <br>
+    * <b>scenario</b>: Simulate autoupdate request, i2c error <br>
     * <b>expected</b>: Data from I2C read, relays state not updated <br>
     * ************************************************
     */
    EXPECT_EQ(rel_module.current_relays, 0x0000);
-   EXPECT_CALL(*i2c_mock, i2c_read_async(0x11, 2, _)).WillOnce(Return(RETURN_OK));
-   rel_on_timeout();
-
-   result [0] = 0xFE;
-   result [1] = 0xFF;
-
-   rel_on_new_data(I2C_OP_READ, I2C_STATUS_ERROR, result, 2);
+   EXPECT_CALL(*i2c_mock, i2c_read(_,_,_)).WillOnce(Invoke([&](I2C_ADDRESS addr , uint8_t* buf, uint8_t size) -> I2C_STATUS
+         {
+            EXPECT_EQ(size, 2);
+            EXPECT_EQ(cfg.address + 1, addr);
+            buf[0] = 0xFE;
+            buf[1] = 0xFF;
+            return I2C_STATUS_ERROR;
+         }));
+   rel_read_state();
 
    /**
     * <b>scenario</b>: Simulate autoupdate request, data changed <br>
@@ -308,13 +330,15 @@ TEST_F(relaysBoardFixture, relay_autoupdate_tests)
     * ************************************************
     */
    EXPECT_EQ(rel_module.current_relays, 0x0000);
-   EXPECT_CALL(*i2c_mock, i2c_read_async(0x11, 2, _)).WillOnce(Return(RETURN_OK));
-   rel_on_timeout();
-
-   result [0] = 0xFE;
-   result [1] = 0xFF;
-
-   rel_on_new_data(I2C_OP_READ, I2C_STATUS_OK, result, 2);
+   EXPECT_CALL(*i2c_mock, i2c_read(_,_,_)).WillOnce(Invoke([&](I2C_ADDRESS addr , uint8_t* buf, uint8_t size) -> I2C_STATUS
+         {
+            EXPECT_EQ(size, 2);
+            EXPECT_EQ(cfg.address + 1, addr);
+            buf[0] = 0xFE;
+            buf[1] = 0xFF;
+            return I2C_STATUS_OK;
+         }));
+   rel_read_state();
 
    EXPECT_EQ(rel_module.current_relays, 0x0001);
 
