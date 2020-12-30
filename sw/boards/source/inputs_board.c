@@ -27,12 +27,12 @@
  * =============================*/
 void inp_read_inputs();
 void inp_on_timeout();
-void inp_notify_inputs_change(uint16_t change_mask);
+void inp_notify_inputs_change(const INPUT_STATUS* new_inputs);
 uint16_t inp_input_to_mask(uint8_t input);
-uint8_t inp_id_to_input_no(INPUT_ID id);
 RET_CODE inp_validate_debounce_time(uint16_t time);
 RET_CODE inp_validate_autoupdate_time(uint16_t time);
-void inp_notify_callbacks(INPUT_ID id, uint8_t state);
+void inp_notify_callbacks(const INPUT_STATUS* status);
+void inp_parse_state(uint16_t state, INPUT_STATUS* buffer);
 /* =============================
  *       Internal types
  * =============================*/
@@ -44,12 +44,14 @@ typedef struct INPUT_MODULE
    uint16_t debounce_time;
    uint8_t autoupdate_enabled;
    uint16_t autoupdate_time;
+   INPUT_STATUS current_states [INPUTS_MAX_INPUT_LINES];
+
 } INPUT_MODULE;
 /* =============================
  *      Module variables
  * =============================*/
 INPUT_MODULE inp_module;
-void (*INP_CALLBACKS[INPUTS_CALLBACK_MAX_SIZE])(INPUT_ID id, uint8_t state);
+void (*INP_CALLBACKS[INPUTS_CALLBACK_MAX_SIZE])(INPUT_STATUS status);
 
 RET_CODE inp_initialize(const INPUTS_CONFIG* config)
 {
@@ -61,6 +63,11 @@ RET_CODE inp_initialize(const INPUTS_CONFIG* config)
    inp_module.debounce_time = INPUTS_DEBOUNCE_DEF_TIME_MS;
    if (config)
    {
+      for (uint8_t i = 0; i < INPUTS_MAX_INPUT_LINES; i++)
+      {
+         inp_module.current_states[i].id = inp_module.cfg.items[i].item;
+         inp_module.current_states[i].state = INPUT_STATE_INACTIVE;
+      }
       inp_module.cfg = *config;
       /* task for inputs autoupdate */
       result = sch_subscribe_and_set(&inp_read_inputs, TASKPRIO_LOW, inp_module.autoupdate_time,
@@ -100,10 +107,13 @@ void inp_deinitialize()
 INPUT_STATE inp_get(INPUT_ID id)
 {
    INPUT_STATE result = INPUT_STATE_INACTIVE;
-   uint16_t input_mask = inp_input_to_mask(inp_id_to_input_no(id));
-   if (input_mask)
+   for (uint8_t i = 0; i < INPUTS_MAX_INPUT_LINES; i++)
    {
-      result = (inp_module.current_inputs & input_mask) > 0? INPUT_STATE_ACTIVE : INPUT_STATE_INACTIVE;
+      if (inp_module.current_states[i].id == id)
+      {
+         result = inp_module.current_states[i].state;
+         break;
+      }
    }
    return result;
 }
@@ -114,12 +124,26 @@ RET_CODE inp_get_all(INPUT_STATUS* buffer)
    {
       for (uint8_t i = 0; i < INPUTS_MAX_INPUT_LINES; i++)
       {
-         INPUT_STATUS temp;
-         temp.id = inp_module.cfg.items[i].item;
-         temp.state = inp_get(temp.id);
-         buffer[i] = temp;
+         buffer[i] = inp_module.current_states[i];
       }
       result = RETURN_OK;
+   }
+   return result;
+}
+RET_CODE inp_read_all(INPUT_STATUS* buffer)
+{
+   RET_CODE result = RETURN_NOK;
+   uint8_t data [2];
+   if (buffer)
+   {
+      if (i2c_read(inp_module.cfg.address + 1, data, 2) == I2C_STATUS_OK)
+      {
+         uint16_t new_state = data[0];
+         new_state |= (data[1] << 8);
+         new_state = ~new_state;
+         inp_parse_state(new_state, buffer);
+         result = RETURN_OK;
+      }
    }
    return result;
 }
@@ -141,42 +165,56 @@ void inp_read_inputs()
 
    if (result == I2C_STATUS_OK)
    {
-      uint16_t new_state = data[0];
-      new_state |= (data[1] << 8);
-      new_state = ~new_state;
-      inp_notify_inputs_change(new_state);
-      inp_module.current_inputs = new_state;
+      INPUT_STATUS new_states [INPUTS_MAX_INPUT_LINES];
+
+      uint16_t state = data[0];
+      state |= (data[1] << 8);
+      state = ~state;
+      inp_parse_state(state, new_states);
+      inp_notify_inputs_change(new_states);
+      inp_module.current_inputs = state;
    }
    else
    {
       logger_send(LOG_ERROR, __func__, "cannot read inputs");
    }
 }
+
+void inp_parse_state(uint16_t state, INPUT_STATUS* buffer)
+{
+   logger_send(LOG_INPUTS, __func__, "current %x new %x", inp_module.current_inputs, state);
+   for (uint8_t i = 0; i < INPUTS_MAX_INPUT_LINES; i++)
+   {
+      uint16_t inp_mask = inp_input_to_mask(inp_module.cfg.items[i].input_no);
+      buffer[i].id = inp_module.cfg.items[i].item;
+      buffer[i].state = (state & inp_mask) > 0? INPUT_STATE_ACTIVE : INPUT_STATE_INACTIVE;
+   }
+}
+
 void inp_on_timeout()
 {
    inp_read_inputs();
 }
-void inp_notify_inputs_change(uint16_t new_inputs)
+void inp_notify_inputs_change(const INPUT_STATUS* new_inputs)
 {
-   logger_send(LOG_INPUTS, __func__, "current %x new %x", inp_module.current_inputs, new_inputs);
    for (uint8_t i = 0; i < INPUTS_MAX_INPUT_LINES; i++)
    {
-      uint16_t inp_mask = inp_input_to_mask(inp_module.cfg.items[i].input_no);
-      if ( (new_inputs & inp_mask) != (inp_module.current_inputs & inp_mask) )
+      if (new_inputs[i].state != inp_module.current_states[i].state)
       {
-         logger_send(LOG_INPUTS, __func__, "changed %u to %u", inp_module.cfg.items[i].input_no, (new_inputs & inp_mask) > 0? 1 : 0);
-         inp_notify_callbacks(inp_module.cfg.items[i].item, (new_inputs & inp_mask) > 0? 1 : 0);
+         inp_module.current_states[i] = new_inputs[i];
+         logger_send(LOG_INPUTS, __func__, "changed %u to %u", inp_module.cfg.items[i].input_no, inp_module.current_states[i].state);
+         inp_notify_callbacks(&inp_module.current_states[i]);
       }
    }
 }
 
-void inp_notify_callbacks(INPUT_ID id, uint8_t state)
+void inp_notify_callbacks(const INPUT_STATUS* status)
 {
    for (uint8_t i = 0; i < INPUTS_CALLBACK_MAX_SIZE; i++)
    {
       if (INP_CALLBACKS[i])
       {
-         INP_CALLBACKS[i](id, state);
+         INP_CALLBACKS[i](*status);
       }
    }
 }
@@ -195,20 +233,6 @@ uint16_t inp_input_to_mask(uint8_t input)
 
    return result;
 }
-uint8_t inp_id_to_input_no(INPUT_ID id)
-{
-   uint8_t result = 0;
-   for (uint8_t i = 0; i < INPUTS_MAX_INPUT_LINES; i++)
-   {
-      if (inp_module.cfg.items[i].item == id)
-      {
-         result = inp_module.cfg.items[i].input_no;
-         break;
-      }
-   }
-   return result;
-}
-
 RET_CODE inp_validate_debounce_time(uint16_t time)
 {
    RET_CODE result = RETURN_NOK;

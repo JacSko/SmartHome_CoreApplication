@@ -32,14 +32,19 @@ using namespace ::testing;
 
 struct callbackMock
 {
-	MOCK_METHOD2(callback, void(INPUT_ID, uint8_t));
+	MOCK_METHOD1(callback, void(INPUT_STATUS));
 };
 
 callbackMock* callMock;
 
-void fake_callback(INPUT_ID id, uint8_t state)
+void fake_callback(INPUT_STATUS state)
 {
-	callMock->callback(id, state);
+	callMock->callback(state);
+}
+
+MATCHER_P(INPUT_STATUS_MATCH, expected, "")
+{
+   return expected.id == arg.id && expected.state == arg.state;
 }
 
 struct inputsBoardFixture : public ::testing::Test
@@ -169,7 +174,7 @@ TEST_F(inputsBoardFixture, inputs_read_periodic_event)
     * ************************************************
     */
    EXPECT_CALL(*i2c_mock, i2c_read(_,_,_)).WillOnce(Return(I2C_STATUS_ERROR));
-   EXPECT_CALL(*callMock, callback(_,_)).Times(0);
+   EXPECT_CALL(*callMock, callback(_)).Times(0);
    inp_read_inputs();
 
    /**
@@ -186,7 +191,7 @@ TEST_F(inputsBoardFixture, inputs_read_periodic_event)
                                                       buf[1] = 0x7F;
                                                       return I2C_STATUS_OK;
                                                    }));
-   EXPECT_CALL(*callMock, callback(INPUT_WARDROBE_LED,1));
+   EXPECT_CALL(*callMock, callback(INPUT_STATUS_MATCH(INPUT_STATUS{INPUT_WARDROBE_LED, INPUT_STATE_ACTIVE})));
    inp_read_inputs();
    EXPECT_EQ(INPUT_STATE_ACTIVE, inp_get(INPUT_WARDROBE_LED));
 
@@ -204,7 +209,7 @@ TEST_F(inputsBoardFixture, inputs_read_periodic_event)
                                                       buf[1] = 0x7F;
                                                       return I2C_STATUS_OK;
                                                    }));
-   EXPECT_CALL(*callMock, callback(_,_)).Times(0);
+   EXPECT_CALL(*callMock, callback(_)).Times(0);
    inp_read_inputs();
 
    /**
@@ -221,7 +226,7 @@ TEST_F(inputsBoardFixture, inputs_read_periodic_event)
                                                       buf[1] = 0xFF;
                                                       return I2C_STATUS_OK;
                                                    }));
-   EXPECT_CALL(*callMock, callback(INPUT_WARDROBE_LED,0));
+   EXPECT_CALL(*callMock, callback(INPUT_STATUS_MATCH(INPUT_STATUS{INPUT_WARDROBE_LED, INPUT_STATE_INACTIVE})));
    inp_read_inputs();
    EXPECT_EQ(INPUT_STATE_INACTIVE, inp_get(INPUT_WARDROBE_LED));
 }
@@ -251,7 +256,7 @@ TEST_F(inputsBoardFixture, inputs_read_interrupt_event)
                                                       buf[1] = 0xFF;
                                                       return I2C_STATUS_OK;
                                                    }));
-   EXPECT_CALL(*callMock, callback(INPUT_KITCHEN_AC,1));
+   EXPECT_CALL(*callMock, callback(INPUT_STATUS_MATCH(INPUT_STATUS{INPUT_KITCHEN_AC, INPUT_STATE_ACTIVE})));
    inp_on_timeout();
    EXPECT_EQ(INPUT_STATE_ACTIVE, inp_get(INPUT_KITCHEN_AC));
 
@@ -274,7 +279,7 @@ TEST_F(inputsBoardFixture, inputs_read_interrupt_event)
                                                      buf[1] = 0xFF;
                                                      return I2C_STATUS_OK;
                                                   }));
-  EXPECT_CALL(*callMock, callback(INPUT_KITCHEN_AC,0));
+  EXPECT_CALL(*callMock, callback(INPUT_STATUS_MATCH(INPUT_STATUS{INPUT_KITCHEN_AC, INPUT_STATE_INACTIVE})));
   inp_on_timeout();
   EXPECT_EQ(INPUT_STATE_INACTIVE, inp_get(INPUT_KITCHEN_AC));
 }
@@ -404,7 +409,7 @@ TEST_F(inputsBoardFixture, inputs_listeners_add_remove)
                                                       buf[1] = 0xFF;
                                                       return I2C_STATUS_OK;
                                                    }));
-   EXPECT_CALL(*callMock, callback(INPUT_KITCHEN_WALL,1)).Times(2);
+   EXPECT_CALL(*callMock, callback(INPUT_STATUS_MATCH(INPUT_STATUS{INPUT_KITCHEN_WALL, INPUT_STATE_ACTIVE}))).Times(2);
    inp_read_inputs();
 
    /**
@@ -423,7 +428,7 @@ TEST_F(inputsBoardFixture, inputs_listeners_add_remove)
                                                       buf[1] = 0xFF;
                                                       return I2C_STATUS_OK;
                                                    }));
-   EXPECT_CALL(*callMock, callback(INPUT_KITCHEN_WALL,0)).Times(1);
+   EXPECT_CALL(*callMock, callback(INPUT_STATUS_MATCH(INPUT_STATUS{INPUT_KITCHEN_WALL, INPUT_STATE_INACTIVE}))).Times(1);
    inp_read_inputs();
 
 }
@@ -449,7 +454,7 @@ TEST_F(inputsBoardFixture, inputs_change_not_configured_input)
                                                       buf[1] = 0xFE;
                                                       return I2C_STATUS_OK;
                                                    }));
-   EXPECT_CALL(*callMock, callback(_,_)).Times(0);
+   EXPECT_CALL(*callMock, callback(_)).Times(0);
    inp_read_inputs();
 }
 
@@ -474,9 +479,9 @@ TEST_F(inputsBoardFixture, inputs_change_the_same_time)
                                                       buf[1] = 0xFF;
                                                       return I2C_STATUS_OK;
                                                    }));
-   EXPECT_CALL(*callMock, callback(INPUT_SOCKETS,1));
-   EXPECT_CALL(*callMock, callback(INPUT_BEDROOM_AC,1));
-   EXPECT_CALL(*callMock, callback(INPUT_WARDROBE_AC,1));
+   EXPECT_CALL(*callMock, callback(INPUT_STATUS_MATCH(INPUT_STATUS{INPUT_SOCKETS, INPUT_STATE_ACTIVE})));
+   EXPECT_CALL(*callMock, callback(INPUT_STATUS_MATCH(INPUT_STATUS{INPUT_BEDROOM_AC, INPUT_STATE_ACTIVE})));
+   EXPECT_CALL(*callMock, callback(INPUT_STATUS_MATCH(INPUT_STATUS{INPUT_WARDROBE_AC, INPUT_STATE_ACTIVE})));
    inp_read_inputs();
 
    INPUT_STATUS result [INPUTS_MAX_INPUT_LINES];
@@ -494,4 +499,53 @@ TEST_F(inputsBoardFixture, inputs_change_the_same_time)
 
    EXPECT_EQ(result[4].id, INPUT_WARDROBE_AC);
    EXPECT_EQ(result[4].state, INPUT_STATE_ACTIVE);
+}
+
+/**
+ * @test Reading all inputs state directly from board
+ */
+TEST_F(inputsBoardFixture, inputs_read_all_tests)
+{
+   EXPECT_EQ(RETURN_OK, inp_add_input_listener(&fake_callback));
+   EXPECT_CALL(*callMock, callback(_)).Times(0);
+   INPUT_STATUS results [INPUTS_MAX_INPUT_LINES];
+   /**
+    * <b>scenario</b>: No buffer provided <br>
+    * <b>expected</b>: RETURN_NOK returned <br>
+    * ************************************************
+    */
+   EXPECT_EQ(RETURN_NOK, inp_read_all(nullptr));
+
+   /**
+    * <b>scenario</b>: Cannot read I2C data <br>
+    * <b>expected</b>: RETURN_NOK returned <br>
+    * ************************************************
+    */
+   EXPECT_CALL(*i2c_mock, i2c_read(_,_,_)).WillOnce(Return(I2C_STATUS_ERROR));
+   EXPECT_EQ(RETURN_NOK, inp_read_all(results));
+
+   /**
+    * <b>scenario</b>: Data from board read correctly <br>
+    * <b>expected</b>: RETURN_OK returned <br>
+    * ************************************************
+    */
+
+   EXPECT_CALL(*i2c_mock, i2c_read(_,_,_)).WillOnce(Invoke([&]
+                                                   (I2C_ADDRESS addr, uint8_t* buf, uint8_t size) -> I2C_STATUS
+                                                   {
+                                                      EXPECT_EQ(addr, cfg.address+1);
+                                                      EXPECT_EQ(size, 2);
+                                                      buf[0] = 0xF8;
+                                                      buf[1] = 0xFF;
+                                                      return I2C_STATUS_OK;
+                                                   }));
+
+   EXPECT_EQ(RETURN_OK, inp_read_all(results));
+   EXPECT_EQ(results[2].id, INPUT_SOCKETS);
+   EXPECT_EQ(results[2].state, INPUT_STATE_ACTIVE);
+   EXPECT_EQ(results[3].id, INPUT_BEDROOM_AC);
+   EXPECT_EQ(results[3].state, INPUT_STATE_ACTIVE);
+   EXPECT_EQ(results[4].id, INPUT_WARDROBE_AC);
+   EXPECT_EQ(results[4].state, INPUT_STATE_ACTIVE);
+
 }

@@ -74,7 +74,7 @@ typedef struct INPUTS_CONFIG
    INPUT_ITEM items [INPUTS_MAX_INPUT_LINES]; /**< Matchers of inputs IDs to inputs numbers */
 } INPUTS_CONFIG;
 
-typedef void(*INPUT_LISTENER)(INPUT_ID type, uint8_t state);
+typedef void(*INPUT_LISTENER)(INPUT_STATUS status);
 
 
 /**
@@ -100,6 +100,12 @@ INPUT_STATE inp_get(INPUT_ID id);
  * @return See RETURN_CODES.
  */
 RET_CODE inp_get_all(INPUT_STATUS* buffer);
+/**
+ * @brief Get state of all inputs - state is read directly from input board.
+ * @param[in] buffer - place where input state will be written - it has to have place for at least 16 elements
+ * @return See RETURN_CODES.
+ */
+RET_CODE inp_read_all(INPUT_STATUS* buffer);
 /**
  * @brief Get inputs config.
  * @param[in] buffer - place where input config will be written.
