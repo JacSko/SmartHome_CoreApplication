@@ -24,6 +24,7 @@ uint16_t rel_relay_to_mask(uint8_t relay_no);
 RET_CODE rel_verify_period(uint16_t period);
 void rel_on_new_data(I2C_OP_TYPE type, I2C_STATUS status, const uint8_t* data, uint8_t size);
 void rel_on_timeout();
+void rel_update_relays_state(uint16_t relays, RELAY_STATUS* status);
 /* =============================
  *       Internal types
  * =============================*/
@@ -33,6 +34,7 @@ typedef struct RELAY_MODULE
    uint16_t current_relays;
    uint8_t verification_enabled;
    uint16_t verification_time;
+   RELAY_STATUS current_status [RELAYS_BOARD_COUNT];
 } RELAY_MODULE;
 /* =============================
  *      Module variables
@@ -52,6 +54,14 @@ RET_CODE rel_initialize(const RELAYS_CONFIG* config)
       rel_module.cfg = *config;
       result = sch_subscribe_and_set(&rel_on_timeout, TASKPRIO_LOW, rel_module.verification_time,
                rel_module.verification_enabled? TASKSTATE_RUNNING : TASKSTATE_STOPPED, TASKTYPE_PERIODIC);
+
+      for (uint8_t i = 0; i < RELAYS_BOARD_COUNT; i++)
+      {
+         rel_module.current_status[i].id = rel_module.cfg.items[i].id;
+         rel_module.current_status[i].state = RELAY_STATE_ON;
+      }
+
+      //TODO read relays here
    }
    logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "error during initialization");
    return result;
@@ -96,6 +106,7 @@ RET_CODE rel_set(RELAY_ID id, RELAY_STATE state)
       {
          result = RETURN_OK;
          rel_module.current_relays = ~new_relays;
+         rel_update_relays_state(rel_module.current_relays, rel_module.current_status);
          logger_send(LOG_RELAYS, __func__, "new state %x", rel_module.current_relays);
       }
       else
@@ -109,10 +120,12 @@ RET_CODE rel_set(RELAY_ID id, RELAY_STATE state)
 RELAY_STATE rel_get(RELAY_ID id)
 {
    RELAY_STATE result = RELAY_STATE_ENUM_MAX;
-   uint16_t mask = rel_id_to_mask(id);
-   if (mask)
+   for (uint8_t i = 0; i < RELAYS_BOARD_COUNT; i++)
    {
-      result = (rel_module.current_relays & mask) > 0? RELAY_STATE_ON : RELAY_STATE_OFF;
+      if (rel_module.current_status[i].id == id)
+      {
+         result = rel_module.current_status[i].state;
+      }
    }
    return result;
 }
@@ -123,10 +136,26 @@ RET_CODE rel_get_all(RELAY_STATUS* buffer)
    {
       for (uint8_t i = 0; i < RELAYS_BOARD_COUNT; i++)
       {
-         buffer[i].id = rel_module.cfg.items[i].id;
-         buffer[i].state = rel_get(buffer[i].id);
+         buffer[i] = rel_module.current_status[i];
       }
       result = RETURN_OK;
+   }
+   return result;
+}
+RET_CODE rel_read_all(RELAY_STATUS* buffer)
+{
+   RET_CODE result = RETURN_NOK;
+   if (buffer)
+   {
+      uint8_t data [2];
+      if (i2c_read(rel_module.cfg.address + 1, data, 2) == I2C_STATUS_OK)
+      {
+         uint16_t recv_relays = data[0];
+         recv_relays |= (data[1] << 8);
+         recv_relays = ~recv_relays;
+         rel_update_relays_state(recv_relays, buffer);
+         result = RETURN_OK;
+      }
    }
    return result;
 }
@@ -202,10 +231,20 @@ void rel_on_new_data(I2C_OP_TYPE type, I2C_STATUS status, const uint8_t* data, u
       {
          logger_send(LOG_ERROR, __func__, "relay mismatch detected: old %x new %x", rel_module.current_relays, recv_relays);
          rel_module.current_relays = recv_relays;
+         rel_update_relays_state(rel_module.current_relays, rel_module.current_status);
       }
    }
    else
    {
       logger_send(LOG_ERROR, __func__, "i2c error t:%d st:%d, size:%d", type, status, size);
+   }
+}
+
+void rel_update_relays_state(uint16_t relays, RELAY_STATUS* status)
+{
+   for (uint8_t i = 0; i < RELAYS_BOARD_COUNT; i++)
+   {
+      status[i].id = rel_module.cfg.items[i].id;
+      status[i].state = (relays & rel_id_to_mask(rel_module.cfg.items[i].id)) > 0? RELAY_STATE_ON : RELAY_STATE_OFF;
    }
 }

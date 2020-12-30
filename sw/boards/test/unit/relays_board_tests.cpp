@@ -386,3 +386,46 @@ TEST_F(relaysBoardFixture, relay_autoupdate_on_off_tests)
    EXPECT_EQ(rel_get_verification_state(), RETURN_OK);
 
 }
+
+/**
+ * @test Reading all relays state directly from board.
+ */
+TEST_F(relaysBoardFixture, relay_read_from_board_tests)
+{
+   RELAY_STATUS results [RELAYS_BOARD_COUNT];
+   /**
+    * <b>scenario</b>: No buffer provided <br>
+    * <b>expected</b>: RETURN_NOK returned <br>
+    * ************************************************
+    */
+   EXPECT_EQ(RETURN_NOK, rel_read_all(nullptr));
+
+   /**
+    * <b>scenario</b>: Cannot read I2C data <br>
+    * <b>expected</b>: RETURN_NOK returned <br>
+    * ************************************************
+    */
+   EXPECT_CALL(*i2c_mock, i2c_read(_,_,_)).WillOnce(Return(I2C_STATUS_ERROR));
+   EXPECT_EQ(RETURN_NOK, rel_read_all(results));
+
+   /**
+    * <b>scenario</b>: Relays read correctly <br>
+    * <b>expected</b>: RETURN_OK returned <br>
+    * ************************************************
+    */
+   EXPECT_CALL(*i2c_mock, i2c_read(_,_,_)).WillOnce(Invoke([&](I2C_ADDRESS addr, uint8_t* buf, uint8_t size) -> I2C_STATUS
+         {
+            EXPECT_EQ(addr, cfg.address + 1);
+            EXPECT_EQ(size, 2);
+            buf[0] = 0xFE;
+            buf[1] = 0xFF;
+            return I2C_STATUS_OK;
+         }));
+   EXPECT_EQ(RETURN_OK, rel_read_all(results));
+
+   EXPECT_EQ(results[0].id, RELAY_WARDROBE_LED);
+   EXPECT_EQ(results[0].state, RELAY_STATE_ON);
+   EXPECT_EQ(results[1].id, RELAY_BATHROOM_LED);
+   EXPECT_EQ(results[1].state, RELAY_STATE_OFF);
+
+}
