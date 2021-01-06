@@ -50,17 +50,18 @@ typedef struct SLM_PROGRAM
 } SLM_PROGRAM;
 typedef enum SLM_STATE
 {
-   SLM_STATE_OFF,          /**< Module is in idle state, ready to work */
-   SLM_STATE_ONGOING_ON,   /**< Program is running, leds goes forward */
-   SLM_STATE_ON,           /**< All LEDs are ON */
-   SLM_STATE_ONGOING_OFF,  /**< Program is running, leds goes backwards */
+   SLM_STATE_OFF,                /**< Module is in idle state, ready to work */
+   SLM_STATE_ONGOING_ON,         /**< Program is running, leds goes forward */
+   SLM_STATE_ON,                 /**< All LEDs are ON */
+   SLM_STATE_OFF_EFFECT,         /**< OFF effect is active */
+   SLM_STATE_OFF_EFFECT_READY,   /**< OFF effect is done */
+   SLM_STATE_ONGOING_OFF,        /**< Program is running, leds goes backwards */
 } SLM_STATE;
 typedef enum SLM_PROGRAM_ID
 {
    SLM_PROGRAM1,
    SLM_PROGRAM2,
    SLM_PROGRAM3,
-   SLM_NO_PROGRAM,
 } SLM_PROGRAM_ID;
 typedef enum SLM_OFF_EFFECT_MODE
 {
@@ -91,17 +92,15 @@ void slm_deinitialize();
  */
 RET_CODE slm_get_config(SLM_CONFIG* buffer);
 /**
- * @brief Starts defined program. Program need to be stopped manually, there is not timeout.
- * @param[in] in - ID of the program to run.
+ * @brief Starts current program. Program need to be stopped manually, there is not timeout.
  * @return See RETURN_CODES.
  */
-RET_CODE slm_start_program_alw_on(SLM_PROGRAM_ID id);
+RET_CODE slm_start_program_alw_on();
 /**
- * @brief Starts defined program. Program is stopped automatically.
- * @param[in] in - ID of the program to run.
+ * @brief Starts current program. Program is stopped automatically.
  * @return See RETURN_CODES.
  */
-RET_CODE slm_start_program(SLM_PROGRAM_ID id);
+RET_CODE slm_start_program();
 /**
  * @brief Stops currently enabled program.
  * @return See RETURN_CODES.
@@ -117,12 +116,6 @@ SLM_STATE slm_get_state();
  * @return ID of the program.
  */
 SLM_PROGRAM_ID slm_get_current_program_id();
-/**
- * @brief Set current program by ID.
- * @param[in] id - ID of the program to be set.
- * @return See RETURN_CODES.
- */
-RET_CODE slm_set_program_id(SLM_PROGRAM_ID id);
 /**
  * @brief Get defined program details.
  * @param[in] id - ID of the program to get.

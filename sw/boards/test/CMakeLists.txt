@@ -49,3 +49,16 @@ target_include_directories(relays_board_mock PUBLIC
           ../include
           mocks/
 )
+
+
+add_library(inputs_board_mock STATIC
+			mocks/relays_board_mock.h
+)
+set_target_properties(inputs_board_mock PROPERTIES LINKER_LANGUAGE CXX)
+target_link_libraries(inputs_board_mock PUBLIC
+			i2cdriver_mock
+)
+target_include_directories(inputs_board_mock PUBLIC
+          ../include
+          mocks/
+)

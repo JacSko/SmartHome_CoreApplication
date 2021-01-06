@@ -12,6 +12,7 @@ target_link_libraries(stairs_led_module PUBLIC
         i2c_driver
         logger
         task_scheduler
+        inputs_board
 )
 
 else ()
