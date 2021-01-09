@@ -36,8 +36,8 @@ typedef struct SLM_MODULE
  * =============================*/
 void slm_prepare_default_programs();
 void slm_on_timeout();
-RET_CODE slm_send_step(const SLM_STEP* step);
-RET_CODE slm_run_program(SLM_REQ_TYPE type);
+void slm_send_step(const SLM_STEP* step);
+void slm_run_program(SLM_REQ_TYPE type);
 RET_CODE slm_is_program_valid(const SLM_PROGRAM* program);
 void slm_on_sensor_state_change(INPUT_STATUS status);
 /* =============================
@@ -51,6 +51,7 @@ RET_CODE slm_initialize(const SLM_CONFIG* config)
    RET_CODE result = RETURN_NOK;
    slm_prepare_default_programs();
 
+   logger_send(LOG_SLM, __func__,"");
    if (config)
    {
       led_module.cfg = *config;
@@ -66,6 +67,7 @@ RET_CODE slm_initialize(const SLM_CONFIG* config)
       if (result == RETURN_OK)
       {
          result = inp_add_input_listener(&slm_on_sensor_state_change);
+         logger_send(LOG_SLM, __func__,"init OK");
       }
    }
 
@@ -74,6 +76,7 @@ RET_CODE slm_initialize(const SLM_CONFIG* config)
 
 void slm_on_timeout()
 {
+   logger_send(LOG_SLM, __func__,"state: %d", led_module.state);
    switch(led_module.state)
    {
    case SLM_STATE_OFF:
@@ -146,6 +149,7 @@ void slm_on_sensor_state_change(INPUT_STATUS status)
 {
    if (status.id == INPUT_STAIRS_SENSOR && status.state == INPUT_STATE_ACTIVE)
    {
+      logger_send(LOG_SLM, __func__,"state %d", led_module.state);
       switch(led_module.state)
       {
       case SLM_STATE_OFF:
@@ -286,18 +290,12 @@ void slm_prepare_default_programs()
    LED_PROGRAMS[SLM_PROGRAM3].off_effect_steps[9].period = 200;
 
 }
-RET_CODE slm_send_step(const SLM_STEP* step)
+void slm_send_step(const SLM_STEP* step)
 {
-   RET_CODE result = RETURN_OK;
-   if (i2c_write(led_module.cfg.address, &(step->leds_state), 2) == I2C_STATUS_OK)
-   {
-      sch_set_task_period(&slm_on_timeout, step->period);
-      sch_trigger_task(&slm_on_timeout);
-      result = RETURN_OK;
-   }
-
-   logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "cannot send data");
-   return result;
+   logger_send(LOG_SLM, __func__,"sending %x, t;%dms", step->leds_state, step->period);
+   i2c_write(led_module.cfg.address, &(step->leds_state), 2);
+   sch_set_task_period(&slm_on_timeout, step->period);
+   sch_trigger_task(&slm_on_timeout);
 }
 RET_CODE slm_get_config(SLM_CONFIG* buffer)
 {
@@ -311,51 +309,50 @@ RET_CODE slm_get_config(SLM_CONFIG* buffer)
 }
 RET_CODE slm_start_program_alw_on()
 {
+   logger_send(LOG_SLM, __func__,"");
    RET_CODE result = RETURN_NOK;
    if (slm_get_state() == SLM_STATE_OFF)
    {
-      result = slm_run_program(SLM_REQ_ALW_ON);
+      slm_run_program(SLM_REQ_ALW_ON);
+      result = RETURN_OK;
    }
+   logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "invalid state");
    return result;
 }
 RET_CODE slm_start_program()
 {
+   logger_send(LOG_SLM, __func__,"");
    RET_CODE result = RETURN_NOK;
    if (slm_get_state() == SLM_STATE_OFF)
    {
-      result = slm_run_program(SLM_REQ_NORMAL);
+      slm_run_program(SLM_REQ_NORMAL);
+      result = RETURN_OK;
    }
+   logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "invalid state");
    return result;
 }
-RET_CODE slm_run_program(SLM_REQ_TYPE type)
+void slm_run_program(SLM_REQ_TYPE type)
 {
-   RET_CODE result = RETURN_NOK;
-
-   switch(led_module.state)
-   {
-   case SLM_STATE_OFF:
-      led_module.type = type;
-      led_module.state = SLM_STATE_ONGOING_ON;
-      led_module.step_id = 1;
-      led_module.step = &(led_module.program->program_steps[led_module.step_id]);
-      slm_send_step(led_module.step);
-      result = RETURN_OK;
-      break;
-   }
-
-   return result;
+   logger_send(LOG_SLM, __func__,"");
+   led_module.type = type;
+   led_module.state = SLM_STATE_ONGOING_ON;
+   led_module.step_id = 1;
+   led_module.step = &(led_module.program->program_steps[led_module.step_id]);
+   slm_send_step(led_module.step);
 }
 RET_CODE slm_stop_program()
 {
+   logger_send(LOG_SLM, __func__,"");
    RET_CODE result = RETURN_NOK;
    if (led_module.state == SLM_STATE_ON)
    {
       if (led_module.cfg.off_effect_mode == SLM_OFF_EFFECT_ENABLED)
       {
          led_module.state = SLM_STATE_OFF_EFFECT;
-         led_module.step_id = led_module.program->off_effect_steps_count - 2;
+         led_module.step_id = 0;
          led_module.step = &(led_module.program->off_effect_steps[led_module.step_id]);
          slm_send_step(led_module.step);
+         logger_send(LOG_SLM, __func__,"started off effect");
       }
       else
       {
@@ -363,9 +360,11 @@ RET_CODE slm_stop_program()
          led_module.step_id = led_module.program->program_steps_count - 2;
          led_module.step = &(led_module.program->program_steps[led_module.step_id]);
          slm_send_step(led_module.step);
+         logger_send(LOG_SLM, __func__,"started disabling");
       }
       result = RETURN_OK;
    }
+   logger_send_if(result != RETURN_OK, LOG_ERROR, __func__,"invalid state");
    return result;
 }
 SLM_STATE slm_get_state()
@@ -403,6 +402,7 @@ RET_CODE slm_is_program_valid(const SLM_PROGRAM* program)
    {
       if (program->program_steps[i].period < 10)
       {
+         logger_send(LOG_SLM, __func__,"invalid period, program step %d", i);
          result = RETURN_NOK;
          break;
       }
@@ -412,10 +412,12 @@ RET_CODE slm_is_program_valid(const SLM_PROGRAM* program)
    {
       if (program->off_effect_steps[i].period < 10)
       {
+         logger_send(LOG_SLM, __func__,"invalid period, off program step %d", i);
          result = RETURN_NOK;
          break;
       }
    }
+   logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "invalid program");
    return result;
 }
 
@@ -429,11 +431,13 @@ RET_CODE slm_replace_program(SLM_PROGRAM_ID id, const SLM_PROGRAM* program)
       {
          if (slm_is_program_valid(program) == RETURN_OK)
          {
+            logger_send(LOG_SLM, __func__,"program %d replaced", id);
             LED_PROGRAMS[id] = *program;
             result = RETURN_OK;
          }
       }
    }
+   logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "cannot replace program %d", id);
    return result;
 }
 

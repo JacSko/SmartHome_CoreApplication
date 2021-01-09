@@ -92,6 +92,8 @@ const char* logger_get_group_name(LogGroup group)
       return "REL";
    case LOG_FAN:
       return "FAN";
+   case LOG_SLM:
+      return "SLM";
    default:
 		return "";
 	}
