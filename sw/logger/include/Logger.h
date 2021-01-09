@@ -49,6 +49,7 @@ typedef enum
 	LOG_INPUTS,                /**< Logs from Inputs module */
 	LOG_RELAYS,                /**< Logs from Relays module */
 	LOG_FAN,                   /**< Logs from Bathroom fan module */
+	LOG_SLM,                   /**< Logs from StairsLedModule */
 	LOG_ENUM_MAX               /**< Enums count */
 } LogGroup;
 

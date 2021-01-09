@@ -11,6 +11,7 @@ struct relMock
    MOCK_METHOD2(rel_set, RET_CODE(RELAY_ID id, RELAY_STATE state));
    MOCK_METHOD1(rel_get, RELAY_STATE(RELAY_ID));
    MOCK_METHOD1(rel_get_all, RET_CODE(RELAY_STATUS*));
+   MOCK_METHOD1(rel_read_all, RET_CODE(RELAY_STATUS*));
    MOCK_METHOD1(rel_get_config, RET_CODE(RELAYS_CONFIG*));
    MOCK_METHOD1(rel_set_verification_period, RET_CODE(uint16_t));
    MOCK_METHOD0(rel_get_verification_period, uint16_t());
@@ -49,6 +50,10 @@ RELAY_STATE rel_get(RELAY_ID id)
 RET_CODE rel_get_all(RELAY_STATUS* buffer)
 {
    return rel_mock->rel_get_all(buffer);
+}
+RET_CODE rel_read_all(RELAY_STATUS* buffer)
+{
+   return rel_mock->rel_read_all(buffer);
 }
 RET_CODE rel_get_config(RELAYS_CONFIG* buffer)
 {

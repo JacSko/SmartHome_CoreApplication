@@ -107,6 +107,12 @@ RELAY_STATE rel_get(RELAY_ID id);
  */
 RET_CODE rel_get_all(RELAY_STATUS* buffer);
 /**
+ * @brief Get state of all relays - state is read from relay board.
+ * @param[in] buffer - place where relays status will be written - it have to be at least 16 elements array.
+ * @return See RETURN_CODES.
+ */
+RET_CODE rel_read_all(RELAY_STATUS* buffer);
+/**
  * @brief Get relays config.
  * @param[in] buffer - place where relays config will be written.
  * @return See RETURN_CODES.
