@@ -10,10 +10,8 @@
 #include "i2c_driver.h"
 #include "inputs_board.h"
 #include "relays_board.h"
+#include "stairs_led_module.h"
 
-
-//TODO remove
-#include "dht_driver.h"
 /**
  * 	System config:
  * 	HSI - 16MHz
@@ -41,7 +39,7 @@
 
 void print_log()
 {
-   uint8_t i2c_address = 0x48;
+   logger_send(LOG_ERROR,  __func__,"test");
    sch_trigger_task(&print_log);
 }
 
@@ -50,9 +48,8 @@ int main(void)
 	time_init();
 	sch_initialize();
 	sch_subscribe(&print_log);
-	sch_set_task_period(&print_log, 10000);
+	sch_set_task_period(&print_log, 20000);
 	sch_set_task_type(&print_log, TASKTYPE_TRIGGER);
-
 
 	BT_Config config = {UART_COMMON_BAUD_RATE, UART_COMMON_BUFFER_SIZE, UART_COMMON_STRING_SIZE};
 	btengine_initialize(&config);
@@ -64,65 +61,26 @@ int main(void)
 	logger_set_group_state(LOG_WIFI_MANAGER, LOGGER_GROUP_ENABLE);
 	logger_set_group_state(LOG_INPUTS, LOGGER_GROUP_ENABLE);
 	logger_set_group_state(LOG_RELAYS, LOGGER_GROUP_ENABLE);
+	logger_set_group_state(LOG_SLM, LOGGER_GROUP_ENABLE);
 	logger_send(LOG_DEBUG, __FILE__, "Booting up!");
 
-
-// WIFI_UART_Config wifi_config = {UART_COMMON_BAUD_RATE, UART_COMMON_BUFFER_SIZE, UART_COMMON_STRING_SIZE};
-//	if (wifimgr_initialize(&wifi_config) == RETURN_OK)
-//	{
-//		logger_register_sender(&wifimgr_broadcast_data);
-//		logger_send(LOG_DEBUG, __func__, "Wifi manager started");
-//	}
-
 	cmd_register_bt_sender(&btengine_send_string);
-	cmd_register_wifi_sender(&wifimgr_send_data);
 	if (btengine_register_callback(&cmd_handle_bt_data) != RETURN_OK)
 	{
 		logger_send(LOG_ERROR, __FILE__, "Cannot add BT callback!");
 	}
-//	if (wifimgr_register_data_callback(&cmd_handle_wifi_data) != RETURN_OK)
-//	{
-//		logger_send(LOG_ERROR, __FILE__, "Cannot add WIFI callback!");
-//	}
 
 	logger_send(LOG_DEBUG, __FILE__, "Booting completed!");
 	i2c_initialize();
 	sch_trigger_task(&print_log);
 
-//TODO to remove
-//	INPUTS_CONFIG inp_config;
-//	inp_config.address = 0x48;
-//	inp_config.items[0].item = INPUT_WARDROBE_LED;
-//	inp_config.items[0].input_no = 1;
-//   inp_config.items[1].item = INPUT_BATHROOM_LED;
-//   inp_config.items[1].input_no = 2;
-//   inp_config.items[2].item = INPUT_SOCKETS;
-//   inp_config.items[2].input_no = 9;
-//   inp_config.items[3].item = INPUT_BEDROOM_AC;
-//   inp_config.items[3].input_no = 10;
-//   inp_config.items[4].item = INPUT_WARDROBE_AC;
-//   inp_config.items[4].input_no = 11;
-//   inp_config.items[5].item = INPUT_KITCHEN_AC;
-//   inp_config.items[5].input_no = 12;
-//   inp_config.items[6].item = INPUT_BATHROOM_AC;
-//   inp_config.items[6].input_no = 13;
-//   inp_config.items[7].item = INPUT_STAIRS_AC;
-//   inp_config.items[7].input_no = 14;
-//   inp_config.items[8].item = INPUT_STAIRS_SENSOR;
-//   inp_config.items[8].input_no = 15;
-//   inp_config.items[9].item = INPUT_KITCHEN_WALL;
-//   inp_config.items[9].input_no = 16;
-//
-//	inp_initialize(&inp_config);
+	SLM_CONFIG led_config;
+	led_config.address = 0x48;
+	led_config.off_effect_mode = SLM_OFF_EFFECT_ENABLED;
+	led_config.program_id = SLM_PROGRAM1;
 
-//	RELAYS_CONFIG rel_config;
-//
-//	rel_config.address = 0x48;
-//	rel_config.items[0].id = RELAY_BATHROOM_FAN;
-//	rel_config.items[0].relay_no = 4;
-//
-//	rel_initialize(&rel_config);
-//	rel_set(RELAY_BATHROOM_FAN, RELAY_STATE_ON);
+	slm_initialize(&led_config);
+
 
 	while (1)
 	{

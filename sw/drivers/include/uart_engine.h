@@ -54,6 +54,14 @@ void uartengine_deinitialize();
  */
 RET_CODE uartengine_send_string(const char *);
 /**
+ * @brief Send bytes over UART module.
+ * @details Function is blocking if there is no place in internal buffer.
+ * @param[in] data - pointer to data to send
+ * @param[in] size - size of data
+ * @return See RETURN_CODES.
+ */
+RET_CODE uartengine_send_bytes(const uint8_t* data, uint16_t size);
+/**
  * @brief Checks if there is string received in buffer.
  * @return RETURN_OK if string can be read.
  */

@@ -22,6 +22,7 @@ void start_sending();
 void stop_sending();
 void uartengine_notify_callbacks();
 RET_CODE uartengine_get_string_from_buffer();
+void uartengine_write_byte(const uint8_t* byte);
 /* =============================
  *       Internal types
  * =============================*/
@@ -98,27 +99,42 @@ void uartengine_deinitialize()
 
 RET_CODE uartengine_send_string(const char * buffer)
 {
-	if (!uart_tx_buf.buf)
-	{
-		return RETURN_ERROR;
-	}
+   if (!uart_tx_buf.buf)
+   {
+      return RETURN_ERROR;
+   }
+   while (*buffer)
+   {
+      uartengine_write_byte((uint8_t*)buffer++);
+   }
+   start_sending();
+   return RETURN_OK;
+}
 
-	char c;
-	__disable_irq();
-	while (*buffer)
-	{
-		c = *buffer;
-		uart_tx_buf.buf[uart_tx_buf.head] = c;
-		uart_tx_buf.head++;
-		if (uart_tx_buf.head == uart_config.buffer_size)
-		{
-			uart_tx_buf.head = 0;
-		}
-		buffer++;
-	}
-	__enable_irq();
-	start_sending();
-	return RETURN_OK;
+RET_CODE uartengine_send_bytes(const uint8_t* data, uint16_t size)
+{
+   if (!uart_tx_buf.buf)
+   {
+      return RETURN_ERROR;
+   }
+   for (uint16_t i = 0; i < size; i++)
+   {
+      uartengine_write_byte(data + i);
+   }
+   start_sending();
+   return RETURN_OK;
+}
+
+void uartengine_write_byte(const uint8_t* byte)
+{
+   __disable_irq();
+   uart_tx_buf.buf[uart_tx_buf.head] = *byte;
+   uart_tx_buf.head++;
+   if (uart_tx_buf.head == uart_config.buffer_size)
+   {
+      uart_tx_buf.head = 0;
+   }
+   __enable_irq();
 }
 
 RET_CODE uartengine_can_read_string()

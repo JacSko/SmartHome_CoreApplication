@@ -132,7 +132,4 @@ RET_CODE slm_get_program_by_id(SLM_PROGRAM_ID id, SLM_PROGRAM* buffer);
 RET_CODE slm_replace_program(SLM_PROGRAM_ID id, const SLM_PROGRAM* program);
 
 
-
-
-
 #endif

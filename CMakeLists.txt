@@ -74,6 +74,7 @@ if(NOT UNIT_TESTS)
 		i2c_driver
 		relays_board
 		inputs_board
+		stairs_led_module
 	)
 	
 #	target_include_directories(${PROJECT_NAME}.elf PUBLIC ext_lib/CMSIS/device

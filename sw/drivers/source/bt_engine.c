@@ -22,6 +22,7 @@ void btengine_start_sending();
 void btengine_stop_sending();
 void btengine_notify_callbacks();
 RET_CODE btengine_get_string_from_buffer();
+void btengine_write_byte(const uint8_t* byte);
 /* =============================
  *       Internal types
  * =============================*/
@@ -94,7 +95,6 @@ void btengine_deinitialize()
 	{
 		BT_CALLBACKS[i] = NULL;
 	}
-
 }
 
 RET_CODE btengine_send_string(const char * buffer)
@@ -103,23 +103,38 @@ RET_CODE btengine_send_string(const char * buffer)
 	{
 		return RETURN_ERROR;
 	}
-
-	char c;
-	__disable_irq();
 	while (*buffer)
 	{
-		c = *buffer;
-		bt_tx_buf.buf[bt_tx_buf.head] = c;
-		bt_tx_buf.head++;
-		if (bt_tx_buf.head == config.buffer_size)
-		{
-			bt_tx_buf.head = 0;
-		}
-		buffer++;
+		btengine_write_byte((uint8_t*)buffer++);
 	}
-	__enable_irq();
 	btengine_start_sending();
 	return RETURN_OK;
+}
+
+RET_CODE btengine_send_bytes(const uint8_t* data, uint16_t size)
+{
+   if (!bt_tx_buf.buf)
+   {
+      return RETURN_ERROR;
+   }
+   for (uint16_t i = 0; i < size; i++)
+   {
+      btengine_write_byte(data + i);
+   }
+   btengine_start_sending();
+   return RETURN_OK;
+}
+
+void btengine_write_byte(const uint8_t* byte)
+{
+   __disable_irq();
+   bt_tx_buf.buf[bt_tx_buf.head] = *byte;
+   bt_tx_buf.head++;
+   if (bt_tx_buf.head == config.buffer_size)
+   {
+      bt_tx_buf.head = 0;
+   }
+   __enable_irq();
 }
 
 RET_CODE btengine_can_read_string()

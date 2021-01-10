@@ -93,7 +93,6 @@ RET_CODE i2c_write_async(I2C_ADDRESS address, const uint8_t* data, uint8_t size,
       i2c_driver.address = address;
       i2c_driver.bytes_handled = 0;
       i2c_driver.bytes_requested = size;
-      i2c_driver.state = I2C_STATE_STARTED;
       i2c_driver.type = I2C_OP_WRITE;
       i2c_drv_callback = callback;
       for (uint8_t i = 0; i < size; i++)
@@ -103,6 +102,7 @@ RET_CODE i2c_write_async(I2C_ADDRESS address, const uint8_t* data, uint8_t size,
       I2C1->CR1 |= I2C_CR1_START;
       I2C1->CR1 |= I2C_CR1_ACK;
       sch_trigger_task(&i2c_on_timeout);
+      i2c_driver.state = I2C_STATE_STARTED;
       result = RETURN_OK;
    }
    logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "error");

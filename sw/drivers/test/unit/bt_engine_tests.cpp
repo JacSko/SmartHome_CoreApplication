@@ -778,3 +778,85 @@ TEST_F(btengineFixture, string_read_bytes)
 	btengine_deinitialize();
 
 }
+
+/**
+ * @test Sending raw bytes to UART.
+ */
+TEST_F(btengineFixture, bt_send_bytes)
+{
+   const uint8_t data_size = 10;
+   uint8_t data_to_send [data_size];
+   data_to_send[0] = 0x10;
+   data_to_send[1] = 0x11;
+   data_to_send[2] = 0x12;
+   data_to_send[3] = 0x13;
+   data_to_send[4] = 0x14;
+   data_to_send[5] = 0x15;
+   data_to_send[6] = 0x16;
+   data_to_send[7] = 0x17;
+   data_to_send[8] = 0x18;
+   data_to_send[9] = 0x19;
+
+   /**
+    * <b>scenario</b>: Request to send 10 bytes.<br>
+    * <b>expected</b>: 10 bytes written correctly.<br>
+    * ************************************************
+    */
+   BT_Config cfg = {115200, 20, 15};
+   EXPECT_CALL(*gpio_lib_mock, gpio_pin_cfg(_,_,_)).Times(2);
+   btengine_initialize(&cfg);
+
+   EXPECT_EQ(RETURN_OK, btengine_send_bytes(data_to_send, data_size));
+   EXPECT_EQ(bt_tx_buf.head, 10);
+   EXPECT_EQ(bt_tx_buf.tail, 0);
+   EXPECT_EQ(bt_tx_buf.buf[0], 0x10);
+   EXPECT_EQ(bt_tx_buf.buf[1], 0x11);
+   EXPECT_EQ(bt_tx_buf.buf[2], 0x12);
+   EXPECT_EQ(bt_tx_buf.buf[3], 0x13);
+   EXPECT_EQ(bt_tx_buf.buf[4], 0x14);
+   EXPECT_EQ(bt_tx_buf.buf[5], 0x15);
+   EXPECT_EQ(bt_tx_buf.buf[6], 0x16);
+   EXPECT_EQ(bt_tx_buf.buf[7], 0x17);
+   EXPECT_EQ(bt_tx_buf.buf[8], 0x18);
+   EXPECT_EQ(bt_tx_buf.buf[9], 0x19);
+   EXPECT_TRUE(READ_BIT(USART1->CR1, USART_CR1_TXEIE));
+
+   /* Simulate USART IRQ - read data from buffer */
+   USART1->SR |=  USART_SR_TXE;
+   USART1_IRQHandler();
+   EXPECT_EQ(USART1->DR, 0x10);
+   EXPECT_EQ(bt_tx_buf.tail, 1);
+   USART1_IRQHandler();
+   EXPECT_EQ(USART1->DR, 0x11);
+   EXPECT_EQ(bt_tx_buf.tail, 2);
+   USART1_IRQHandler();
+   EXPECT_EQ(USART1->DR, 0x12);
+   EXPECT_EQ(bt_tx_buf.tail, 3);
+   USART1_IRQHandler();
+   EXPECT_EQ(USART1->DR, 0x13);
+   EXPECT_EQ(bt_tx_buf.tail, 4);
+   USART1_IRQHandler();
+   EXPECT_EQ(USART1->DR, 0x14);
+   EXPECT_EQ(bt_tx_buf.tail, 5);
+   USART1_IRQHandler();
+   EXPECT_EQ(USART1->DR, 0x15);
+   EXPECT_EQ(bt_tx_buf.tail, 6);
+   USART1_IRQHandler();
+   EXPECT_EQ(USART1->DR, 0x16);
+   EXPECT_EQ(bt_tx_buf.tail, 7);
+   USART1_IRQHandler();
+   EXPECT_EQ(USART1->DR, 0x17);
+   EXPECT_EQ(bt_tx_buf.tail, 8);
+   USART1_IRQHandler();
+   EXPECT_EQ(USART1->DR, 0x18);
+   EXPECT_EQ(bt_tx_buf.tail, 9);
+   USART1_IRQHandler();
+   EXPECT_EQ(USART1->DR, 0x19);
+   EXPECT_EQ(bt_tx_buf.tail, 10);
+   USART1_IRQHandler();
+
+   EXPECT_EQ(bt_tx_buf.tail, bt_tx_buf.head);
+   EXPECT_FALSE(READ_BIT(USART1->CR1, USART_CR1_TXEIE));
+
+   btengine_deinitialize();
+}

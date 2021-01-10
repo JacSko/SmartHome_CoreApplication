@@ -21,6 +21,7 @@ void cmd_prepare_response(RET_CODE result);
 void cmd_send_response();
 RET_CODE cmd_parse_data(const char* data);
 RET_CODE cmd_handle_wifimgr_subcommand(const char** command, uint8_t size);
+RET_CODE cmd_handle_slm_subcommand(const char** command, uint8_t size);
 /* =============================
  *      Module variables
  * =============================*/
@@ -94,8 +95,16 @@ RET_CODE cmd_parse_data(const char* data)
 	}
 
 	if (!strcmp(cmd_items[0], "wifimgr")) result =  cmd_handle_wifimgr_subcommand(cmd_items, index);
+	if (!strcmp(cmd_items[0], "slm")) result =  cmd_handle_slm_subcommand(cmd_items, index);
 
 	return result;
+}
+
+RET_CODE cmd_handle_slm_subcommand(const char** command, uint8_t size)
+{
+   RET_CODE result = RETURN_NOK;
+
+   return result;
 }
 
 RET_CODE cmd_handle_wifimgr_subcommand(const char** command, uint8_t size)

@@ -9,6 +9,7 @@ struct btEngineMock
 	MOCK_METHOD1(btengine_initialize, RET_CODE(BT_Config*));
 	MOCK_METHOD0(btengine_deinitialize, void());
 	MOCK_METHOD1(btengine_send_string, RET_CODE(const char*));
+	MOCK_METHOD2(btengine_send_bytes, RET_CODE(const uint8_t*, uint16_t));
 	MOCK_METHOD0(btengine_can_read_string, RET_CODE());
 	MOCK_METHOD0(btengine_get_string, const char*());
 	MOCK_METHOD0(btengine_clear_rx, void());
@@ -44,6 +45,11 @@ void btengine_deinitialize()
 RET_CODE btengine_send_string(const char * string)
 {
 	return btengineMock->btengine_send_string(string);
+}
+
+RET_CODE btengine_send_bytes(const uint8_t * bytes, uint16_t size)
+{
+   return btengineMock->btengine_send_bytes(bytes, size);
 }
 
 RET_CODE btengine_can_read_string()

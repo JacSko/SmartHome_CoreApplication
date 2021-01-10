@@ -55,6 +55,14 @@ void btengine_deinitialize();
  */
 RET_CODE btengine_send_string(const char *);
 /**
+ * @brief Send bytes over BT module.
+ * @details Function is blocking if there is no place in internal buffer.
+ * @param[in] data - pointer to data to send
+ * @param[in] size - size of data
+ * @return See RETURN_CODES.
+ */
+RET_CODE btengine_send_bytes(const uint8_t*, uint16_t size);
+/**
  * @brief Checks if there is string received in buffer.
  * @return RETURN_OK if string can be read.
  */
