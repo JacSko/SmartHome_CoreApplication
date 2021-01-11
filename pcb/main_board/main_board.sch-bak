@@ -127,17 +127,17 @@ Text GLabel 1750 1900 2    50   Input ~ 0
 GND
 Text GLabel 1750 2800 2    50   Input ~ 0
 5V
-Text GLabel 1750 2700 2    50   Input ~ 0
-DHT_SENSOR1
-Text GLabel 1750 2600 2    50   Input ~ 0
-DHT_SENSOR2
-Text GLabel 1750 2500 2    50   Input ~ 0
-DHT_SENSOR3
-Text GLabel 1750 2400 2    50   Input ~ 0
-DHT_SENSOR4
 Text GLabel 1750 2300 2    50   Input ~ 0
-DHT_SENSOR5
+DHT_SENSOR1
 Text GLabel 1750 2200 2    50   Input ~ 0
+DHT_SENSOR2
+Text GLabel 1750 2700 2    50   Input ~ 0
+DHT_SENSOR3
+Text GLabel 1750 2600 2    50   Input ~ 0
+DHT_SENSOR4
+Text GLabel 1750 2500 2    50   Input ~ 0
+DHT_SENSOR5
+Text GLabel 1750 2400 2    50   Input ~ 0
 DHT_SENSOR6
 Text GLabel 1750 2100 2    50   Input ~ 0
 LIGHT_SENSOR
@@ -152,10 +152,6 @@ BT_RX_STM_TX
 NoConn ~ 3000 1900
 NoConn ~ 3000 2000
 NoConn ~ 3000 2100
-Text GLabel 3000 2200 2    50   Input ~ 0
-I2C_INT
-Text GLabel 3000 2300 2    50   Input ~ 0
-I2C_SCL
 $Comp
 L Connector:Conn_01x04_Female J4
 U 1 1 5FFD6F8B
@@ -175,17 +171,6 @@ Text GLabel 3000 2850 2    50   Input ~ 0
 GARAGE_TX_STM_RX
 Text GLabel 3000 2950 2    50   Input ~ 0
 GARAGE_RX_STM_TX
-$Comp
-L project_symbols:ESP-01 U1
-U 1 1 5FFDA57F
-P 2450 4000
-F 0 "U1" H 2450 4581 50  0000 C CNN
-F 1 "ESP-01" H 2450 4490 50  0000 C CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_2x04_P2.54mm_Vertical" H 2450 4489 50  0001 C CNN
-F 3 "" H 2100 4100 50  0001 C CNN
-	1    2450 4000
-	1    0    0    -1  
-$EndComp
 Text GLabel 2450 4450 3    50   Input ~ 0
 GND
 Text GLabel 2450 3600 2    50   Input ~ 0
@@ -263,10 +248,6 @@ Text GLabel 2100 6950 0    50   Input ~ 0
 GND
 Text GLabel 2500 6750 2    50   Input ~ 0
 3.3V
-Text GLabel 2900 7050 2    50   Input ~ 0
-I2C_SCL
-Text GLabel 2900 6950 2    50   Input ~ 0
-I2C_SDA
 Wire Notes Line
 	1350 6500 3850 6500
 Wire Notes Line
@@ -313,18 +294,16 @@ DHT_SENSOR6
 $Comp
 L Device:R R1
 U 1 1 6004496A
-P 5100 4450
-F 0 "R1" H 5170 4496 50  0000 L CNN
-F 1 "10k" H 5170 4405 50  0000 L CNN
-F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" V 5030 4450 50  0001 C CNN
-F 3 "~" H 5100 4450 50  0001 C CNN
-	1    5100 4450
+P 5100 4400
+F 0 "R1" H 5170 4446 50  0000 L CNN
+F 1 "10k" H 5170 4355 50  0000 L CNN
+F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" V 5030 4400 50  0001 C CNN
+F 3 "~" H 5100 4400 50  0001 C CNN
+	1    5100 4400
 	1    0    0    -1  
 $EndComp
-Text GLabel 5100 4300 1    50   Input ~ 0
+Text GLabel 5100 4250 1    50   Input ~ 0
 5V
-Text GLabel 4800 4700 0    50   Input ~ 0
-I2C_SCL
 $Comp
 L Connector:Conn_01x06_Female J3
 U 1 1 5FFD3153
@@ -336,31 +315,21 @@ F 3 "~" H 2800 2200 50  0001 C CNN
 	1    2800 2200
 	-1   0    0    1   
 $EndComp
-Text GLabel 3000 2400 2    50   Input ~ 0
-I2C_SDA
-Text GLabel 4800 4800 0    50   Input ~ 0
-I2C_SDA
 $Comp
 L Device:R R3
 U 1 1 6004C3D0
-P 5650 4450
-F 0 "R3" H 5720 4496 50  0000 L CNN
-F 1 "10k" H 5720 4405 50  0000 L CNN
-F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" V 5580 4450 50  0001 C CNN
-F 3 "~" H 5650 4450 50  0001 C CNN
-	1    5650 4450
+P 5650 4400
+F 0 "R3" H 5720 4446 50  0000 L CNN
+F 1 "10k" H 5720 4355 50  0000 L CNN
+F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" V 5580 4400 50  0001 C CNN
+F 3 "~" H 5650 4400 50  0001 C CNN
+	1    5650 4400
 	1    0    0    -1  
 $EndComp
-Text GLabel 5350 4300 1    50   Input ~ 0
+Text GLabel 5350 4250 1    50   Input ~ 0
 5V
-Text GLabel 5650 4300 1    50   Input ~ 0
+Text GLabel 5650 4250 1    50   Input ~ 0
 5V
-Text GLabel 4800 4600 0    50   Input ~ 0
-I2C_INT
-Wire Wire Line
-	5350 4600 5350 4700
-Wire Wire Line
-	5650 4600 5650 4800
 $Comp
 L Device:R R5
 U 1 1 600573C9
@@ -444,15 +413,12 @@ F 3 "~" H 9400 4550 50  0001 C CNN
 $EndComp
 Text GLabel 9150 4700 3    50   Input ~ 0
 GND
-Wire Wire Line
-	7400 4400 7700 4400
 Text GLabel 6600 4200 0    50   Input ~ 0
 GARAGE_TX_STM_RX
 Text GLabel 6600 4100 0    50   Input ~ 0
 GARAGE_RX_STM_TX
 Wire Wire Line
 	4800 4600 4900 4600
-Connection ~ 5100 4600
 Wire Wire Line
 	4800 4700 5350 4700
 Connection ~ 5350 4700
@@ -526,30 +492,26 @@ Wire Wire Line
 $Comp
 L Device:C C5
 U 1 1 600B5AF0
-P 4900 4450
-F 0 "C5" H 4650 4500 50  0000 L CNN
-F 1 "47u" H 4650 4400 50  0000 L CNN
-F 2 "Capacitor_THT:CP_Radial_D8.0mm_P2.50mm" H 4938 4300 50  0001 C CNN
-F 3 "~" H 4900 4450 50  0001 C CNN
-	1    4900 4450
+P 4900 4400
+F 0 "C5" H 4650 4450 50  0000 L CNN
+F 1 "47u" H 4650 4350 50  0000 L CNN
+F 2 "Capacitor_THT:CP_Radial_D8.0mm_P2.50mm" H 4938 4250 50  0001 C CNN
+F 3 "~" H 4900 4400 50  0001 C CNN
+	1    4900 4400
 	1    0    0    -1  
 $EndComp
 Connection ~ 4900 4600
-Wire Wire Line
-	4900 4600 5100 4600
-Text GLabel 4900 4300 1    50   Input ~ 0
+Text GLabel 4900 4250 1    50   Input ~ 0
 GND
-Wire Wire Line
-	5100 4600 5350 4600
 $Comp
 L Device:R R2
 U 1 1 6004B406
-P 5350 4450
-F 0 "R2" H 5420 4496 50  0000 L CNN
-F 1 "10k" H 5420 4405 50  0000 L CNN
-F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" V 5280 4450 50  0001 C CNN
-F 3 "~" H 5350 4450 50  0001 C CNN
-	1    5350 4450
+P 5350 4400
+F 0 "R2" H 5420 4446 50  0000 L CNN
+F 1 "10k" H 5420 4355 50  0000 L CNN
+F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" V 5280 4400 50  0001 C CNN
+F 3 "~" H 5350 4400 50  0001 C CNN
+	1    5350 4400
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
@@ -672,17 +634,17 @@ Text GLabel 10700 1550 0    50   Input ~ 0
 GND
 Text GLabel 10700 650  0    50   Input ~ 0
 5V
-Text GLabel 10700 750  0    50   Input ~ 0
-DHT_SENSOR1
-Text GLabel 10700 850  0    50   Input ~ 0
-DHT_SENSOR2
-Text GLabel 10700 950  0    50   Input ~ 0
-DHT_SENSOR3
-Text GLabel 10700 1050 0    50   Input ~ 0
-DHT_SENSOR4
 Text GLabel 10700 1150 0    50   Input ~ 0
-DHT_SENSOR5
+DHT_SENSOR1
 Text GLabel 10700 1250 0    50   Input ~ 0
+DHT_SENSOR2
+Text GLabel 10700 750  0    50   Input ~ 0
+DHT_SENSOR3
+Text GLabel 10700 850  0    50   Input ~ 0
+DHT_SENSOR4
+Text GLabel 10700 950  0    50   Input ~ 0
+DHT_SENSOR5
+Text GLabel 10700 1050 0    50   Input ~ 0
 DHT_SENSOR6
 Text GLabel 10700 1350 0    50   Input ~ 0
 LIGHT_SENSOR
@@ -697,12 +659,6 @@ F 3 "~" H 10900 2100 50  0001 C CNN
 	1    10900 2100
 	1    0    0    -1  
 $EndComp
-Text GLabel 10700 2200 0    50   Input ~ 0
-I2C_INT
-Text GLabel 10700 2100 0    50   Input ~ 0
-I2C_SCL
-Text GLabel 10700 2000 0    50   Input ~ 0
-I2C_SDA
 Text GLabel 10700 2300 0    50   Input ~ 0
 GND
 NoConn ~ 10700 1450
@@ -732,12 +688,6 @@ Wire Notes Line
 	9650 550  9650 1850
 Text Notes 8300 1800 0    79   ~ 0
 Sensors PullUp
-Connection ~ 5350 4600
-Wire Wire Line
-	5350 4600 5650 4600
-Connection ~ 5650 4600
-Wire Wire Line
-	5650 4600 6250 4600
 Wire Notes Line
 	4200 2750 9650 2750
 Wire Notes Line
@@ -756,4 +706,53 @@ NoConn ~ 1750 2000
 NoConn ~ 7400 5000
 NoConn ~ 7400 5100
 NoConn ~ 7400 5200
+NoConn ~ 12100 5900
+Text GLabel 10700 2200 0    50   Input ~ 0
+I2C_INT
+Text GLabel 10700 2100 0    50   Input ~ 0
+I2C_SCL
+Text GLabel 10700 2000 0    50   Input ~ 0
+I2C_SDA
+Text GLabel 2900 6950 2    50   Input ~ 0
+I2C_SDA
+Text GLabel 2900 7050 2    50   Input ~ 0
+I2C_SCL
+Text GLabel 4800 4800 0    50   Input ~ 0
+I2C_SDA
+Text GLabel 4800 4700 0    50   Input ~ 0
+I2C_SCL
+Text GLabel 4800 4600 0    50   Input ~ 0
+I2C_INT
+Text GLabel 3000 2200 2    50   Input ~ 0
+I2C_INT
+Text GLabel 3000 2400 2    50   Input ~ 0
+I2C_SDA
+Text GLabel 3000 2300 2    50   Input ~ 0
+I2C_SCL
+Wire Wire Line
+	4900 4600 5100 4600
+Wire Wire Line
+	4900 4550 4900 4600
+Wire Wire Line
+	5100 4550 5100 4600
+Connection ~ 5100 4600
+Wire Wire Line
+	5650 4550 5650 4800
+Wire Wire Line
+	5350 4550 5350 4700
+Wire Wire Line
+	5100 4600 6250 4600
+$Comp
+L project_symbols:ESP-01 U1
+U 1 1 5FFDA57F
+P 2450 4000
+F 0 "U1" H 2450 4581 50  0000 C CNN
+F 1 "ESP-01" H 2450 4490 50  0000 C CNN
+F 2 "project_footprints:ESP01" H 2450 4489 50  0001 C CNN
+F 3 "" H 2100 4100 50  0001 C CNN
+	1    2450 4000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7400 4400 7700 4400
 $EndSCHEMATC

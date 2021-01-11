@@ -1,4 +1,4 @@
-19082527148909960
+19084137540576960
 Battery
 BatteryHolder_Bulgin_BX0036_1xC
 Bulgin Battery Holder, BX0036, Battery Type C (https://www.bulgin.com/products/pub/media/bulgin/data/Battery_holders.pdf)
@@ -83031,5 +83031,12 @@ Black_pill
 BlackPill module with pin headers and sockets. No SWD breakout
 module BlackPill Black Pill header socket
 0
+40
+40
+project_footprints
+ESP01
+Through hole straight socket strip, 2x04, 2.54mm pitch, double cols (from Kicad 4.0.7), script generated
+Through hole socket strip THT 2x04 2.54mm double row
 0
-0
+8
+8
