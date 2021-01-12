@@ -6,7 +6,7 @@ encoding utf-8
 Sheet 1 1
 Title "SmartHouse MainBoard"
 Date "2021-01-10"
-Rev "0.1"
+Rev "1.0"
 Comp ""
 Comment1 "This schematic defines the main board of whole system."
 Comment2 "System is run on STM32F4xx MCU as BlackPill board."
@@ -310,7 +310,7 @@ U 1 1 5FFD3153
 P 2800 2200
 F 0 "J3" H 2692 1675 50  0000 C CNN
 F 1 "I2C_Conn" H 2692 1766 50  0000 C CNN
-F 2 "Connector_IDC:IDC-Header_2x04_P2.54mm_Vertical" H 2800 2200 50  0001 C CNN
+F 2 "Connector_IDC:IDC-Header_2x03_P2.54mm_Vertical" H 2800 2200 50  0001 C CNN
 F 3 "~" H 2800 2200 50  0001 C CNN
 	1    2800 2200
 	-1   0    0    1   
