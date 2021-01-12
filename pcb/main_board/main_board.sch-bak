@@ -709,9 +709,9 @@ NoConn ~ 7400 5200
 NoConn ~ 12100 5900
 Text GLabel 10700 2200 0    50   Input ~ 0
 I2C_INT
-Text GLabel 10700 2100 0    50   Input ~ 0
-I2C_SCL
 Text GLabel 10700 2000 0    50   Input ~ 0
+I2C_SCL
+Text GLabel 10700 2100 0    50   Input ~ 0
 I2C_SDA
 Text GLabel 2900 6950 2    50   Input ~ 0
 I2C_SDA
