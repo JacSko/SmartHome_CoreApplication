@@ -205,17 +205,6 @@ Wire Notes Line
 	3850 3150 3850 1450
 Wire Notes Line
 	1350 1450 1350 3150
-$Comp
-L project_symbols:HC_05 U2
-U 1 1 600163EE
-P 2450 5600
-F 0 "U2" H 2122 5646 50  0000 R CNN
-F 1 "HC_05" H 2122 5555 50  0000 R CNN
-F 2 "Connector_PinSocket_2.54mm:PinSocket_1x06_P2.54mm_Horizontal" H 2350 5600 50  0001 C CNN
-F 3 "" H 2100 5700 50  0001 C CNN
-	1    2450 5600
-	1    0    0    -1  
-$EndComp
 NoConn ~ 2850 5750
 Wire Notes Line
 	1350 4950 3850 4950
@@ -755,4 +744,15 @@ F 3 "" H 2100 4100 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	7400 4400 7700 4400
+$Comp
+L project_symbols:HC_05 U2
+U 1 1 600163EE
+P 2450 5600
+F 0 "U2" H 2122 5646 50  0000 R CNN
+F 1 "HC_05" H 2122 5555 50  0000 R CNN
+F 2 "project_footprints:HC_05" H 2350 5600 50  0001 C CNN
+F 3 "" H 2100 5700 50  0001 C CNN
+	1    2450 5600
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC
