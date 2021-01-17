@@ -1,5 +1,5 @@
-#ifndef _DHT_DRIVER_MOCK_H_
-#define _DHT_DRIVER_MOCK_H_
+#ifndef _I2C_DRIVER_MOCK_H_
+#define _I2C_DRIVER_MOCK_H_
 
 #include "i2c_driver.h"
 #include "gmock/gmock.h"

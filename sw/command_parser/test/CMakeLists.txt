@@ -11,6 +11,12 @@ target_link_libraries(command_parser_tests PUBLIC
         STM_HEADERS
         time_counterMock
 		wifimanager_mock
+		inputs_board_mock
+		relays_board_mock
+		i2cdriver_mock
+		dhtdriver_mock
+		bathroom_fan_mock
+		env_monitor_mock
 		string_formatter
 )
 

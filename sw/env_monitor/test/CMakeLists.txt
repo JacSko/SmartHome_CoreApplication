@@ -45,3 +45,11 @@ target_include_directories(env_monitor_mock PUBLIC
           ../include
           mocks/
 )
+add_library(bathroom_fan_mock STATIC
+			mocks/bathroom_fan_mock.h
+)
+set_target_properties(bathroom_fan_mock PROPERTIES LINKER_LANGUAGE CXX)
+target_include_directories(bathroom_fan_mock PUBLIC
+          ../include
+          mocks/
+)
