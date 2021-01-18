@@ -35,22 +35,15 @@ using namespace ::testing;
 
 struct callbackMock
 {
-	MOCK_METHOD1(bt_send_function, RET_CODE(const char*));
-	MOCK_METHOD2(wifi_send_function, RET_CODE(ServerClientID id, const char*));
+	MOCK_METHOD1(send_callback, RET_CODE(const char*));
 };
 
 callbackMock* callMock;
 
-RET_CODE bt_send_function(const char* data)
+RET_CODE send_callback(const char* data)
 {
-	return callMock->bt_send_function(data);
+	return callMock->send_callback(data);
 }
-
-RET_CODE wifi_send_function(ServerClientID id, const char* data)
-{
-	return callMock->wifi_send_function(id, data);
-}
-
 
 struct cmdParserFixture : public ::testing::Test
 {
@@ -68,8 +61,7 @@ struct cmdParserFixture : public ::testing::Test
 		mock_slm_init();
 		callMock = new callbackMock;
 
-		cmd_register_bt_sender(&bt_send_function);
-		cmd_register_wifi_sender(&wifi_send_function);
+		cmd_register_sender(&send_callback);
 	}
 
 	virtual void TearDown()
@@ -84,8 +76,7 @@ struct cmdParserFixture : public ::testing::Test
 		mock_logger_deinit();
 		mock_slm_deinit();
 		delete callMock;
-		cmd_unregister_bt_sender();
-		cmd_unregister_wifi_sender();
+		cmd_unregister_sender();
 	}
 };
 
@@ -94,33 +85,12 @@ struct cmdParserFixture : public ::testing::Test
  */
 TEST_F(cmdParserFixture, command_responding)
 {
-	const ServerClientID id = 1;
-	/**
-	 * <b>scenario</b>: Command from WiFi received.<br>
-	 * <b>expected</b>: Echo sent, response sent.<br>
-	 * ************************************************
-	 */
-	EXPECT_CALL(*callMock, wifi_send_function(_,_))
-			.WillOnce(Invoke([&](ServerClientID cliendid, const char* data) -> RET_CODE
-			{
-				EXPECT_EQ(id, cliendid);
-				EXPECT_STREQ(data, "CMD: unknown command\n");
-				return RETURN_OK;
-			}))
-			.WillOnce(Invoke([&](ServerClientID cliendid, const char* data) -> RET_CODE
-			{
-				EXPECT_EQ(id, cliendid);
-				EXPECT_STREQ(data, "ERROR\n");
-				return RETURN_OK;
-			}));
-	cmd_handle_wifi_data(id, "unknown command");
-
 	/**
 	 * <b>scenario</b>: Command from BT received.<br>
 	 * <b>expected</b>: Echo sent, response sent.<br>
 	 * ************************************************
 	 */
-	EXPECT_CALL(*callMock, bt_send_function(_))
+	EXPECT_CALL(*callMock, send_callback(_))
 			.WillOnce(Invoke([&](const char* data) -> RET_CODE
 			{
 				EXPECT_STREQ(data, "CMD: unknown command\n");
@@ -131,7 +101,7 @@ TEST_F(cmdParserFixture, command_responding)
 				EXPECT_STREQ(data, "ERROR\n");
 				return RETURN_OK;
 			}));
-	cmd_handle_bt_data("unknown command");
+	cmd_handle_data("unknown command");
 }
 
 /**
@@ -144,7 +114,7 @@ TEST_F(cmdParserFixture, wifi_manager_cmds_test)
 	 * <b>expected</b>: Command executed, response sent.<br>
 	 * ************************************************
 	 */
-	EXPECT_CALL(*callMock, bt_send_function(_))
+	EXPECT_CALL(*callMock, send_callback(_))
 			.WillOnce(Invoke([&](const char* data) -> RET_CODE
 			{
 				EXPECT_STREQ(data, "CMD: wifimgr reset\n");
@@ -156,13 +126,13 @@ TEST_F(cmdParserFixture, wifi_manager_cmds_test)
 				return RETURN_OK;
 			}));
 	EXPECT_CALL(*wifimgr_mock, wifimgr_reset()).WillOnce(Return(RETURN_OK));
-	cmd_handle_bt_data("wifimgr reset");
+	cmd_handle_data("wifimgr reset");
 	/**
 	 * <b>scenario</b>: WiFi manager IP set command.<br>
 	 * <b>expected</b>: Command executed, response sent.<br>
 	 * ************************************************
 	 */
-	EXPECT_CALL(*callMock, bt_send_function(_))
+	EXPECT_CALL(*callMock, send_callback(_))
 			.WillOnce(Invoke([&](const char* data) -> RET_CODE
 			{
 				EXPECT_STREQ(data, "CMD: wifimgr ip set 192.168.1.10\n");
@@ -178,14 +148,14 @@ TEST_F(cmdParserFixture, wifi_manager_cmds_test)
 				EXPECT_STREQ("192.168.1.10", data);
 				return RETURN_OK;
 			}));
-	cmd_handle_bt_data("wifimgr ip set 192.168.1.10");
+	cmd_handle_data("wifimgr ip set 192.168.1.10");
 
 	/**
 	 * <b>scenario</b>: WiFi manager IP get command.<br>
 	 * <b>expected</b>: Command executed, response sent.<br>
 	 * ************************************************
 	 */
-	EXPECT_CALL(*callMock, bt_send_function(_))
+	EXPECT_CALL(*callMock, send_callback(_))
 			.WillOnce(Invoke([&](const char* data) -> RET_CODE
 			{
 				EXPECT_STREQ(data, "CMD: wifimgr ip get\n");
@@ -208,14 +178,14 @@ TEST_F(cmdParserFixture, wifi_manager_cmds_test)
 				ip->ip_address[3] = 222;
 				return RETURN_OK;
 			}));
-	cmd_handle_bt_data("wifimgr ip get");
+	cmd_handle_data("wifimgr ip get");
 
 	/**
 	 * <b>scenario</b>: WiFi manager network set command.<br>
 	 * <b>expected</b>: Command executed, response sent.<br>
 	 * ************************************************
 	 */
-	EXPECT_CALL(*callMock, bt_send_function(_))
+	EXPECT_CALL(*callMock, send_callback(_))
 			.WillOnce(Invoke([&](const char* data) -> RET_CODE
 			{
 				EXPECT_STREQ(data, "CMD: wifimgr network set NEW_SSID NEW_PASS\n");
@@ -232,14 +202,14 @@ TEST_F(cmdParserFixture, wifi_manager_cmds_test)
 				EXPECT_STREQ(pass, "NEW_PASS");
 				return RETURN_OK;
 			}));
-	cmd_handle_bt_data("wifimgr network set NEW_SSID NEW_PASS");
+	cmd_handle_data("wifimgr network set NEW_SSID NEW_PASS");
 
 	/**
 	 * <b>scenario</b>: WiFi manager network get command.<br>
 	 * <b>expected</b>: Command executed, response sent.<br>
 	 * ************************************************
 	 */
-	EXPECT_CALL(*callMock, bt_send_function(_))
+	EXPECT_CALL(*callMock, send_callback(_))
 			.WillOnce(Invoke([&](const char* data) -> RET_CODE
 			{
 				EXPECT_STREQ(data, "CMD: wifimgr network get\n");
@@ -259,14 +229,14 @@ TEST_F(cmdParserFixture, wifi_manager_cmds_test)
 				string_format(data, "%s", "MY_SSID");
 				return RETURN_OK;
 			}));
-	cmd_handle_bt_data("wifimgr network get");
+	cmd_handle_data("wifimgr network get");
 
 	/**
 	 * <b>scenario</b>: WiFi manager NTP server set.<br>
 	 * <b>expected</b>: Command executed, response sent.<br>
 	 * ************************************************
 	 */
-	EXPECT_CALL(*callMock, bt_send_function(_))
+	EXPECT_CALL(*callMock, send_callback(_))
 			.WillOnce(Invoke([&](const char* data) -> RET_CODE
 			{
 				EXPECT_STREQ(data, "CMD: wifimgr ntpserver set www.test.pl\n");
@@ -282,14 +252,14 @@ TEST_F(cmdParserFixture, wifi_manager_cmds_test)
 				EXPECT_STREQ(ntp, "www.test.pl");
 				return RETURN_OK;
 			}));
-	cmd_handle_bt_data("wifimgr ntpserver set www.test.pl");
+	cmd_handle_data("wifimgr ntpserver set www.test.pl");
 
 	/**
 	 * <b>scenario</b>: WiFi manager NTP server get.<br>
 	 * <b>expected</b>: Command executed, response sent.<br>
 	 * ************************************************
 	 */
-	EXPECT_CALL(*callMock, bt_send_function(_))
+	EXPECT_CALL(*callMock, send_callback(_))
 			.WillOnce(Invoke([&](const char* data) -> RET_CODE
 			{
 				EXPECT_STREQ(data, "CMD: wifimgr ntpserver get\n");
@@ -309,14 +279,14 @@ TEST_F(cmdParserFixture, wifi_manager_cmds_test)
 			{
 				return "www.test.pl";
 			}));
-	cmd_handle_bt_data("wifimgr ntpserver get");
+	cmd_handle_data("wifimgr ntpserver get");
 
 	/**
 	 * <b>scenario</b>: WiFi manager server port set.<br>
 	 * <b>expected</b>: Command executed, response sent.<br>
 	 * ************************************************
 	 */
-	EXPECT_CALL(*callMock, bt_send_function(_))
+	EXPECT_CALL(*callMock, send_callback(_))
 			.WillOnce(Invoke([&](const char* data) -> RET_CODE
 			{
 				EXPECT_STREQ(data, "CMD: wifimgr serverport set 1111\n");
@@ -332,14 +302,14 @@ TEST_F(cmdParserFixture, wifi_manager_cmds_test)
 				EXPECT_EQ(port, 1111);
 				return RETURN_OK;
 			}));
-	cmd_handle_bt_data("wifimgr serverport set 1111");
+	cmd_handle_data("wifimgr serverport set 1111");
 
 	/**
 	 * <b>scenario</b>: WiFi manager server port get.<br>
 	 * <b>expected</b>: Command executed, response sent.<br>
 	 * ************************************************
 	 */
-	EXPECT_CALL(*callMock, bt_send_function(_))
+	EXPECT_CALL(*callMock, send_callback(_))
 			.WillOnce(Invoke([&](const char* data) -> RET_CODE
 			{
 				EXPECT_STREQ(data, "CMD: wifimgr serverport get\n");
@@ -356,14 +326,14 @@ TEST_F(cmdParserFixture, wifi_manager_cmds_test)
 				return RETURN_OK;
 			}));
 	EXPECT_CALL(*wifimgr_mock, wifimgr_get_server_port()).WillOnce(Return(1111));
-	cmd_handle_bt_data("wifimgr serverport get");
+	cmd_handle_data("wifimgr serverport get");
 
 	/**
 	 * <b>scenario</b>: WiFi manager get clients details.<br>
 	 * <b>expected</b>: Command executed, response sent.<br>
 	 * ************************************************
 	 */
-	EXPECT_CALL(*callMock, bt_send_function(_))
+	EXPECT_CALL(*callMock, send_callback(_))
 			.WillOnce(Invoke([&](const char* data) -> RET_CODE
 			{
 				EXPECT_STREQ(data, "CMD: wifimgr clients get\n");
@@ -401,7 +371,7 @@ TEST_F(cmdParserFixture, wifi_manager_cmds_test)
 				buf[1].address.ip_address[3] = 8;
 				return 2;
 			}));
-	cmd_handle_bt_data("wifimgr clients get");
+	cmd_handle_data("wifimgr clients get");
 }
 
 /**
@@ -414,7 +384,7 @@ TEST_F(cmdParserFixture, inputs_cmds_test)
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: inp get_all\n");
@@ -438,14 +408,14 @@ TEST_F(cmdParserFixture, inputs_cmds_test)
             }
             return RETURN_OK;
          }));
-   cmd_handle_bt_data("inp get_all");
+   cmd_handle_data("inp get_all");
 
    /**
     * <b>scenario</b>: Read all inputs command received.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: inp read_all\n");
@@ -469,14 +439,14 @@ TEST_F(cmdParserFixture, inputs_cmds_test)
             }
             return RETURN_OK;
          }));
-   cmd_handle_bt_data("inp read_all");
+   cmd_handle_data("inp read_all");
 
    /**
     * <b>scenario</b>: Get config command received.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: inp get_config\n");
@@ -502,14 +472,14 @@ TEST_F(cmdParserFixture, inputs_cmds_test)
             }
             return RETURN_OK;
          }));
-   cmd_handle_bt_data("inp get_config");
+   cmd_handle_data("inp get_config");
 
    /**
     * <b>scenario</b>: Disable/Enable interrupt command received.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: inp enable_interrupt\n");
@@ -531,17 +501,17 @@ TEST_F(cmdParserFixture, inputs_cmds_test)
             return RETURN_OK;
          }));
    EXPECT_CALL(*inp_mock, inp_enable_interrupt());
-   cmd_handle_bt_data("inp enable_interrupt");
+   cmd_handle_data("inp enable_interrupt");
 
    EXPECT_CALL(*inp_mock, inp_disable_interrupt());
-   cmd_handle_bt_data("inp disable_interrupt");
+   cmd_handle_data("inp disable_interrupt");
 
    /**
     * <b>scenario</b>: Set debounce time command received.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: inp set_debounce_time 2000\n");
@@ -554,14 +524,14 @@ TEST_F(cmdParserFixture, inputs_cmds_test)
          }));
 
    EXPECT_CALL(*inp_mock, inp_set_debounce_time(2000)).WillOnce(Return(RETURN_OK));
-   cmd_handle_bt_data("inp set_debounce_time 2000");
+   cmd_handle_data("inp set_debounce_time 2000");
 
    /**
     * <b>scenario</b>: Get debounce time command received.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: inp get_debounce_time\n");
@@ -579,14 +549,14 @@ TEST_F(cmdParserFixture, inputs_cmds_test)
          }));
 
    EXPECT_CALL(*inp_mock, inp_get_debounce_time()).WillOnce(Return(1000));
-   cmd_handle_bt_data("inp get_debounce_time");
+   cmd_handle_data("inp get_debounce_time");
 
    /**
     * <b>scenario</b>: Set update time command received.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: inp set_update_time 2000\n");
@@ -599,14 +569,14 @@ TEST_F(cmdParserFixture, inputs_cmds_test)
          }));
 
    EXPECT_CALL(*inp_mock, inp_set_periodic_update_time(2000)).WillOnce(Return(RETURN_OK));
-   cmd_handle_bt_data("inp set_update_time 2000");
+   cmd_handle_data("inp set_update_time 2000");
 
    /**
     * <b>scenario</b>: Get update time command received.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: inp get_update_time\n");
@@ -624,7 +594,7 @@ TEST_F(cmdParserFixture, inputs_cmds_test)
          }));
 
    EXPECT_CALL(*inp_mock, inp_get_periodic_update_time()).WillOnce(Return(1000));
-   cmd_handle_bt_data("inp get_update_time");
+   cmd_handle_data("inp get_update_time");
 
 
    /**
@@ -632,7 +602,7 @@ TEST_F(cmdParserFixture, inputs_cmds_test)
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: inp enable_update\n");
@@ -654,10 +624,10 @@ TEST_F(cmdParserFixture, inputs_cmds_test)
             return RETURN_OK;
          }));
    EXPECT_CALL(*inp_mock, inp_enable_periodic_update());
-   cmd_handle_bt_data("inp enable_update");
+   cmd_handle_data("inp enable_update");
 
    EXPECT_CALL(*inp_mock, inp_disable_periodic_update());
-   cmd_handle_bt_data("inp disable_update");
+   cmd_handle_data("inp disable_update");
 
 }
 
@@ -671,7 +641,7 @@ TEST_F(cmdParserFixture, relays_cmds_test)
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: rel get_all\n");
@@ -695,14 +665,14 @@ TEST_F(cmdParserFixture, relays_cmds_test)
             }
             return RETURN_OK;
          }));
-   cmd_handle_bt_data("rel get_all");
+   cmd_handle_data("rel get_all");
 
    /**
     * <b>scenario</b>: Read all relayss command received.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: rel read_all\n");
@@ -726,14 +696,14 @@ TEST_F(cmdParserFixture, relays_cmds_test)
             }
             return RETURN_OK;
          }));
-   cmd_handle_bt_data("rel read_all");
+   cmd_handle_data("rel read_all");
 
    /**
     * <b>scenario</b>: Get config command received.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: rel get_config\n");
@@ -759,14 +729,14 @@ TEST_F(cmdParserFixture, relays_cmds_test)
             }
             return RETURN_OK;
          }));
-   cmd_handle_bt_data("rel get_config");
+   cmd_handle_data("rel get_config");
 
    /**
     * <b>scenario</b>: Set update time command received.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: rel set_update_time 2000\n");
@@ -779,14 +749,14 @@ TEST_F(cmdParserFixture, relays_cmds_test)
          }));
 
    EXPECT_CALL(*rel_mock, rel_set_verification_period(2000)).WillOnce(Return(RETURN_OK));
-   cmd_handle_bt_data("rel set_update_time 2000");
+   cmd_handle_data("rel set_update_time 2000");
 
    /**
     * <b>scenario</b>: Get update time command received.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: rel get_update_time\n");
@@ -804,7 +774,7 @@ TEST_F(cmdParserFixture, relays_cmds_test)
          }));
 
    EXPECT_CALL(*rel_mock, rel_get_verification_period()).WillOnce(Return(1000));
-   cmd_handle_bt_data("rel get_update_time");
+   cmd_handle_data("rel get_update_time");
 
 
    /**
@@ -812,7 +782,7 @@ TEST_F(cmdParserFixture, relays_cmds_test)
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: rel enable_update\n");
@@ -834,10 +804,10 @@ TEST_F(cmdParserFixture, relays_cmds_test)
             return RETURN_OK;
          }));
    EXPECT_CALL(*rel_mock, rel_enable_verification());
-   cmd_handle_bt_data("rel enable_update");
+   cmd_handle_data("rel enable_update");
 
    EXPECT_CALL(*rel_mock, rel_disable_verification());
-   cmd_handle_bt_data("rel disable_update");
+   cmd_handle_data("rel disable_update");
 
 }
 
@@ -851,7 +821,7 @@ TEST_F(cmdParserFixture, i2cdrv_cmds_test)
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: i2c get_timeout\n");
@@ -868,14 +838,14 @@ TEST_F(cmdParserFixture, i2cdrv_cmds_test)
             return RETURN_OK;
          }));;
    EXPECT_CALL(*i2c_mock, i2c_get_timeout()).WillOnce(Return(100));
-   cmd_handle_bt_data("i2c get_timeout");
+   cmd_handle_data("i2c get_timeout");
 
    /**
     * <b>scenario</b>: Set timeout.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: i2c set_timeout 200\n");
@@ -887,14 +857,14 @@ TEST_F(cmdParserFixture, i2cdrv_cmds_test)
             return RETURN_OK;
          }));;
    EXPECT_CALL(*i2c_mock, i2c_set_timeout(200)).WillOnce(Return(RETURN_OK));
-   cmd_handle_bt_data("i2c set_timeout 200");
+   cmd_handle_data("i2c set_timeout 200");
 
    /**
     * <b>scenario</b>: Reset command received.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: i2c reset\n");
@@ -906,14 +876,14 @@ TEST_F(cmdParserFixture, i2cdrv_cmds_test)
             return RETURN_OK;
          }));;
    EXPECT_CALL(*i2c_mock, i2c_reset());
-   cmd_handle_bt_data("i2c reset");
+   cmd_handle_data("i2c reset");
 
    /**
     * <b>scenario</b>: Write data.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: i2c write_data 10 2 255 253\n");
@@ -932,14 +902,14 @@ TEST_F(cmdParserFixture, i2cdrv_cmds_test)
             EXPECT_EQ(size, 2);
             return I2C_STATUS_OK;
          }));
-   cmd_handle_bt_data("i2c write_data 10 2 255 253");
+   cmd_handle_data("i2c write_data 10 2 255 253");
 
    /**
     * <b>scenario</b>: Read data.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: i2c read_data 10 2\n");
@@ -963,7 +933,7 @@ TEST_F(cmdParserFixture, i2cdrv_cmds_test)
             EXPECT_EQ(size, 2);
             return I2C_STATUS_OK;
          }));
-   cmd_handle_bt_data("i2c read_data 10 2");
+   cmd_handle_data("i2c read_data 10 2");
 }
 
 /**
@@ -976,7 +946,7 @@ TEST_F(cmdParserFixture, dhtdrv_cmds_test)
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: dht get_timeout\n");
@@ -993,14 +963,14 @@ TEST_F(cmdParserFixture, dhtdrv_cmds_test)
             return RETURN_OK;
          }));;
    EXPECT_CALL(*dht_mock, dht_get_timeout()).WillOnce(Return(100));
-   cmd_handle_bt_data("dht get_timeout");
+   cmd_handle_data("dht get_timeout");
 
    /**
     * <b>scenario</b>: Set timeout.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: dht set_timeout 200\n");
@@ -1012,14 +982,14 @@ TEST_F(cmdParserFixture, dhtdrv_cmds_test)
             return RETURN_OK;
          }));;
    EXPECT_CALL(*dht_mock, dht_set_timeout(200)).WillOnce(Return(RETURN_OK));
-   cmd_handle_bt_data("dht set_timeout 200");
+   cmd_handle_data("dht set_timeout 200");
 
    /**
     * <b>scenario</b>: Sensor read.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: dht read_sensor 1\n");
@@ -1045,7 +1015,7 @@ TEST_F(cmdParserFixture, dhtdrv_cmds_test)
             sensor->type = DHT_TYPE_DHT22;
             return DHT_STATUS_OK;
          }));
-   cmd_handle_bt_data("dht read_sensor 1");
+   cmd_handle_data("dht read_sensor 1");
 }
 
 /**
@@ -1058,7 +1028,7 @@ TEST_F(cmdParserFixture, bathfan_cmds_test)
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: fan start\n");
@@ -1070,14 +1040,14 @@ TEST_F(cmdParserFixture, bathfan_cmds_test)
             return RETURN_OK;
          }));;
    EXPECT_CALL(*fan_mock, fan_start()).WillOnce(Return(RETURN_OK));
-   cmd_handle_bt_data("fan start");
+   cmd_handle_data("fan start");
 
    /**
     * <b>scenario</b>: Fan stop.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: fan stop\n");
@@ -1089,14 +1059,14 @@ TEST_F(cmdParserFixture, bathfan_cmds_test)
             return RETURN_OK;
          }));;
    EXPECT_CALL(*fan_mock, fan_stop()).WillOnce(Return(RETURN_OK));
-   cmd_handle_bt_data("fan stop");
+   cmd_handle_data("fan stop");
 
    /**
     * <b>scenario</b>: Fan set working time.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: fan set_max_work_time 1000\n");
@@ -1119,15 +1089,15 @@ TEST_F(cmdParserFixture, bathfan_cmds_test)
          }));
    EXPECT_CALL(*fan_mock, fan_set_max_working_time(1000)).WillOnce(Return(RETURN_OK));
    EXPECT_CALL(*fan_mock, fan_set_min_working_time(100)).WillOnce(Return(RETURN_OK));
-   cmd_handle_bt_data("fan set_max_work_time 1000");
-   cmd_handle_bt_data("fan set_min_work_time 100");
+   cmd_handle_data("fan set_max_work_time 1000");
+   cmd_handle_data("fan set_min_work_time 100");
 
    /**
     * <b>scenario</b>: Fan set humidity thresholds.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: fan set_hum_thr 80\n");
@@ -1150,15 +1120,15 @@ TEST_F(cmdParserFixture, bathfan_cmds_test)
          }));
    EXPECT_CALL(*fan_mock, fan_set_humidity_threshold(80)).WillOnce(Return(RETURN_OK));
    EXPECT_CALL(*fan_mock, fan_set_threshold_hysteresis(10)).WillOnce(Return(RETURN_OK));
-   cmd_handle_bt_data("fan set_hum_thr 80");
-   cmd_handle_bt_data("fan set_thr_hyst 10");
+   cmd_handle_data("fan set_hum_thr 80");
+   cmd_handle_data("fan set_thr_hyst 10");
 
    /**
     * <b>scenario</b>: Get state.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: fan get_state\n");
@@ -1175,14 +1145,14 @@ TEST_F(cmdParserFixture, bathfan_cmds_test)
             return RETURN_OK;
          }));;
    EXPECT_CALL(*fan_mock, fan_get_state()).WillOnce(Return(FAN_STATE_ON));
-   cmd_handle_bt_data("fan get_state");
+   cmd_handle_data("fan get_state");
 
    /**
     * <b>scenario</b>: Get config.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: fan get_config\n");
@@ -1206,7 +1176,7 @@ TEST_F(cmdParserFixture, bathfan_cmds_test)
             cfg->min_working_time_s = 10;
             return RETURN_OK;
          }));
-   cmd_handle_bt_data("fan get_config");
+   cmd_handle_data("fan get_config");
 
 }
 
@@ -1220,7 +1190,7 @@ TEST_F(cmdParserFixture, env_cmds_test)
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: env read_sensor 1\n");
@@ -1245,14 +1215,14 @@ TEST_F(cmdParserFixture, env_cmds_test)
             sensor->type = DHT_TYPE_DHT11;
             return RETURN_OK;
          }));
-   cmd_handle_bt_data("env read_sensor 1");
+   cmd_handle_data("env read_sensor 1");
 
    /**
     * <b>scenario</b>: Read sensor error rates.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: env read_error 1\n");
@@ -1273,14 +1243,14 @@ TEST_F(cmdParserFixture, env_cmds_test)
    result.cs_err_rate = 10;
    result.nr_err_rate = 20;
    EXPECT_CALL(*env_mock, env_get_error_stats(ENV_OUTSIDE)).WillOnce(Return(result));
-   cmd_handle_bt_data("env read_error 1");
+   cmd_handle_data("env read_error 1");
 
    /**
     * <b>scenario</b>: Set measurement period.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: env set_meas_period 2000\n");
@@ -1292,14 +1262,14 @@ TEST_F(cmdParserFixture, env_cmds_test)
             return RETURN_OK;
          }));
    EXPECT_CALL(*env_mock, env_set_measurement_period(2000)).WillOnce(Return(RETURN_OK));
-   cmd_handle_bt_data("env set_meas_period 2000");
+   cmd_handle_data("env set_meas_period 2000");
 
    /**
     * <b>scenario</b>: Get measurement period.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: env get_meas_period\n");
@@ -1316,7 +1286,7 @@ TEST_F(cmdParserFixture, env_cmds_test)
             return RETURN_OK;
          }));
    EXPECT_CALL(*env_mock, env_get_measurement_period()).WillOnce(Return(2000));
-   cmd_handle_bt_data("env get_meas_period");
+   cmd_handle_data("env get_meas_period");
 
 }
 
@@ -1330,7 +1300,7 @@ TEST_F(cmdParserFixture, log_cmds_test)
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: log enable module\n");
@@ -1353,15 +1323,15 @@ TEST_F(cmdParserFixture, log_cmds_test)
          }));
    EXPECT_CALL(*logger_mock, logger_enable()).WillOnce(Return(RETURN_OK));
    EXPECT_CALL(*logger_mock, logger_disable());
-   cmd_handle_bt_data("log enable module");
-   cmd_handle_bt_data("log disable module");
+   cmd_handle_data("log enable module");
+   cmd_handle_data("log disable module");
 
    /**
     * <b>scenario</b>: Enable/disable group.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: log enable DEBUG\n");
@@ -1384,15 +1354,15 @@ TEST_F(cmdParserFixture, log_cmds_test)
          }));
    EXPECT_CALL(*logger_mock, logger_set_group_state(LOG_DEBUG, LOGGER_GROUP_ENABLE)).WillOnce(Return(RETURN_OK));
    EXPECT_CALL(*logger_mock, logger_set_group_state(LOG_DEBUG, LOGGER_GROUP_DISABLE)).WillOnce(Return(RETURN_OK));
-   cmd_handle_bt_data("log enable DEBUG");
-   cmd_handle_bt_data("log disable DEBUG");
+   cmd_handle_data("log enable DEBUG");
+   cmd_handle_data("log disable DEBUG");
 
    /**
     * <b>scenario</b>: Get groups state.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: log groups_state\n");
@@ -1409,7 +1379,7 @@ TEST_F(cmdParserFixture, log_cmds_test)
             return RETURN_OK;
          }));
    EXPECT_CALL(*logger_mock, logger_get_group_state(_)).WillRepeatedly(Return(LOGGER_GROUP_ENABLE));
-   cmd_handle_bt_data("log groups_state");
+   cmd_handle_data("log groups_state");
 
 }
 
@@ -1423,7 +1393,7 @@ TEST_F(cmdParserFixture, slm_cmds_test)
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: slm get_config\n");
@@ -1447,14 +1417,14 @@ TEST_F(cmdParserFixture, slm_cmds_test)
                cfg->program_id = SLM_PROGRAM1;
                return RETURN_OK;
            }));
-   cmd_handle_bt_data("slm get_config");
+   cmd_handle_data("slm get_config");
 
    /**
     * <b>scenario</b>: Start/stop program.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: slm start\n");
@@ -1488,16 +1458,16 @@ TEST_F(cmdParserFixture, slm_cmds_test)
    EXPECT_CALL(*slm_mock, slm_start_program()).WillOnce(Return(RETURN_OK));
    EXPECT_CALL(*slm_mock, slm_start_program_alw_on()).WillOnce(Return(RETURN_OK));
    EXPECT_CALL(*slm_mock, slm_stop_program()).WillOnce(Return(RETURN_OK));
-   cmd_handle_bt_data("slm start");
-   cmd_handle_bt_data("slm start_alwon");
-   cmd_handle_bt_data("slm stop");
+   cmd_handle_data("slm start");
+   cmd_handle_data("slm start_alwon");
+   cmd_handle_data("slm stop");
 
    /**
     * <b>scenario</b>: Get status.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
             EXPECT_STREQ(data, "CMD: slm status\n");
@@ -1515,17 +1485,17 @@ TEST_F(cmdParserFixture, slm_cmds_test)
          }));
    EXPECT_CALL(*slm_mock, slm_get_state()).WillOnce(Return(SLM_STATE_ONGOING_ON));
    EXPECT_CALL(*slm_mock, slm_get_current_program_id()).WillOnce(Return(SLM_PROGRAM3));
-   cmd_handle_bt_data("slm status");
+   cmd_handle_data("slm status");
 
    /**
     * <b>scenario</b>: Set program.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
-   EXPECT_CALL(*callMock, bt_send_function(_))
+   EXPECT_CALL(*callMock, send_callback(_))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
          {
-            EXPECT_STREQ(data, "CMD: slm set_program 1\n");
+            EXPECT_STREQ(data, "CMD: slm set_program 2\n");
             return RETURN_OK;
          }))
          .WillOnce(Invoke([&](const char* data) -> RET_CODE
@@ -1533,6 +1503,6 @@ TEST_F(cmdParserFixture, slm_cmds_test)
             EXPECT_STREQ(data, "OK\n");
             return RETURN_OK;
          }));
-   EXPECT_CALL(*slm_mock, slm_set_current_program_id(SLM_PROGRAM2));
-   cmd_handle_bt_data("slm set_program 1");
+   EXPECT_CALL(*slm_mock, slm_set_current_program_id(SLM_PROGRAM2)).WillOnce(Return(RETURN_OK));
+   cmd_handle_data("slm set_program 2");
 }

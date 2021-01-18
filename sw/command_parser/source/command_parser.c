@@ -40,29 +40,17 @@ RET_CODE cmd_handle_logger_subcommand(const char** command, uint8_t size);
 /* =============================
  *      Module variables
  * =============================*/
-const uint8_t CMD_UNKNOWN_ID = 255;
 char CMD_REPLY_BUFFER [CMD_REPLY_BUFFER_SIZE];
-RET_CODE(*BT_SEND)(const char* data);
-RET_CODE(*WIFI_SEND)(ServerClientID id, const char* data);
-ServerClientID CURR_ID;
+RET_CODE(*COMMAND_RESPOND)(const char* data);
 
 
-void cmd_register_bt_sender(RET_CODE(*callback)(const char* data))
+void cmd_register_sender(RET_CODE(*callback)(const char* data))
 {
-	BT_SEND = callback;
+   COMMAND_RESPOND = callback;
 }
-void cmd_unregister_bt_sender()
+void cmd_unregister_sender()
 {
-	BT_SEND = NULL;
-}
-
-void cmd_register_wifi_sender(RET_CODE(*callback)(ServerClientID id, const char* data))
-{
-	WIFI_SEND = callback;
-}
-void cmd_unregister_wifi_sender()
-{
-	WIFI_SEND = NULL;
+   COMMAND_RESPOND = NULL;
 }
 void cmd_prepare_response(RET_CODE result)
 {
@@ -71,27 +59,16 @@ void cmd_prepare_response(RET_CODE result)
 
 void cmd_send_response()
 {
-   CURR_ID != CMD_UNKNOWN_ID? WIFI_SEND(CURR_ID, CMD_REPLY_BUFFER) : BT_SEND(CMD_REPLY_BUFFER);
+   if (COMMAND_RESPOND)
+   {
+      COMMAND_RESPOND(CMD_REPLY_BUFFER);
+   }
 #ifdef UNIT_TESTS
    printf("%s\n", CMD_REPLY_BUFFER);
 #endif
 }
-void cmd_handle_wifi_data(ServerClientID id, const char* data)
+void cmd_handle_data(const char* data)
 {
-	CURR_ID = id;
-	if (CMD_PARSER_USE_ECHO)
-	{
-		/* send echo */
-		string_format(CMD_REPLY_BUFFER, "CMD: %s\n", data);
-		cmd_send_response();
-	}
-	/* send response */
-	cmd_prepare_response(cmd_parse_data(data));
-	cmd_send_response();
-}
-void cmd_handle_bt_data(const char* data)
-{
-	CURR_ID = CMD_UNKNOWN_ID;
 	if (CMD_PARSER_USE_ECHO)
 	{
 		/* send echo */
@@ -329,7 +306,7 @@ RET_CODE cmd_handle_slm_subcommand(const char** command, uint8_t size)
    }
    else if (!strcmp(command[1], "set_program"))
    {
-      result = slm_set_current_program_id((SLM_PROGRAM_ID)atoi(command[2] - 1));
+      result = slm_set_current_program_id((SLM_PROGRAM_ID)(atoi(command[2]) - 1));
    }
    return result;
 }

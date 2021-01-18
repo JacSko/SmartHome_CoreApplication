@@ -56,16 +56,10 @@ int main(void)
 	logger_initialize(UART_COMMON_STRING_SIZE);
 	logger_register_sender(&btengine_send_string);
 	logger_enable();
-	logger_set_group_state(LOG_DEBUG, LOGGER_GROUP_ENABLE);
-	logger_set_group_state(LOG_WIFI_DRIVER, LOGGER_GROUP_ENABLE);
-	logger_set_group_state(LOG_WIFI_MANAGER, LOGGER_GROUP_ENABLE);
-	logger_set_group_state(LOG_INPUTS, LOGGER_GROUP_ENABLE);
-	logger_set_group_state(LOG_RELAYS, LOGGER_GROUP_ENABLE);
-	logger_set_group_state(LOG_SLM, LOGGER_GROUP_ENABLE);
 	logger_send(LOG_DEBUG, __FILE__, "Booting up!");
 
-	cmd_register_bt_sender(&btengine_send_string);
-	if (btengine_register_callback(&cmd_handle_bt_data) != RETURN_OK)
+	cmd_register_sender(&btengine_send_string);
+	if (btengine_register_callback(&cmd_handle_data) != RETURN_OK)
 	{
 		logger_send(LOG_ERROR, __FILE__, "Cannot add BT callback!");
 	}
@@ -73,14 +67,6 @@ int main(void)
 	logger_send(LOG_DEBUG, __FILE__, "Booting completed!");
 	i2c_initialize();
 	sch_trigger_task(&print_log);
-
-	SLM_CONFIG led_config;
-	led_config.address = 0x48;
-	led_config.off_effect_mode = SLM_OFF_EFFECT_ENABLED;
-	led_config.program_id = SLM_PROGRAM1;
-
-	slm_initialize(&led_config);
-
 
 	while (1)
 	{
