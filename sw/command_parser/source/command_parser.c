@@ -327,6 +327,10 @@ RET_CODE cmd_handle_slm_subcommand(const char** command, uint8_t size)
       cmd_send_response();
       result = RETURN_OK;
    }
+   else if (!strcmp(command[1], "set_program"))
+   {
+      result = slm_set_current_program_id((SLM_PROGRAM_ID)atoi(command[2] - 1));
+   }
    return result;
 }
 

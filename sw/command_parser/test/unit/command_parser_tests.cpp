@@ -1493,7 +1493,7 @@ TEST_F(cmdParserFixture, slm_cmds_test)
    cmd_handle_bt_data("slm stop");
 
    /**
-    * <b>scenario</b>: Get config.<br>
+    * <b>scenario</b>: Get status.<br>
     * <b>expected</b>: Command executed, response sent.<br>
     * ************************************************
     */
@@ -1516,4 +1516,23 @@ TEST_F(cmdParserFixture, slm_cmds_test)
    EXPECT_CALL(*slm_mock, slm_get_state()).WillOnce(Return(SLM_STATE_ONGOING_ON));
    EXPECT_CALL(*slm_mock, slm_get_current_program_id()).WillOnce(Return(SLM_PROGRAM3));
    cmd_handle_bt_data("slm status");
+
+   /**
+    * <b>scenario</b>: Set program.<br>
+    * <b>expected</b>: Command executed, response sent.<br>
+    * ************************************************
+    */
+   EXPECT_CALL(*callMock, bt_send_function(_))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            EXPECT_STREQ(data, "CMD: slm set_program 1\n");
+            return RETURN_OK;
+         }))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            EXPECT_STREQ(data, "OK\n");
+            return RETURN_OK;
+         }));
+   EXPECT_CALL(*slm_mock, slm_set_current_program_id(SLM_PROGRAM2));
+   cmd_handle_bt_data("slm set_program 1");
 }
