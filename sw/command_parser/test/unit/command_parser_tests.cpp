@@ -15,6 +15,7 @@ extern "C" {
 #include "dht_driver_mock.h"
 #include "bathroom_fan_mock.h"
 #include "env_monitor_mock.h"
+#include "logger_mock.h"
 /* ============================= */
 /**
  * @file command_parser_tests.cpp
@@ -62,6 +63,7 @@ struct cmdParserFixture : public ::testing::Test
 		mock_dht_init();
 		mock_fan_init();
 		mock_env_init();
+		mock_logger_init();
 		callMock = new callbackMock;
 
 		cmd_register_bt_sender(&bt_send_function);
@@ -77,6 +79,7 @@ struct cmdParserFixture : public ::testing::Test
 		mock_dht_deinit();
 		mock_fan_deinit();
 		mock_env_deinit();
+		mock_logger_deinit();
 		delete callMock;
 		cmd_unregister_bt_sender();
 		cmd_unregister_wifi_sender();
@@ -1311,5 +1314,98 @@ TEST_F(cmdParserFixture, env_cmds_test)
          }));
    EXPECT_CALL(*env_mock, env_get_measurement_period()).WillOnce(Return(2000));
    cmd_handle_bt_data("env get_meas_period");
+
+}
+
+/**
+ * @test Checks logger related command behavior
+ */
+TEST_F(cmdParserFixture, log_cmds_test)
+{
+   /**
+    * <b>scenario</b>: Enable/disable module.<br>
+    * <b>expected</b>: Command executed, response sent.<br>
+    * ************************************************
+    */
+   EXPECT_CALL(*callMock, bt_send_function(_))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            EXPECT_STREQ(data, "CMD: log enable module\n");
+            return RETURN_OK;
+         }))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            EXPECT_STREQ(data, "OK\n");
+            return RETURN_OK;
+         }))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            EXPECT_STREQ(data, "CMD: log disable module\n");
+            return RETURN_OK;
+         }))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            EXPECT_STREQ(data, "OK\n");
+            return RETURN_OK;
+         }));
+   EXPECT_CALL(*logger_mock, logger_enable()).WillOnce(Return(RETURN_OK));
+   EXPECT_CALL(*logger_mock, logger_disable());
+   cmd_handle_bt_data("log enable module");
+   cmd_handle_bt_data("log disable module");
+
+   /**
+    * <b>scenario</b>: Enable/disable group.<br>
+    * <b>expected</b>: Command executed, response sent.<br>
+    * ************************************************
+    */
+   EXPECT_CALL(*callMock, bt_send_function(_))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            EXPECT_STREQ(data, "CMD: log enable DEBUG\n");
+            return RETURN_OK;
+         }))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            EXPECT_STREQ(data, "OK\n");
+            return RETURN_OK;
+         }))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            EXPECT_STREQ(data, "CMD: log disable DEBUG\n");
+            return RETURN_OK;
+         }))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            EXPECT_STREQ(data, "OK\n");
+            return RETURN_OK;
+         }));
+   EXPECT_CALL(*logger_mock, logger_set_group_state(LOG_DEBUG, LOGGER_GROUP_ENABLE)).WillOnce(Return(RETURN_OK));
+   EXPECT_CALL(*logger_mock, logger_set_group_state(LOG_DEBUG, LOGGER_GROUP_DISABLE)).WillOnce(Return(RETURN_OK));
+   cmd_handle_bt_data("log enable DEBUG");
+   cmd_handle_bt_data("log disable DEBUG");
+
+   /**
+    * <b>scenario</b>: Get groups state.<br>
+    * <b>expected</b>: Command executed, response sent.<br>
+    * ************************************************
+    */
+   EXPECT_CALL(*callMock, bt_send_function(_))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            EXPECT_STREQ(data, "CMD: log groups_state\n");
+            return RETURN_OK;
+         }))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            /* string with groups state */
+            return RETURN_OK;
+         }))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            EXPECT_STREQ(data, "OK\n");
+            return RETURN_OK;
+         }));
+   EXPECT_CALL(*logger_mock, logger_get_group_state(_)).WillRepeatedly(Return(LOGGER_GROUP_ENABLE));
+   cmd_handle_bt_data("log groups_state");
 
 }

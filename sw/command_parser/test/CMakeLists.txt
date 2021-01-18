@@ -17,6 +17,7 @@ target_link_libraries(command_parser_tests PUBLIC
 		dhtdriver_mock
 		bathroom_fan_mock
 		env_monitor_mock
+		loggerMock
 		string_formatter
 )
 

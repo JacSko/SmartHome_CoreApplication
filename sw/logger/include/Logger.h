@@ -38,19 +38,19 @@
  * =============================*/
 typedef enum
 {
-	LOG_ERROR = 0x00,          /**< Sends ERROR messages - this group is enabled by default) */
-	LOG_WIFI_DRIVER = 0x01,    /**< Logs from WiFi Driver */
-	LOG_TIME = 0x02,           /**< Logs from TIME module */
-	LOG_TASK_SCHEDULER = 0x03, /**< Logs from Task Scheduler */
-	LOG_DEBUG = 0x04,          /**< Logs from Debug group */
-	LOG_WIFI_MANAGER = 0x05,   /**< Logs from WiFi Manager */
-	LOG_DHT_DRV,               /**< Logs from DHT driver - received data, etc */
-	LOG_I2C_DRV,               /**< Logs from I2C driver - received data, etc */
-	LOG_INPUTS,                /**< Logs from Inputs module */
-	LOG_RELAYS,                /**< Logs from Relays module */
-	LOG_FAN,                   /**< Logs from Bathroom fan module */
-	LOG_SLM,                   /**< Logs from StairsLedModule */
-	LOG_ENUM_MAX               /**< Enums count */
+   LOG_ERROR = 0x00,          /**< Sends ERROR messages - this group is enabled by default) */
+   LOG_WIFI_DRIVER = 0x01,    /**< Logs from WiFi Driver */
+   LOG_TIME = 0x02,           /**< Logs from TIME module */
+   LOG_TASK_SCHEDULER = 0x03, /**< Logs from Task Scheduler */
+   LOG_DEBUG = 0x04,          /**< Logs from Debug group */
+   LOG_WIFI_MANAGER = 0x05,   /**< Logs from WiFi Manager */
+   LOG_DHT_DRV,               /**< Logs from DHT driver - received data, etc */
+   LOG_I2C_DRV,               /**< Logs from I2C driver - received data, etc */
+   LOG_INPUTS,                /**< Logs from Inputs module */
+   LOG_RELAYS,                /**< Logs from Relays module */
+   LOG_FAN,                   /**< Logs from Bathroom fan module */
+   LOG_SLM,                   /**< Logs from StairsLedModule */
+   LOG_ENUM_MAX               /**< Enums count */
 } LogGroup;
 
 /**
@@ -114,5 +114,17 @@ void logger_send(LogGroup group, const char* prefix, const char* fmt, ...);
  * @return None.
  */
 void logger_send_if(uint8_t cond_bool, LogGroup group, const char* prefix, const char* fmt, ...);
+/**
+ * @brief Converts log group enum to string.
+ * @param[in] group - Group ID.
+ * @return String name.
+ */
+const char* logger_group_to_string(LogGroup group);
+/**
+ * @brief Converts log group string to group ID.
+ * @param[in] group - group name as string.
+ * @return Group ID.
+ */
+LogGroup logger_string_to_group(const char* name);
 
 #endif

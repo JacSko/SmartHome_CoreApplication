@@ -36,6 +36,7 @@ RET_CODE cmd_handle_dhtdrv_subcommand(const char** command, uint8_t size);
 RET_CODE cmd_handle_bathfan_subcommand(const char** command, uint8_t size);
 RET_CODE cmd_handle_env_subcommand(const char** command, uint8_t size);
 RET_CODE cmd_handle_logger_subcommand(const char** command, uint8_t size);
+LogGroup cmd_get_logger_group(const char* name);
 /* =============================
  *      Module variables
  * =============================*/
@@ -71,6 +72,9 @@ void cmd_prepare_response(RET_CODE result)
 void cmd_send_response()
 {
    CURR_ID != CMD_UNKNOWN_ID? WIFI_SEND(CURR_ID, CMD_REPLY_BUFFER) : BT_SEND(CMD_REPLY_BUFFER);
+#ifdef UNIT_TESTS
+   printf("%s\n", CMD_REPLY_BUFFER);
+#endif
 }
 void cmd_handle_wifi_data(ServerClientID id, const char* data)
 {
@@ -545,12 +549,37 @@ RET_CODE cmd_handle_logger_subcommand(const char** command, uint8_t size)
    RET_CODE result = RETURN_OK;
    if (!strcmp(command[1], "enable"))
    {
+      if (!strcmp(command[2], "module"))
+      {
+         result = logger_enable();
+      }
+      else if (logger_string_to_group(command[2]) != LOG_ENUM_MAX)
+      {
+         result = logger_set_group_state(logger_string_to_group(command[2]), LOGGER_GROUP_ENABLE);
+      }
    }
    else if(!strcmp(command[1], "disable"))
    {
+      if (!strcmp(command[2], "module"))
+      {
+         logger_disable();
+         result = RETURN_OK;
+      }
+      else if (logger_string_to_group(command[2]) != LOG_ENUM_MAX)
+      {
+         result = logger_set_group_state(logger_string_to_group(command[2]), LOGGER_GROUP_DISABLE);
+      }
    }
    else if(!strcmp(command[1], "groups_state"))
    {
+      uint16_t offset = 0;
+      for (uint8_t i = 0; i < LOG_ENUM_MAX; i++)
+      {
+         offset += string_format(CMD_REPLY_BUFFER + (offset), "%s:%d\n", logger_group_to_string((LogGroup)i),
+                                                                         logger_get_group_state((LogGroup)i));
+      }
+      cmd_send_response();
+      result = RETURN_OK;
    }
 
    return result;

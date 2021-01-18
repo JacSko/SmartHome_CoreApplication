@@ -11,6 +11,7 @@ target_include_directories(command_parser PUBLIC
 target_link_libraries(command_parser PUBLIC
 		wifi_manager
 		stairs_led_module
+		bathroom_fan
 )
 
 

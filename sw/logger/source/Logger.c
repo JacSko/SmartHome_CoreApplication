@@ -3,6 +3,7 @@
  * =============================*/
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
 /* =============================
  *  Includes of project headers
  * =============================*/
@@ -16,7 +17,6 @@
 /* =============================
  *   Internal module functions
  * =============================*/
-const char* logger_get_group_name(LogGroup group);
 void logger_notify_data(const char* data);
 /* =============================
  *       Internal types
@@ -28,13 +28,30 @@ typedef struct
 	char* buffer;
 	uint16_t buffer_size;
 } Logger;
+typedef struct LOG_GROUP
+{
+   uint8_t state;
+   LogGroup id;
+   const char* name;
+} LOG_GROUP;
 /* =============================
  *      Module variables
  * =============================*/
 Logger logger;
 RET_CODE (*LOGGER_SENDERS[LOGGER_MAX_SENDERS])(const char *);
-uint8_t LOGGER_GROUPS_STATE [LOG_ENUM_MAX] = {};
-
+LOG_GROUP LOGGER_GROUPS[LOG_ENUM_MAX] = {
+      {LOGGER_GROUP_ENABLE, LOG_ERROR, "ERROR"},
+      {LOGGER_GROUP_ENABLE, LOG_WIFI_DRIVER, "WIFI_DRV"},
+      {LOGGER_GROUP_ENABLE, LOG_TIME, "TIME"},
+      {LOGGER_GROUP_ENABLE, LOG_TASK_SCHEDULER, "TASK_SCH"},
+      {LOGGER_GROUP_ENABLE, LOG_DEBUG, "DEBUG"},
+      {LOGGER_GROUP_ENABLE, LOG_WIFI_MANAGER, "WIFI_MGR"},
+      {LOGGER_GROUP_ENABLE, LOG_DHT_DRV, "DHT_DRV"},
+      {LOGGER_GROUP_ENABLE, LOG_I2C_DRV, "I2C_DRV"},
+      {LOGGER_GROUP_ENABLE, LOG_INPUTS, "INP"},
+      {LOGGER_GROUP_ENABLE, LOG_RELAYS, "REL"},
+      {LOGGER_GROUP_ENABLE, LOG_FAN, "FAN"},
+      {LOGGER_GROUP_ENABLE, LOG_SLM, "SLM"}};
 
 RET_CODE logger_initialize(uint16_t buffer_size)
 {
@@ -50,7 +67,7 @@ RET_CODE logger_initialize(uint16_t buffer_size)
 	for (uint8_t i = 0; i < LOG_ENUM_MAX; i++)
 	{
 		/* LOG_ERROR group always is ON */
-		LOGGER_GROUPS_STATE[i] = i == LOG_ERROR? 1 : 0;
+	   LOGGER_GROUPS[i].state = (i == LOG_ERROR)? LOGGER_GROUP_ENABLE : LOGGER_GROUP_DISABLE;
 	}
 	return result;
 }
@@ -116,9 +133,9 @@ RET_CODE logger_set_group_state(LogGroup group, uint8_t state)
 
 	if (group < LOG_ENUM_MAX)
 	{
-		if (LOGGER_GROUPS_STATE[group] != state)
+		if (LOGGER_GROUPS[group].state != state)
 		{
-			LOGGER_GROUPS_STATE[group] = state;
+			LOGGER_GROUPS[group].state = state;
 			result = RETURN_OK;
 		}
 	}
@@ -129,7 +146,7 @@ uint8_t logger_get_group_state(LogGroup group)
 	uint8_t result = 255;
 	if (group < LOG_ENUM_MAX)
 	{
-		result = LOGGER_GROUPS_STATE[group];
+		result = LOGGER_GROUPS[group].state;
 	}
 	return result;
 }
@@ -137,7 +154,7 @@ void logger_send(LogGroup group, const char* prefix, const char* fmt, ...)
 {
 	if (logger.is_enabled && group < LOG_ENUM_MAX)
 	{
-		if (LOGGER_GROUPS_STATE[group] == 1)
+		if (LOGGER_GROUPS[group].state == LOGGER_GROUP_ENABLE)
 		{
 			int length = 0;
 			va_list va;
@@ -146,7 +163,7 @@ void logger_send(LogGroup group, const char* prefix, const char* fmt, ...)
 			{
 				TimeItem* time = time_get();
 				int offset = string_format(logger.buffer, "[%.2d-%.2d-%d %.2d:%.2d:%.2d:%.3d] - %s - %s:", time->day, time->month, time->year, time->hour, time->minute, time->second, time->msecond,
-																									logger_get_group_name(group), prefix);
+				      LOGGER_GROUPS[group].name, prefix);
 				va_start(va, fmt);
 				length = sf_format_string(logger.buffer+offset, fmt, va);
 				va_end(va);
@@ -173,7 +190,7 @@ void logger_send_if(uint8_t cond_bool, LogGroup group, const char* prefix, const
 {
 	if (cond_bool != 0 && logger.is_enabled && group < LOG_ENUM_MAX)
 	{
-		if (LOGGER_GROUPS_STATE[group] == 1)
+		if (LOGGER_GROUPS[group].state == LOGGER_GROUP_ENABLE)
 		{
 			int length = 0;
 			va_list va;
@@ -182,7 +199,7 @@ void logger_send_if(uint8_t cond_bool, LogGroup group, const char* prefix, const
 			{
 				TimeItem* time = time_get();
 				int offset = string_format(logger.buffer, "[%.2d-%.2d-%d %.2d:%.2d:%.2d:%.3d] - %s - %s:", time->day, time->month, time->year, time->hour, time->minute, time->second, time->msecond,
-																									logger_get_group_name(group), prefix);
+				      LOGGER_GROUPS[group].name, prefix);
 				va_start(va, fmt);
 				length = sf_format_string(logger.buffer+offset, fmt, va);
 				va_end(va);
@@ -194,36 +211,27 @@ void logger_send_if(uint8_t cond_bool, LogGroup group, const char* prefix, const
 	}
 }
 
-const char* logger_get_group_name(LogGroup group)
+const char* logger_group_to_string(LogGroup group)
 {
-	switch(group)
-	{
-	case LOG_ERROR:
-		return "ERROR";
-	case LOG_WIFI_DRIVER:
-		return "WIFI_DRV";
-	case LOG_TIME:
-		return "TIME";
-	case LOG_TASK_SCHEDULER:
-		return "TASK_SCH";
-	case LOG_DEBUG:
-		return "DEBUG";
-	case LOG_WIFI_MANAGER:
-		return "WIFI_MGR";
-	case LOG_DHT_DRV:
-	   return "DHT_DRV";
-   case LOG_I2C_DRV:
-      return "I2C_DRV";
-   case LOG_INPUTS:
-      return "INP";
-   case LOG_RELAYS:
-      return "REL";
-   case LOG_FAN:
-      return "FAN";
-   case LOG_SLM:
-      return "SLM";
-	default:
-		return "";
-	}
-
+   const char* result;
+   if (group < LOG_ENUM_MAX)
+   {
+      result = LOGGER_GROUPS[group].name;
+   }
+   return result;
+}
+LogGroup logger_string_to_group(const char* name)
+{
+   LogGroup result = LOG_ENUM_MAX;
+   if (name)
+   {
+      for (uint8_t i = 0; i < LOG_ENUM_MAX; i++)
+      {
+         if (!strcmp(LOGGER_GROUPS[i].name, name))
+         {
+            result = LOGGER_GROUPS[i].id;
+         }
+      }
+   }
+   return result;
 }
