@@ -117,6 +117,12 @@ SLM_STATE slm_get_state();
  */
 SLM_PROGRAM_ID slm_get_current_program_id();
 /**
+ * @brief Set current program ID.
+ * @param[in] id - ID of the program to set.
+ * @return See RETURN_CODES.
+ */
+RET_CODE slm_set_current_program_id(SLM_PROGRAM_ID id);
+/**
  * @brief Get defined program details.
  * @param[in] id - ID of the program to get.
  * @param[out] buffer - place, where program will be written.

@@ -336,6 +336,7 @@ void slm_run_program(SLM_REQ_TYPE type)
    logger_send(LOG_SLM, __func__,"");
    led_module.type = type;
    led_module.state = SLM_STATE_ONGOING_ON;
+   led_module.program = &LED_PROGRAMS[led_module.cfg.program_id];
    led_module.step_id = 1;
    led_module.step = &(led_module.program->program_steps[led_module.step_id]);
    slm_send_step(led_module.step);
@@ -373,15 +374,18 @@ SLM_STATE slm_get_state()
 }
 SLM_PROGRAM_ID slm_get_current_program_id()
 {
-   SLM_PROGRAM_ID result = SLM_PROGRAM1;
-   for (uint8_t i =0; i < SLM_MAX_PROGRAMS; i++)
+   return led_module.cfg.program_id;
+}
+RET_CODE slm_set_current_program_id(SLM_PROGRAM_ID id)
+{
+   RET_CODE result = RETURN_NOK;
+   if (id <= SLM_PROGRAM3 && led_module.state == SLM_STATE_OFF)
    {
-      if (&LED_PROGRAMS[i] == led_module.program)
-      {
-         result = (SLM_PROGRAM_ID)i;
-         break;
-      }
+      led_module.cfg.program_id = id;
+      result = RETURN_OK;
+      logger_send(LOG_SLM, __func__,"new program id %d", id);
    }
+   logger_send_if(result != RETURN_OK, LOG_ERROR, __func__,"invalid program id %d", id);
    return result;
 }
 RET_CODE slm_get_program_by_id(SLM_PROGRAM_ID id, SLM_PROGRAM* buffer)

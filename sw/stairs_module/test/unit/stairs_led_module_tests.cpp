@@ -1463,3 +1463,39 @@ TEST_F(ledFixtureNoEffect, led_replace_program)
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
    EXPECT_EQ(RETURN_NOK, slm_replace_program(SLM_PROGRAM1, &new_program));
 }
+
+/**
+ * @test Setting new SLM program by ID.
+ */
+TEST_F(ledFixtureNoEffect, led_change_current_program)
+{
+   /**
+   * <b>scenario</b>: Incorrect ID requested.<br>
+   * <b>expected</b>: ID not changed.<br>
+   * ************************************************
+   */
+   ASSERT_EQ(SLM_PROGRAM1, slm_get_current_program_id());
+   EXPECT_EQ(RETURN_NOK, slm_set_current_program_id((SLM_PROGRAM_ID)(SLM_PROGRAM3 + 1)));
+
+   /**
+   * <b>scenario</b>: Correct ID requested.<br>
+   * <b>expected</b>: ID not changed.<br>
+   * ************************************************
+   */
+   ASSERT_EQ(SLM_PROGRAM1, slm_get_current_program_id());
+   EXPECT_EQ(RETURN_OK, slm_set_current_program_id(SLM_PROGRAM2));
+
+   /**
+   * <b>scenario</b>: State different than OFF.<br>
+   * <b>expected</b>: ID not changed.<br>
+   * ************************************************
+   */
+   uint8_t PROGRAM1_STEP_PERIOD = 20;
+
+   EXPECT_CALL(*i2c_mock, i2c_write(_,_,_));
+   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
+   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   slm_start_program();
+   EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
+   EXPECT_EQ(RETURN_NOK, slm_set_current_program_id(SLM_PROGRAM3));
+}

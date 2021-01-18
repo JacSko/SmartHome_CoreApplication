@@ -14,6 +14,7 @@ struct slmMock
    MOCK_METHOD0(slm_stop_program, RET_CODE());
    MOCK_METHOD0(slm_get_state, SLM_STATE());
    MOCK_METHOD0(slm_get_current_program_id, SLM_PROGRAM_ID());
+   MOCK_METHOD1(slm_set_current_program_id, RET_CODE(SLM_PROGRAM_ID));
    MOCK_METHOD2(slm_get_program_by_id, RET_CODE(SLM_PROGRAM_ID, SLM_PROGRAM*));
    MOCK_METHOD2(slm_replace_program, RET_CODE(SLM_PROGRAM_ID, const SLM_PROGRAM*));
 };
@@ -60,6 +61,10 @@ SLM_STATE slm_get_state()
 SLM_PROGRAM_ID slm_get_current_program_id()
 {
    return slm_mock->slm_get_current_program_id();
+}
+RET_CODE slm_set_current_program_id(SLM_PROGRAM_ID id)
+{
+   return slm_mock->slm_set_current_program_id(id);
 }
 RET_CODE slm_get_program_by_id(SLM_PROGRAM_ID id, SLM_PROGRAM* buffer)
 {
