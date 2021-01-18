@@ -351,6 +351,49 @@ TEST_F(loggerFixture, sender_add_remove_tests)
     * ************************************************
 	 */
 	EXPECT_EQ(RETURN_NOK, logger_unregister_sender(&fake_callback));
+}
 
+/**
+ * @test Adding/removing sender function
+ */
+TEST_F(loggerFixture, group_to_string_conversion_tests)
+{
+   /**
+    * <b>scenario</b>: Correct group requested. <br>
+    * <b>expected</b>: Correct string returned.<br>
+    * ************************************************
+    */
+   EXPECT_STREQ("DEBUG", logger_group_to_string(LOG_DEBUG));
 
+   /**
+    * <b>scenario</b>: Incorrect group requested. <br>
+    * <b>expected</b>: nullptr returned.<br>
+    * ************************************************
+    */
+   EXPECT_STREQ("", logger_group_to_string(LOG_ENUM_MAX));
+}
+
+/**
+ * @test Adding/removing sender function
+ */
+TEST_F(loggerFixture, string_to_group_conversion_tests)
+{
+   /**
+    * <b>scenario</b>: Null guard. <br>
+    * <b>expected</b>: LOG_ENUM_MAX returned.<br>
+    * ************************************************
+    */
+   EXPECT_EQ(LOG_ENUM_MAX, logger_string_to_group(nullptr));
+   /**
+    * <b>scenario</b>: Incorrect string name. <br>
+    * <b>expected</b>: LOG_ENUM_MAX returned.<br>
+    * ************************************************
+    */
+   EXPECT_EQ(LOG_ENUM_MAX, logger_string_to_group("NO GROUP"));
+   /**
+    * <b>scenario</b>: Correct string name. <br>
+    * <b>expected</b>: Group ID returned.<br>
+    * ************************************************
+    */
+   EXPECT_EQ(LOG_DEBUG, logger_string_to_group("DEBUG"));
 }

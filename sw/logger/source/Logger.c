@@ -213,7 +213,7 @@ void logger_send_if(uint8_t cond_bool, LogGroup group, const char* prefix, const
 
 const char* logger_group_to_string(LogGroup group)
 {
-   const char* result;
+   const char* result = "";
    if (group < LOG_ENUM_MAX)
    {
       result = LOGGER_GROUPS[group].name;
