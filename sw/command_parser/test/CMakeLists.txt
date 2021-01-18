@@ -18,6 +18,7 @@ target_link_libraries(command_parser_tests PUBLIC
 		bathroom_fan_mock
 		env_monitor_mock
 		loggerMock
+		stairs_led_module_mock
 		string_formatter
 )
 

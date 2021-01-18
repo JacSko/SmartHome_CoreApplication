@@ -17,3 +17,11 @@ target_link_libraries(stairs_led_module_tests PUBLIC
 add_test(NAME stairs_led_module_tests COMMAND stairs_led_module_tests)
 
 ###########################################################
+add_library(stairs_led_module_mock STATIC
+			mocks/stairs_led_module_mock.h
+)
+set_target_properties(stairs_led_module_mock PROPERTIES LINKER_LANGUAGE CXX)
+target_include_directories(stairs_led_module_mock PUBLIC
+          ../include
+          mocks/
+)

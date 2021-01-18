@@ -16,6 +16,7 @@
 #include "bathroom_fan.h"
 #include "env_monitor.h"
 #include "Logger.h"
+#include "stairs_led_module.h"
 /* =============================
  *          Defines
  * =============================*/
@@ -36,7 +37,6 @@ RET_CODE cmd_handle_dhtdrv_subcommand(const char** command, uint8_t size);
 RET_CODE cmd_handle_bathfan_subcommand(const char** command, uint8_t size);
 RET_CODE cmd_handle_env_subcommand(const char** command, uint8_t size);
 RET_CODE cmd_handle_logger_subcommand(const char** command, uint8_t size);
-LogGroup cmd_get_logger_group(const char* name);
 /* =============================
  *      Module variables
  * =============================*/
@@ -302,7 +302,31 @@ RET_CODE cmd_handle_rel_subcommand(const char** command, uint8_t size)
 RET_CODE cmd_handle_slm_subcommand(const char** command, uint8_t size)
 {
    RET_CODE result = RETURN_NOK;
-
+   if (!strcmp(command[1], "get_config"))
+   {
+      SLM_CONFIG cfg;
+      result = slm_get_config(&cfg);
+      string_format(CMD_REPLY_BUFFER, "SLM_CONFIG:\nID:%d\nOFF_MODE:%d\naddr:%d\n", cfg.program_id, cfg.off_effect_mode, cfg.address);
+      cmd_send_response();
+   }
+   else if (!strcmp(command[1], "start"))
+   {
+      result = slm_start_program();
+   }
+   else if (!strcmp(command[1], "start_alwon"))
+   {
+      result = slm_start_program_alw_on();
+   }
+   else if (!strcmp(command[1], "stop"))
+   {
+      result = slm_stop_program();
+   }
+   else if (!strcmp(command[1], "status"))
+   {
+      string_format(CMD_REPLY_BUFFER, "STATUS:state:%d, id:%d\n", (uint8_t)slm_get_state(), (uint8_t)slm_get_current_program_id());
+      cmd_send_response();
+      result = RETURN_OK;
+   }
    return result;
 }
 
@@ -581,6 +605,5 @@ RET_CODE cmd_handle_logger_subcommand(const char** command, uint8_t size)
       cmd_send_response();
       result = RETURN_OK;
    }
-
    return result;
 }

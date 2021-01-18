@@ -16,6 +16,7 @@ extern "C" {
 #include "bathroom_fan_mock.h"
 #include "env_monitor_mock.h"
 #include "logger_mock.h"
+#include "stairs_led_module_mock.h"
 /* ============================= */
 /**
  * @file command_parser_tests.cpp
@@ -64,6 +65,7 @@ struct cmdParserFixture : public ::testing::Test
 		mock_fan_init();
 		mock_env_init();
 		mock_logger_init();
+		mock_slm_init();
 		callMock = new callbackMock;
 
 		cmd_register_bt_sender(&bt_send_function);
@@ -80,6 +82,7 @@ struct cmdParserFixture : public ::testing::Test
 		mock_fan_deinit();
 		mock_env_deinit();
 		mock_logger_deinit();
+		mock_slm_deinit();
 		delete callMock;
 		cmd_unregister_bt_sender();
 		cmd_unregister_wifi_sender();
@@ -1408,4 +1411,109 @@ TEST_F(cmdParserFixture, log_cmds_test)
    EXPECT_CALL(*logger_mock, logger_get_group_state(_)).WillRepeatedly(Return(LOGGER_GROUP_ENABLE));
    cmd_handle_bt_data("log groups_state");
 
+}
+
+/**
+ * @test Checks SLM related command behavior
+ */
+TEST_F(cmdParserFixture, slm_cmds_test)
+{
+   /**
+    * <b>scenario</b>: Get config.<br>
+    * <b>expected</b>: Command executed, response sent.<br>
+    * ************************************************
+    */
+   EXPECT_CALL(*callMock, bt_send_function(_))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            EXPECT_STREQ(data, "CMD: slm get_config\n");
+            return RETURN_OK;
+         }))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            EXPECT_STREQ(data, "SLM_CONFIG:\nID:0\nOFF_MODE:1\naddr:5\n");
+            return RETURN_OK;
+         }))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            EXPECT_STREQ(data, "OK\n");
+            return RETURN_OK;
+         }));
+   EXPECT_CALL(*slm_mock, slm_get_config(_)).WillOnce(Invoke([]
+           (SLM_CONFIG* cfg) -> RET_CODE
+           {
+               cfg->address = 0x05;
+               cfg->off_effect_mode = SLM_OFF_EFFECT_ENABLED;
+               cfg->program_id = SLM_PROGRAM1;
+               return RETURN_OK;
+           }));
+   cmd_handle_bt_data("slm get_config");
+
+   /**
+    * <b>scenario</b>: Start/stop program.<br>
+    * <b>expected</b>: Command executed, response sent.<br>
+    * ************************************************
+    */
+   EXPECT_CALL(*callMock, bt_send_function(_))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            EXPECT_STREQ(data, "CMD: slm start\n");
+            return RETURN_OK;
+         }))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            EXPECT_STREQ(data, "OK\n");
+            return RETURN_OK;
+         }))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            EXPECT_STREQ(data, "CMD: slm start_alwon\n");
+            return RETURN_OK;
+         }))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            EXPECT_STREQ(data, "OK\n");
+            return RETURN_OK;
+         }))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            EXPECT_STREQ(data, "CMD: slm stop\n");
+            return RETURN_OK;
+         }))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            EXPECT_STREQ(data, "OK\n");
+            return RETURN_OK;
+         }));
+   EXPECT_CALL(*slm_mock, slm_start_program()).WillOnce(Return(RETURN_OK));
+   EXPECT_CALL(*slm_mock, slm_start_program_alw_on()).WillOnce(Return(RETURN_OK));
+   EXPECT_CALL(*slm_mock, slm_stop_program()).WillOnce(Return(RETURN_OK));
+   cmd_handle_bt_data("slm start");
+   cmd_handle_bt_data("slm start_alwon");
+   cmd_handle_bt_data("slm stop");
+
+   /**
+    * <b>scenario</b>: Get config.<br>
+    * <b>expected</b>: Command executed, response sent.<br>
+    * ************************************************
+    */
+   EXPECT_CALL(*callMock, bt_send_function(_))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            EXPECT_STREQ(data, "CMD: slm status\n");
+            return RETURN_OK;
+         }))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            EXPECT_STREQ(data, "STATUS:state:1, id:2\n");
+            return RETURN_OK;
+         }))
+         .WillOnce(Invoke([&](const char* data) -> RET_CODE
+         {
+            EXPECT_STREQ(data, "OK\n");
+            return RETURN_OK;
+         }));
+   EXPECT_CALL(*slm_mock, slm_get_state()).WillOnce(Return(SLM_STATE_ONGOING_ON));
+   EXPECT_CALL(*slm_mock, slm_get_current_program_id()).WillOnce(Return(SLM_PROGRAM3));
+   cmd_handle_bt_data("slm status");
 }
