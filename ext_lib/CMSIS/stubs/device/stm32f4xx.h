@@ -764,6 +764,7 @@ I2C_TypeDef* I2C1;
 void stm_stub_init();
 void stm_stub_deinit();
 void NVIC_EnableIRQ(IRQn_Type IRQn);
+void NVIC_SystemReset();
 void SysTick_Config(uint32_t ticks);
 uint8_t stm_stub_check_irq(IRQn_Type IRQn, uint8_t active);
 void __DSB(void);

@@ -60,6 +60,11 @@ void NVIC_DisableIRQ(IRQn_Type IRQn)
 	}
 }
 
+void NVIC_SystemReset()
+{
+
+}
+
 uint8_t stm_stub_check_irq(IRQn_Type IRQn, uint8_t active)
 {
 	uint8_t result = 0x01;

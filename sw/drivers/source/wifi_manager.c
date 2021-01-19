@@ -15,7 +15,7 @@ uint8_t  WIFIMGR_MAX_CLIENTS = 2;
 char     WIFIMGR_NETWORK_SSID [32] = "NIE_KRADNIJ_INTERNETU!!!";
 char     WIFIMGR_NETWORK_PASS [64] = "radionet0098";
 char     WIFIMGR_NTP_SERVER [32] = "194.146.251.101";
-IPAddress   WIFIMGR_IP_ADDRESS = {{192,168,100,100},{0,0,0,0},{0,0,0,0}};
+IPAddress   WIFIMGR_IP_ADDRESS = {{192,168,100,101},{0,0,0,0},{0,0,0,0}};
 uint16_t    WIFIMGR_SERVER_PORT = 4444;
 /* =============================
  *   Internal module functions

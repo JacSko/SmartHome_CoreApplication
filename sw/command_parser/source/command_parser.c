@@ -17,6 +17,7 @@
 #include "env_monitor.h"
 #include "Logger.h"
 #include "stairs_led_module.h"
+#include "stm32f4xx.h"
 /* =============================
  *          Defines
  * =============================*/
@@ -37,6 +38,7 @@ RET_CODE cmd_handle_dhtdrv_subcommand(const char** command, uint8_t size);
 RET_CODE cmd_handle_bathfan_subcommand(const char** command, uint8_t size);
 RET_CODE cmd_handle_env_subcommand(const char** command, uint8_t size);
 RET_CODE cmd_handle_logger_subcommand(const char** command, uint8_t size);
+RET_CODE cmd_handle_system_subcommand(const char** command, uint8_t size);
 /* =============================
  *      Module variables
  * =============================*/
@@ -106,9 +108,20 @@ RET_CODE cmd_parse_data(const char* data)
    if (!strcmp(cmd_items[0], "fan")) result =  cmd_handle_bathfan_subcommand(cmd_items, index);
    if (!strcmp(cmd_items[0], "env")) result =  cmd_handle_env_subcommand(cmd_items, index);
    if (!strcmp(cmd_items[0], "log")) result =  cmd_handle_logger_subcommand(cmd_items, index);
+   if (!strcmp(cmd_items[0], "system")) result =  cmd_handle_system_subcommand(cmd_items, index);
 	return result;
 }
 
+RET_CODE cmd_handle_system_subcommand(const char** command, uint8_t size)
+{
+   RET_CODE result = RETURN_NOK;
+   if (!strcmp(command[1], "reset"))
+   {
+      NVIC_SystemReset();
+      result = RETURN_OK;
+   }
+   return result;
+}
 RET_CODE cmd_handle_inp_subcommand(const char** command, uint8_t size)
 {
    RET_CODE result = RETURN_NOK;
