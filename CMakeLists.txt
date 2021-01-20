@@ -28,8 +28,7 @@ if(NOT UNIT_TESTS)
 	set(CMAKE_OBJCOPY "arm-none-eabi-objcopy")
 	
 	set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS "")
-	set(CMAKE_SHARED_LIBRA
-	RY_LINK_CXX_FLAGS "")
+	set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
 	add_compile_options(
 	        -mcpu=cortex-m4
 	        -mthumb
@@ -107,10 +106,13 @@ if(NOT UNIT_TESTS)
 	
 	else()
 		set(FLASH_ADDR  "0x8000000")
+		set(RESET_STR "--reset")
 		add_custom_target(write 
 			COMMAND ${ST_FLASH} write ${PROJECT_NAME}.bin ${FLASH_ADDR} 2>&1 | tail -2
 		)
-	
+		add_custom_target(reset 
+			COMMAND ${ST_FLASH} reset 2>&1 | tail -2
+		)	
 		add_custom_target(read
 			COMMAND ${ST_FLASH} read ${PROJECT_NAME}_read.bin ${FLASH_ADDR} 2>&1 | tail -2
 		)

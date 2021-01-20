@@ -9,7 +9,6 @@
 #include "wifi_driver.h"
 #include "uart_engine.h"
 #include "string_formatter.h"
-#include "Logger.h"
 /* =============================
  *          Defines
  * =============================*/
@@ -340,6 +339,7 @@ RET_CODE wifi_get_time(const char* ntp_server, TimeItem* item)
 					{
 						wifi_convert_ntp_time((uint8_t*)(RX_BUFFER + 2 + ipd_header_size + ntp_timestamp_offset), item);
 					}
+					uartengine_clear_rx();
 				}
 			}
 		}

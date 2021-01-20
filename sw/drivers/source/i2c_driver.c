@@ -241,7 +241,7 @@ void i2c_watcher()
       I2C_STATUS status = i2c_get_status();
       if (status == I2C_STATUS_OK)
       {
-         logger_send(LOG_I2C_DRV, __func__, "trasnaction OK");
+         logger_send(LOG_I2C_DRV, __func__, "transaction OK");
          i2c_print_buffer(i2c_driver.type);
       }
       else

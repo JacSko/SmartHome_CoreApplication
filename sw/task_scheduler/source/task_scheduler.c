@@ -141,7 +141,10 @@ RET_CODE sch_schedule_task (TASK task, TASK_PERIOD period)
 		result = sch_set_task_period(task, period);
 		if (result == RETURN_OK)
 		{
-			sch_set_task_type(task, TASKTYPE_ONCE);
+			if (sch_set_task_type(task, TASKTYPE_ONCE) == RETURN_OK)
+			{
+			   sch_set_task_state(task, TASKSTATE_RUNNING);
+			}
 		}
 		else
 		{
@@ -192,7 +195,6 @@ RET_CODE sch_set_task_type (TASK task, enum SchTaskType type)
 	SchItem* item = sch_get_item(task);
 	if (item && type != TASKTYPE_UNKNOWN)
 	{
-		item->state = TASKSTATE_RUNNING;
 		item->type = type;
 		result = RETURN_OK;
 	}

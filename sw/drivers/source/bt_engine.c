@@ -66,7 +66,7 @@ RET_CODE btengine_initialize(BT_Config* cfg)
 	bt_tx_buf.head = 0;
 	bt_tx_buf.tail = 0;
 	bt_tx_buf.string_cnt = 0; /* not used */
-	bt_tx_buf.bytes_cnt = 0;  /* not user */
+	bt_tx_buf.bytes_cnt = 0;  /* not used */
 
 	bt_rx_buf.head = 0;
 	bt_rx_buf.tail = 0;
@@ -106,8 +106,8 @@ RET_CODE btengine_send_string(const char * buffer)
 	while (*buffer)
 	{
 		btengine_write_byte((uint8_t*)buffer++);
+		btengine_start_sending();
 	}
-	btengine_start_sending();
 	return RETURN_OK;
 }
 
@@ -120,8 +120,8 @@ RET_CODE btengine_send_bytes(const uint8_t* data, uint16_t size)
    for (uint16_t i = 0; i < size; i++)
    {
       btengine_write_byte(data + i);
+      btengine_start_sending();
    }
-   btengine_start_sending();
    return RETURN_OK;
 }
 
@@ -130,6 +130,7 @@ void btengine_write_byte(const uint8_t* byte)
    __disable_irq();
    bt_tx_buf.buf[bt_tx_buf.head] = *byte;
    bt_tx_buf.head++;
+   bt_tx_buf.bytes_cnt++;
    if (bt_tx_buf.head == config.buffer_size)
    {
       bt_tx_buf.head = 0;
@@ -308,13 +309,14 @@ void USART1_IRQHandler (void)
 	}
 
 	if (USART1->SR & USART_SR_TXE){
-		if (bt_tx_buf.head == bt_tx_buf.tail)
+		if (bt_tx_buf.head == bt_tx_buf.tail && bt_tx_buf.bytes_cnt == 0)
 		{
 			btengine_stop_sending();
 		}
 		else
 		{
 			USART1->DR = bt_tx_buf.buf[bt_tx_buf.tail];
+			bt_tx_buf.bytes_cnt--;
 			bt_tx_buf.tail++;
 			if (bt_tx_buf.tail == config.buffer_size)
 			{

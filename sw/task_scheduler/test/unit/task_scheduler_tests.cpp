@@ -354,6 +354,7 @@ TEST_F(timeFixture, three_tasks_handling)
 	 */
 
 	EXPECT_EQ(RETURN_OK, sch_set_task_type(&fake_callback1, TASKTYPE_PERIODIC));
+   EXPECT_EQ(RETURN_OK, sch_set_task_state(&fake_callback1, TASKSTATE_RUNNING));
 	EXPECT_EQ(RETURN_OK, sch_unsubscribe(&fake_callback2));
 
 
@@ -452,6 +453,7 @@ TEST_F(timeFixture, dynamic_tasks_handling)
     * ************************************************
 	 */
 	EXPECT_EQ(RETURN_OK, sch_schedule_task(&fake_callback3, 20));
+
 	EXPECT_EQ(items_list.size, 3);
 
 
@@ -543,7 +545,8 @@ TEST_F(timeFixture, negative_cases)
 	EXPECT_EQ(RETURN_NOK, sch_set_task_type(&fake_callback1, TASKTYPE_PERIODIC));
 	EXPECT_EQ(TASKTYPE_UNKNOWN, sch_get_task_type(&fake_callback1));
 
-	sch_deinitialize();
+	EXPECT_CALL(*time_cnt_mock, time_unregister_callback(_));
+   sch_deinitialize();
 }
 
 /**
@@ -593,6 +596,7 @@ TEST_F(timeFixture, task_subscribe_and_set_tests)
     */
    EXPECT_EQ(RETURN_OK, sch_subscribe_and_set(&fake_callback1, TASKPRIO_LOW, 1000,
                         TASKSTATE_RUNNING, TASKTYPE_PERIODIC));
+   EXPECT_CALL(*time_cnt_mock, time_unregister_callback(_));
    sch_deinitialize();
 }
 
@@ -630,6 +634,7 @@ TEST_F(timeFixture, task_low_high_priority_calling_test)
       sch_on_time_change(&item);
       sch_task_watcher();
    }
+   EXPECT_CALL(*time_cnt_mock, time_unregister_callback(_));
    sch_deinitialize();
 }
 

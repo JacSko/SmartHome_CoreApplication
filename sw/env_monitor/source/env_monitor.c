@@ -72,6 +72,7 @@ RET_CODE env_initialize(const ENV_CONFIG* cfg)
    if (cfg)
    {
       env_module.cfg = *cfg;
+      logger_send(LOG_ENV, __func__, "got config: %u %u %u", env_module.cfg.measure_running, env_module.cfg.max_nr_rate, env_module.cfg.max_cs_rate);
       env_module.measure_period = ENV_MEASURE_PERIOD_DEF_MS;
       for (uint8_t i = 0; i < ENV_SENSORS_COUNT; i++)
       {
@@ -93,12 +94,10 @@ RET_CODE env_initialize(const ENV_CONFIG* cfg)
 
       env_get_next_sensor();
 
-      if (sch_subscribe_and_set(&env_on_timeout, TASKPRIO_LOW, env_module.measure_period,
-          env_module.cfg.measure_running? TASKSTATE_RUNNING : TASKSTATE_STOPPED, TASKTYPE_PERIODIC) == RETURN_OK)
-      {
-         result = RETURN_OK;
-      }
+      result = sch_subscribe_and_set(&env_on_timeout, TASKPRIO_LOW, env_module.measure_period,
+               env_module.cfg.measure_running? TASKSTATE_RUNNING : TASKSTATE_STOPPED, TASKTYPE_PERIODIC);
    }
+   logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "ENV init error");
    return result;
 }
 void env_deinitialize()
@@ -113,13 +112,15 @@ void env_deinitialize()
 }
 void env_on_timeout()
 {
+   logger_send(LOG_ENV, __func__, "ENV timeout");
    if (dht_read_async(env_module.selected_sensor->dht_id, &env_on_dht_data) != RETURN_OK)
    {
-      logger_send(LOG_ERROR, __func__, "cannot read sensor %u", env_module.selected_sensor->dht_id);
+      logger_send(LOG_ERROR, __func__, "cannot read sensor %u", env_module.selected_sensor->env_id);
    }
 }
 void env_on_dht_data(DHT_STATUS status, DHT_SENSOR* sensor)
 {
+   logger_send(LOG_ENV, __func__, "got dht data");
    ENV_EVENT event = ENV_EV_ERROR;
    if (status == DHT_STATUS_OK)
    {
@@ -189,6 +190,7 @@ void env_get_next_sensor()
    {
       env_module.selected_sensor++;
    }
+   logger_send(LOG_ENV, __func__, "new sensor selected %u", env_module.selected_sensor->env_id);
 }
 void env_notify_listeners(ENV_EVENT event, ENV_ITEM_ID id,  const DHT_SENSOR* sensor)
 {

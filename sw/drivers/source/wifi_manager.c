@@ -65,17 +65,19 @@ RET_CODE wifimgr_initialize(const WIFI_UART_Config* config)
 
 	do
 	{
+	   logger_send(LOG_WIFI_MANAGER, __func__, "init");
 		if (wifi_initialize(config) != RETURN_OK)
 		{
 			logger_send(LOG_ERROR, __func__, "Cannot init wifi driver");
 			break;
 		}
-
+		logger_send(LOG_WIFI_MANAGER, __func__, "setting IP");
 		if (wifi_set_ip_address(&WIFIMGR_IP_ADDRESS) != RETURN_OK)
 		{
 			logger_send(LOG_ERROR, __func__, "Cannot set ip address");
 			break;
 		}
+		logger_send(LOG_WIFI_MANAGER, __func__, "setting to WiFi network");
 		if (wifi_connect_to_network(wifi_mgr.ssid, wifi_mgr.pass) != RETURN_OK)
 		{
 			logger_send(LOG_ERROR, __func__, "Cannot connect to network!");
@@ -83,14 +85,14 @@ RET_CODE wifimgr_initialize(const WIFI_UART_Config* config)
 		}
 
 		wifi_mgr.wifi_connected = 1;
-
+		logger_send(LOG_WIFI_MANAGER, __func__, "Diabling multiclient");
 		if (wifi_allow_multiple_clients(0) != RETURN_OK)
 		{
 			logger_send(LOG_ERROR, __func__, "Cannot disable multiclient mode!");
 			break;
 		}
-		TimeItem tim;
-
+		TimeItem tim = {};
+		logger_send(LOG_WIFI_MANAGER, __func__, "reading time");
 		RET_CODE time_ok = wifi_get_time(WIFIMGR_NTP_SERVER, &tim);
 		if (time_ok != RETURN_OK)
 		{
@@ -100,15 +102,18 @@ RET_CODE wifimgr_initialize(const WIFI_UART_Config* config)
 		}
 		if (time_ok == RETURN_OK)
 		{
+		   logger_send(LOG_WIFI_MANAGER, __func__, "setting new system time");
 			time_set_utc(&tim);
 		}
+      logger_send_if(time_ok != RETURN_OK, LOG_ERROR, __func__, "Cannot get NTP time!");
 
+      logger_send(LOG_WIFI_MANAGER, __func__, "Enabling multiclient");
 		if (wifi_allow_multiple_clients(1) != RETURN_OK)
 		{
-			logger_send(LOG_ERROR, __func__, "Cannot enable multiclient mode");
+			logger_send(LOG_ERROR, __func__, "Cannot enable multi client mode");
 			break;
 		}
-
+		logger_send(LOG_WIFI_MANAGER, __func__, "Starting UDP server");
 		if (wifi_open_server(wifi_mgr.server_port) != RETURN_OK)
 		{
 			logger_send(LOG_ERROR, __func__, "Cannot start UDP server");
@@ -128,10 +133,15 @@ RET_CODE wifimgr_initialize(const WIFI_UART_Config* config)
 			result = RETURN_OK;
 		}
 
+		for (uint8_t i = 0; i < WIFIMGR_MAX_CLIENTS; i++)
+		{
+		   wifi_mgr.clients[0].connected = 0;
+		}
+
 	}
 	while(0);
 
-	logger_send_if(result == RETURN_OK, LOG_WIFI_MANAGER, __func__, "initialization OK");
+	logger_send(LOG_WIFI_MANAGER, __func__, "initialization %s", result == RETURN_OK? "OK" : "NOK");
 	return result;
 }
 

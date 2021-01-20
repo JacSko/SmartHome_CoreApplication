@@ -50,6 +50,7 @@ typedef enum
    LOG_RELAYS,                /**< Logs from Relays module */
    LOG_FAN,                   /**< Logs from Bathroom fan module */
    LOG_SLM,                   /**< Logs from StairsLedModule */
+   LOG_ENV,                   /**< Logs from ENV module */
    LOG_ENUM_MAX               /**< Enums count */
 } LogGroup;
 

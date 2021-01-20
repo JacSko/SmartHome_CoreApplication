@@ -29,13 +29,13 @@
  * 	PCLK1 - 25MHz
  *
  * 	AHB_prescaler - 1 - 100MHz
- *  APB1 prescaler - 2 - 50MHz
- *  APB2 prescaler - 1 - 100MHz
+ *    APB1 prescaler - 2 - 50MHz
+ *    APB2 prescaler - 1 - 100MHz
  *
  *
  */
 
-#define UART_COMMON_BUFFER_SIZE 1024
+#define UART_COMMON_BUFFER_SIZE 2048
 #define UART_COMMON_STRING_SIZE 512
 #define UART_COMMON_BAUD_RATE 115200
 #define INPUTS_I2C_ADDRESS 0x48
@@ -55,12 +55,16 @@ int main(void)
       logger_send(LOG_ERROR, __func__, "Cannot init BT engine!");
    }
    logger_enable();
+
+   logger_send(LOG_DEBUG, __func__, "Booting up!");
+
    logger_set_group_state(LOG_DHT_DRV, LOGGER_GROUP_ENABLE);
    logger_set_group_state(LOG_WIFI_MANAGER, LOGGER_GROUP_ENABLE);
    logger_set_group_state(LOG_WIFI_DRIVER, LOGGER_GROUP_ENABLE);
    logger_set_group_state(LOG_I2C_DRV, LOGGER_GROUP_ENABLE);
    logger_set_group_state(LOG_INPUTS, LOGGER_GROUP_ENABLE);
    logger_set_group_state(LOG_RELAYS, LOGGER_GROUP_ENABLE);
+   logger_set_group_state(LOG_ENV, LOGGER_GROUP_ENABLE);
    if (logger_register_sender(&btengine_send_string) != RETURN_OK)
    {
       logger_send(LOG_ERROR, __func__, "Cannot register BT sender!");
@@ -75,8 +79,6 @@ int main(void)
    {
       logger_send(LOG_ERROR, __func__, "Cannot initiailize wifi manager!");
    }
-
-   logger_send(LOG_DEBUG, __func__, "Booting up!");
 
 	cmd_register_sender(&btengine_send_string);
 
@@ -136,11 +138,11 @@ int main(void)
    env_cfg.max_cs_rate = 90;
    env_cfg.max_nr_rate = 90;
    env_cfg.items[0].env_id = ENV_OUTSIDE; env_cfg.items[0].dht_id = DHT_SENSOR1;
-   env_cfg.items[0].env_id = ENV_WARDROBE; env_cfg.items[0].dht_id = DHT_SENSOR2;
-   env_cfg.items[0].env_id = ENV_BEDROOM; env_cfg.items[0].dht_id = DHT_SENSOR3;
-   env_cfg.items[0].env_id = ENV_BATHROOM; env_cfg.items[0].dht_id = DHT_SENSOR4;
-   env_cfg.items[0].env_id = ENV_KITCHEN; env_cfg.items[0].dht_id = DHT_SENSOR5;
-   env_cfg.items[0].env_id = ENV_STAIRS; env_cfg.items[0].dht_id = DHT_SENSOR6;
+   env_cfg.items[1].env_id = ENV_WARDROBE; env_cfg.items[1].dht_id = DHT_SENSOR2;
+   env_cfg.items[2].env_id = ENV_BEDROOM; env_cfg.items[2].dht_id = DHT_SENSOR3;
+   env_cfg.items[3].env_id = ENV_BATHROOM; env_cfg.items[3].dht_id = DHT_SENSOR4;
+   env_cfg.items[4].env_id = ENV_KITCHEN; env_cfg.items[4].dht_id = DHT_SENSOR5;
+   env_cfg.items[5].env_id = ENV_STAIRS; env_cfg.items[5].dht_id = DHT_SENSOR6;
    if (env_initialize(&env_cfg) != RETURN_OK)
    {
       logger_send(LOG_ERROR, __func__, "Cannot initialize ENV module");
@@ -155,7 +157,6 @@ int main(void)
    {
       logger_send(LOG_ERROR, __func__, "Cannot initialize FAN module");
    }
-
 
 
    logger_send(LOG_ERROR, __func__, "Booting completed!");
