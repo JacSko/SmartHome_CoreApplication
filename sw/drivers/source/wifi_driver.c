@@ -9,6 +9,7 @@
 #include "wifi_driver.h"
 #include "uart_engine.h"
 #include "string_formatter.h"
+#include "system_timestamp.h"
 /* =============================
  *          Defines
  * =============================*/
@@ -143,8 +144,8 @@ void wifi_on_uart_data(const char* data)
 RET_CODE wifi_wait_for_response(uint32_t timeout)
 {
 	RET_CODE result = RETURN_NOK;
-	uint32_t raw_time = time_get()->time_raw;
-	while(time_get()->time_raw <= raw_time + timeout)
+	uint16_t ts = ts_get();
+	while(ts_get_diff(ts) < timeout)
 	{
 		if (uartengine_can_read_string() == RETURN_OK)
 		{
@@ -161,8 +162,8 @@ RET_CODE wifi_wait_for_defined_response(const char* resp, uint32_t timeout)
 	RET_CODE result = RETURN_NOK;
 	if (!resp) return RETURN_ERROR;
 
-	uint32_t raw_time = time_get()->time_raw;
-	while(time_get()->time_raw <= raw_time + timeout)
+   uint16_t ts = ts_get();
+   while(ts_get_diff(ts) < timeout)
 	{
 		if (uartengine_can_read_string() == RETURN_OK)
 		{
@@ -180,8 +181,8 @@ RET_CODE wifi_wait_for_defined_response(const char* resp, uint32_t timeout)
 RET_CODE wifi_wait_for_bytes(uint16_t bytes_count, uint32_t timeout)
 {
 	RET_CODE result = RETURN_NOK;
-	uint32_t raw_time = time_get()->time_raw;
-	while(time_get()->time_raw <= raw_time + timeout)
+   uint16_t ts = ts_get();
+   while(ts_get_diff(ts) < timeout)
 	{
 		if (uartengine_count_bytes() == bytes_count)
 		{
@@ -222,7 +223,7 @@ RET_CODE wifi_reset()
 	string_format(TX_BUFFER, "AT+RST\r\n");
 	if (wifi_send_command() == RETURN_OK)
 	{
-		time_wait(500);
+		ts_wait(500);
 		uartengine_clear_rx();	/* remove all strange bytes received after reset */
 		result = RETURN_OK;
 	}

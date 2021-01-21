@@ -758,12 +758,14 @@ NVIC_Type* NVIC;
 SYSCFG_TypeDef* SYSCFG;
 EXTI_TypeDef* EXTI;
 TIM_TypeDef* TIM2;
+TIM_TypeDef* TIM4;
 I2C_TypeDef* I2C1;
 
 
 void stm_stub_init();
 void stm_stub_deinit();
 void NVIC_EnableIRQ(IRQn_Type IRQn);
+void NVIC_DisableIRQ(IRQn_Type IRQn);
 void NVIC_SystemReset();
 void SysTick_Config(uint32_t ticks);
 uint8_t stm_stub_check_irq(IRQn_Type IRQn, uint8_t active);

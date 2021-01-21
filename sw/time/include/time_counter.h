@@ -36,7 +36,6 @@ typedef struct
 	uint8_t minute;
 	uint8_t second;
 	uint16_t msecond;
-	uint32_t time_raw;
 }TimeItem;
 
 typedef enum TimeCallbackPriority
@@ -74,12 +73,6 @@ void time_set_winter_time(uint8_t state);
  * @return Current time.
  */
 TimeItem* time_get();
-/**
- * @brief Delay execution for defined period.
- * @param[in] timeout - time to wait in ms.
- * @return None.
- */
-void time_wait(uint16_t timeout);
 /**
  * @brief Register callback to be called on time change.
  * @param[in] callback - Pointer to function

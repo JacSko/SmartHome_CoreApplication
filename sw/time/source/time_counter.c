@@ -127,18 +127,6 @@ TimeItem* time_get()
 {
 	return &timestamp;
 }
-
-void time_wait(uint16_t timeout)
-{
-	if (timeout %10 != 0)
-	{
-		logger_send(LOG_ERROR, __func__, "invalid timeout %d, waiting %d", timeout, timeout - (timeout - timeout%10));
-	}
-
-	uint32_t tim = timestamp.time_raw + (timeout - timeout%10);
-	while(time_get()->time_raw < tim);
-
-}
 RET_CODE time_register_callback(void(*callback)(TimeItem*), TimeCallbackPriority prio)
 {
 	RET_CODE result = RETURN_NOK;
@@ -177,7 +165,6 @@ RET_CODE time_is_leap_year()
 
 void time_increment_time()
 {
-	timestamp.time_raw += TIME_BASETIME_MS;
 	timestamp.msecond += TIME_BASETIME_MS;
 	if (timestamp.msecond >= 1000)
 	{

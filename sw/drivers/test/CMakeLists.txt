@@ -45,7 +45,8 @@ target_link_libraries(wifi_driver_tests PUBLIC
         gtest_main
         gmock_main
         uartengine_mock
-        time_counterMock
+        STM_HEADERS
+        system_timestamp_mock
         loggerMock
 )
 

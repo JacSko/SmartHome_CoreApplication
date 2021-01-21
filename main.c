@@ -13,6 +13,7 @@
 #include "stairs_led_module.h"
 #include "env_monitor.h"
 #include "bathroom_fan.h"
+#include "system_timestamp.h"
 
 /**
  * 	System config:
@@ -42,10 +43,31 @@
 #define RELAYS_I2C_ADDRESS 0x48
 #define ENV_MEASUREMENT_RUNNING 0x00
 
+void dummy_task()
+{
+   logger_send(LOG_ERROR, "", "S T R I N G S T R I N G S T R I N G S T R I N G S T R I N G");
+}
+
 int main(void)
 {
+   NVIC_SetPriorityGrouping(0x05);
+   uint32_t prio;
+   prio = NVIC_EncodePriority(0x05, 1, 0);
+   NVIC_SetPriority(SysTick_IRQn, prio);
+
+   /*
+    * TIM4 is the timer used to controlling timeout on many synchronous function calls
+    * therefore it has to have higher priority (to be able to interrupt systick interrupt).
+    * Sometimes sync function are called from scheduler at high priority (called directly from scheduler interrupt)
+    * and in such case TIM4 interrupt cannot be fired.
+    */
+   prio = NVIC_EncodePriority(0x05, -2, 0);
+   NVIC_SetPriority(TIM4_IRQn, prio);
+
+   ts_init();
 	time_init();
 	sch_initialize();
+//	sch_subscribe_and_set(&dummy_task, TASKPRIO_LOW, 10, TASKSTATE_RUNNING, TASKTYPE_PERIODIC);
 
 	BT_Config config = {UART_COMMON_BAUD_RATE, UART_COMMON_BUFFER_SIZE, UART_COMMON_STRING_SIZE};
 	btengine_initialize(&config);
@@ -69,10 +91,10 @@ int main(void)
    {
       logger_send(LOG_ERROR, __func__, "Cannot register BT sender!");
    }
-   if (logger_register_sender(&wifimgr_broadcast_data) != RETURN_OK)
-   {
-      logger_send(LOG_ERROR, __func__, "Cannot register WIFI sender!");
-   }
+//   if (logger_register_sender(&wifimgr_broadcast_data) != RETURN_OK)
+//   {
+//      logger_send(LOG_ERROR, __func__, "Cannot register WIFI sender!");
+//   }
 
    WIFI_UART_Config wifi_cfg = {UART_COMMON_BAUD_RATE, UART_COMMON_BUFFER_SIZE, UART_COMMON_STRING_SIZE};
    if (wifimgr_initialize(&wifi_cfg) != RETURN_OK)

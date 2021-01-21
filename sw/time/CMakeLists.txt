@@ -13,7 +13,19 @@ target_link_libraries(time_counter PUBLIC
         logger
         string_formatter
 )
+###################################################
+add_library(system_timestamp STATIC
+        source/system_timestamp.c
+)
 
+target_include_directories(system_timestamp PUBLIC
+        include
+)
+
+target_link_libraries(system_timestamp PUBLIC
+        STM_HEADERS
+        gpio_config
+)
 
 else ()
 

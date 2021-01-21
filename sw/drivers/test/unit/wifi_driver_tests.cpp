@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 #include "uartengine_mock.h"
-#include "time_counter_mock.h"
+#include "system_timestamp_mock.h"
 #include "logger_mock.h"
 
 /* ============================= */
@@ -43,7 +43,7 @@ struct wifiFixture : public ::testing::Test
 {
 	virtual void SetUp()
 	{
-		mock_time_counter_init();
+		mock_ts_init();
 		mock_logger_init();
 		mock_uartengine_init();
 		callMock = new callbackMock();
@@ -51,7 +51,7 @@ struct wifiFixture : public ::testing::Test
 
 	virtual void TearDown()
 	{
-		mock_time_counter_deinit();
+	   mock_ts_deinit();
 		mock_logger_deinit();
 		mock_uartengine_deinit();
 		delete callMock;
@@ -103,16 +103,13 @@ TEST_F(wifiFixture, engine_initialization)
 	EXPECT_CALL(*uartengineMock, uartengine_register_callback(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK))
 														   .WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_wait(_)).Times(1);
+	EXPECT_CALL(*ts_mock, ts_wait(_)).Times(1);
 	EXPECT_CALL(*uartengineMock, uartengine_clear_rx()).Times(1);
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillRepeatedly(Return(RETURN_NOK));
-	TimeItem t1, t2 = {};
-	t2.time_raw = t1.time_raw + 5000;	//5s means that timeout exceeded
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t2));
+	EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+	EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(5000));
 	EXPECT_EQ(RETURN_NOK, wifi_initialize(&uart_config));
 	Mock::VerifyAndClearExpectations(uartengineMock);
-	Mock::VerifyAndClearExpectations(time_cnt_mock);
 
 
 	/**
@@ -126,15 +123,14 @@ TEST_F(wifiFixture, engine_initialization)
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK))
 														   .WillOnce(Return(RETURN_OK))
 														   .WillOnce(Return(RETURN_NOK));
-	EXPECT_CALL(*time_cnt_mock, time_wait(_)).Times(1);
+	EXPECT_CALL(*ts_mock, ts_wait(_)).Times(1);
 	EXPECT_CALL(*uartengineMock, uartengine_clear_rx()).Times(1);
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillRepeatedly(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(correct_response));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0));
 	EXPECT_EQ(RETURN_NOK, wifi_initialize(&uart_config));
 	Mock::VerifyAndClearExpectations(uartengineMock);
-	Mock::VerifyAndClearExpectations(time_cnt_mock);
 
 	/**
 	 * <b>scenario</b>: Module initialization - correct sequence<br>
@@ -147,15 +143,16 @@ TEST_F(wifiFixture, engine_initialization)
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK))
 														   .WillOnce(Return(RETURN_OK))
 														   .WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_wait(_)).Times(1);
+	EXPECT_CALL(*ts_mock, ts_wait(_)).Times(1);
 	EXPECT_CALL(*uartengineMock, uartengine_clear_rx()).Times(1);
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillRepeatedly(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(correct_response))
 														 .WillOnce(Return(correct_response));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillRepeatedly(Return(&t1));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0))
+                                  .WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillRepeatedly(Return(0));
 	EXPECT_EQ(RETURN_OK, wifi_initialize(&uart_config));
 	Mock::VerifyAndClearExpectations(uartengineMock);
-	Mock::VerifyAndClearExpectations(time_cnt_mock);
 }
 
 /**
@@ -236,8 +233,8 @@ TEST_F(wifiFixture, wifi_network_connect)
 																	EXPECT_STREQ(data, "AT+CWJAP_CUR=\"SSID\",\"PASS\"\r\n");
 																	return RETURN_OK;
 																}));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1)).
-											WillOnce(Return(&t2));
+	EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+	EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(60000));
 	EXPECT_EQ(RETURN_NOK, wifi_connect_to_network("SSID", "PASS"));
 
 	/**
@@ -251,10 +248,10 @@ TEST_F(wifiFixture, wifi_network_connect)
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK)).
 															   WillOnce(Return(RETURN_NOK));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(wifi_conn_wrong));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1)).
-											WillOnce(Return(&t1)).
-											WillOnce(Return(&t1)).
-											WillOnce(Return(&t2));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+                                        .WillOnce(Return(0))
+                                        .WillOnce(Return(60000));
 	EXPECT_EQ(RETURN_NOK, wifi_connect_to_network("SSID", "PASS"));
 
 	/**
@@ -269,11 +266,11 @@ TEST_F(wifiFixture, wifi_network_connect)
 															   WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(wifi_conn_corr))
 														 .WillOnce(Return(wifi_ip_got_wrong));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1)).
-											WillOnce(Return(&t1)).
-											WillOnce(Return(&t1)).
-											WillOnce(Return(&t1)).
-											WillOnce(Return(&t2));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0))
+                                  .WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+                                        .WillOnce(Return(0))
+                                        .WillOnce(Return(60000));
 	EXPECT_EQ(RETURN_NOK, wifi_connect_to_network("SSID", "PASS"));
 
 	/**
@@ -290,13 +287,13 @@ TEST_F(wifiFixture, wifi_network_connect)
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(wifi_conn_corr))
 														 .WillOnce(Return(wifi_ip_got))
 														 .WillOnce(Return(wifi_error));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1)).
-											WillOnce(Return(&t1)).
-											WillOnce(Return(&t1)).
-											WillOnce(Return(&t1)).
-											WillOnce(Return(&t1)).
-											WillOnce(Return(&t1)).
-											WillOnce(Return(&t2));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0))
+                                  .WillOnce(Return(0))
+                                  .WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+                                        .WillOnce(Return(0))
+                                        .WillOnce(Return(0))
+                                        .WillOnce(Return(60000));
 	EXPECT_EQ(RETURN_NOK, wifi_connect_to_network("SSID", "PASS"));
 
 	/**
@@ -313,12 +310,12 @@ TEST_F(wifiFixture, wifi_network_connect)
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(wifi_conn_corr))
 														 .WillOnce(Return(wifi_ip_got_ok))
 														 .WillOnce(Return(wifi_conn_ok));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1)).
-											WillOnce(Return(&t1)).
-											WillOnce(Return(&t1)).
-											WillOnce(Return(&t1)).
-											WillOnce(Return(&t1)).
-											WillOnce(Return(&t1));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0))
+                                  .WillOnce(Return(0))
+                                  .WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+                                        .WillOnce(Return(0))
+                                        .WillOnce(Return(0));
 	EXPECT_EQ(RETURN_OK, wifi_connect_to_network("SSID", "PASS"));
 }
 
@@ -343,11 +340,10 @@ TEST_F(wifiFixture, wifi_network_disconnect)
 									return RETURN_OK;
 								}));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillRepeatedly(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t2));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+                                        .WillOnce(Return(0))
+                                        .WillOnce(Return(60000));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillRepeatedly(Return(wifi_disconn_error));
 	EXPECT_EQ(RETURN_NOK, wifi_disconnect_from_network());
 
@@ -364,8 +360,8 @@ TEST_F(wifiFixture, wifi_network_disconnect)
 									return RETURN_OK;
 								}));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillRepeatedly(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1));
+	EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(wifi_disconn_ok));
 	EXPECT_EQ(RETURN_OK, wifi_disconnect_from_network());
 
@@ -398,11 +394,9 @@ TEST_F(wifiFixture, wifi_mac_address_set)
 									return RETURN_OK;
 								}));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillRepeatedly(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t2));
+	EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+	EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+                                        .WillOnce(Return(10000));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillRepeatedly(Return(wifi_disconn_error));
 	EXPECT_EQ(RETURN_NOK, wifi_set_mac_address("MAC"));
 
@@ -419,8 +413,8 @@ TEST_F(wifiFixture, wifi_mac_address_set)
 									return RETURN_OK;
 								}));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillRepeatedly(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(wifi_disconn_ok));
 	EXPECT_EQ(RETURN_OK, wifi_set_mac_address("MAC"));
 
@@ -447,11 +441,11 @@ TEST_F(wifiFixture, wifi_open_server)
 									return RETURN_OK;
 								}));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillRepeatedly(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t2));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(10000));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillRepeatedly(Return(wifi_disconn_error));
 	EXPECT_EQ(RETURN_NOK, wifi_open_server(2222));
 
@@ -468,8 +462,8 @@ TEST_F(wifiFixture, wifi_open_server)
 									return RETURN_OK;
 								}));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillRepeatedly(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(wifi_disconn_ok));
 	EXPECT_EQ(RETURN_OK, wifi_open_server(2222));
 }
@@ -495,11 +489,11 @@ TEST_F(wifiFixture, wifi_close_server)
 									return RETURN_OK;
 								}));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillRepeatedly(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t2));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(10000));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillRepeatedly(Return(wifi_disconn_error));
 	EXPECT_EQ(RETURN_NOK, wifi_close_server());
 
@@ -516,8 +510,8 @@ TEST_F(wifiFixture, wifi_close_server)
 									return RETURN_OK;
 								}));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillRepeatedly(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(wifi_disconn_ok));
 	EXPECT_EQ(RETURN_OK, wifi_close_server());
 
@@ -605,8 +599,8 @@ TEST_F(wifiFixture, wifi_multiple_connection_test)
 									return RETURN_OK;
 								}));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response_ok));
 	EXPECT_EQ(RETURN_OK, wifi_allow_multiple_clients(1));
 
@@ -622,8 +616,8 @@ TEST_F(wifiFixture, wifi_multiple_connection_test)
 									return RETURN_OK;
 								}));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response_ok));
 	EXPECT_EQ(RETURN_OK, wifi_allow_multiple_clients(0));
 }
@@ -655,17 +649,16 @@ TEST_F(wifiFixture, wifi_send_data_to_client_test)
 															  .WillOnce(Return(RETURN_OK))
 															  .WillOnce(Return(RETURN_OK));
 
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t2));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(5000));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(wrong_char))
   														 .WillOnce(Return(wrong_char))
 														 .WillOnce(Return(wrong_char));
 
 	EXPECT_EQ(RETURN_NOK, wifi_send_data(1, "TEST_STRING\n", 12));
-	Mock::VerifyAndClearExpectations(time_cnt_mock);
 	Mock::VerifyAndClearExpectations(uartengineMock);
 
 	/* <b>scenario</b>: Send data to client - wrong response received.<br>
@@ -689,13 +682,13 @@ TEST_F(wifiFixture, wifi_send_data_to_client_test)
 															  .WillOnce(Return(RETURN_OK))
 															  .WillOnce(Return(RETURN_OK));
 
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t2));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0))
+      .WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(5000));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(correct_char))
 														 .WillOnce(Return(wrong_response))
 														 .WillOnce(Return(wrong_response))
@@ -704,7 +697,6 @@ TEST_F(wifiFixture, wifi_send_data_to_client_test)
 
 	EXPECT_EQ(RETURN_NOK, wifi_send_data(1, "TEST_STRING\n", 12));
 
-	Mock::VerifyAndClearExpectations(time_cnt_mock);
 	Mock::VerifyAndClearExpectations(uartengineMock);
 
 	/* <b>scenario</b>: Send data to client - wrong response received.<br>
@@ -726,10 +718,10 @@ TEST_F(wifiFixture, wifi_send_data_to_client_test)
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK))
 															  .WillOnce(Return(RETURN_OK));
 
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0))
+      .WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+      .WillOnce(Return(0));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(correct_char))
 														 .WillOnce(Return(correct_response));
 
@@ -755,8 +747,8 @@ TEST_F(wifiFixture, wifi_connect_disconnect_test)
 									return RETURN_OK;
 								}));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response_ok));
 	EXPECT_EQ(RETURN_OK, wifi_connect_server(TCP, "www.test.pl", 123));
 
@@ -772,8 +764,8 @@ TEST_F(wifiFixture, wifi_connect_disconnect_test)
 									return RETURN_OK;
 								}));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response_ok));
 	EXPECT_EQ(RETURN_OK, wifi_connect_server(SSL, "www.test.pl", 123));
 
@@ -789,8 +781,8 @@ TEST_F(wifiFixture, wifi_connect_disconnect_test)
 									return RETURN_OK;
 								}));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response_ok));
 	EXPECT_EQ(RETURN_OK, wifi_connect_server(UDP, "www.test.pl", 123));
 
@@ -806,8 +798,8 @@ TEST_F(wifiFixture, wifi_connect_disconnect_test)
 									return RETURN_OK;
 								}));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response_ok));
 	EXPECT_EQ(RETURN_OK, wifi_disconnect_server());
 }
@@ -836,8 +828,8 @@ TEST_F(wifiFixture, wifi_set_ip_address)
 									return RETURN_OK;
 								}));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response_ok));
 	EXPECT_EQ(RETURN_OK, wifi_set_ip_address(&address));
 }
@@ -875,9 +867,9 @@ TEST_F(wifiFixture, wifi_get_current_ip_address)
 	 */
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_NOK));
-		EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-											   .WillOnce(Return(&t1))
-											   .WillOnce(Return(&t2));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+      .WillOnce(Return(60000));
 	EXPECT_EQ(RETURN_NOK, wifi_get_ip_address(&address));
 
 	/**
@@ -888,8 +880,8 @@ TEST_F(wifiFixture, wifi_get_current_ip_address)
 	const char wrong_response [] = "+CWADP:aaaa:bbbb:ccc";
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-											   .WillOnce(Return(&t1));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(wrong_response));
 	EXPECT_EQ(RETURN_NOK, wifi_get_ip_address(&address));
 
@@ -912,12 +904,12 @@ TEST_F(wifiFixture, wifi_get_current_ip_address)
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK))
 	 														  .WillOnce(Return(RETURN_OK))
 															  .WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(ip))
 														 .WillOnce(Return(gateway))
 														 .WillOnce(Return(netmask));
@@ -970,9 +962,9 @@ TEST_F(wifiFixture, wifi_get_current_network_name)
 	 */
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_NOK));
-		EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-											   .WillOnce(Return(&t1))
-											   .WillOnce(Return(&t2));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+      .WillOnce(Return(60000));
 	EXPECT_EQ(RETURN_NOK, wifi_get_current_network_name(ssid, 100));
 
 	/**
@@ -983,8 +975,8 @@ TEST_F(wifiFixture, wifi_get_current_network_name)
 	const char wrong_response [] = "+CWADP:aaaa:bbbb:ccc";
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(wrong_response));
 	EXPECT_EQ(RETURN_NOK, wifi_get_current_network_name(ssid, 100));
 
@@ -1003,9 +995,8 @@ TEST_F(wifiFixture, wifi_get_current_network_name)
 									return RETURN_OK;
 								}));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   ;
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response));
 	EXPECT_EQ(RETURN_NOK, wifi_get_current_network_name(ssid, 10));
 
@@ -1023,9 +1014,8 @@ TEST_F(wifiFixture, wifi_get_current_network_name)
 									return RETURN_OK;
 								}));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   ;
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response2));
 	EXPECT_EQ(RETURN_NOK, wifi_get_current_network_name(ssid, 10));
 
@@ -1043,10 +1033,9 @@ TEST_F(wifiFixture, wifi_get_current_network_name)
 									return RETURN_OK;
 								}));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   ;
-	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response3));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0));
+   EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response3));
 	EXPECT_EQ(RETURN_OK, wifi_get_current_network_name(ssid, 100));
 
 }
@@ -1082,9 +1071,9 @@ TEST_F(wifiFixture, wifi_request_client_details)
 	 */
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_NOK));
-		EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-											   .WillOnce(Return(&t1))
-											   .WillOnce(Return(&t2));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+      .WillOnce(Return(60000));
 	EXPECT_EQ(RETURN_NOK, wifi_request_client_details(&id));
 
 	/**
@@ -1095,10 +1084,10 @@ TEST_F(wifiFixture, wifi_request_client_details)
 	const char wrong_response [] = "+CWADP:aaaa:bbbb:ccc";
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t2));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0))
+      .WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+      .WillOnce(Return(60000));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(wrong_response));
 	EXPECT_EQ(RETURN_NOK, wifi_request_client_details(&id));
 
@@ -1121,12 +1110,12 @@ TEST_F(wifiFixture, wifi_request_client_details)
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK))
 															  .WillOnce(Return(RETURN_OK))
 															  .WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response1))
 														 .WillOnce(Return(response2))
 														 .WillOnce(Return(responseOK));
@@ -1165,11 +1154,11 @@ TEST_F(wifiFixture, wifi_communication_test)
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_NOK))
 															  .WillOnce(Return(RETURN_NOK))
 															  .WillOnce(Return(RETURN_NOK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t2));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(10000));
 	EXPECT_EQ(wifi_test(), RETURN_NOK);
 
 	/**
@@ -1180,8 +1169,8 @@ TEST_F(wifiFixture, wifi_communication_test)
 	const char response [] = "OK";
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response));
 	EXPECT_EQ(wifi_test(), RETURN_OK);
 
@@ -1218,9 +1207,9 @@ TEST_F(wifiFixture, wifi_ntp_time_test)
 	 */
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK));
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_NOK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										   .WillOnce(Return(&t1))
-										   .WillOnce(Return(&t2));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+      .WillOnce(Return(60000));
 	EXPECT_EQ(wifi_get_time("www.server.pl", &test_item), RETURN_NOK);
 
 	/**
@@ -1238,13 +1227,13 @@ TEST_F(wifiFixture, wifi_ntp_time_test)
 	EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK))
 															  .WillOnce(Return(RETURN_OK))
 															  .WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t2))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1));
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(60000))
+      .WillOnce(Return(0));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response_ok))
 														 .WillOnce(Return(response_error))
 														 .WillOnce(Return(response_ok));
@@ -1264,20 +1253,20 @@ TEST_F(wifiFixture, wifi_ntp_time_test)
 															  .WillOnce(Return(RETURN_OK)) //resp to cipsend
 															  .WillOnce(Return(RETURN_OK)) //wrong resp
 															  .WillOnce(Return(RETURN_OK)); //server close
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t2))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1));
+
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response_ok))
 														 .WillOnce(Return(response_ok))
 														 .WillOnce(Return(response_error))
 														 .WillOnce(Return(response_ok));
-
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(60000))
+      .WillOnce(Return(0));
 	EXPECT_EQ(wifi_get_time("www.server.pl", &test_item), RETURN_NOK);
 
 	/**
@@ -1295,18 +1284,18 @@ TEST_F(wifiFixture, wifi_ntp_time_test)
 															  .WillOnce(Return(RETURN_OK));
 
 	EXPECT_CALL(*uartengineMock, uartengine_count_bytes()).WillOnce(Return(0));
-
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t2))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1));
+	EXPECT_CALL(*uartengineMock, uartengine_clear_rx());
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(60000))
+      .WillOnce(Return(0));
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response_ok))
 														 .WillOnce(Return(response_ok))
 														 .WillOnce(Return(response_send_ok))
@@ -1337,21 +1326,22 @@ TEST_F(wifiFixture, wifi_ntp_time_test)
 															  .WillOnce(Return(RETURN_OK))
 															  .WillOnce(Return(RETURN_OK))
 															  .WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1))
-										  .WillOnce(Return(&t1));
+
 	EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(response_ok))
 														 .WillOnce(Return(response_ok))
 														 .WillOnce(Return(response_send_ok))
 														 .WillOnce(Return(response_ok));
-
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0));
+   EXPECT_CALL(*uartengineMock, uartengine_clear_rx());
 	EXPECT_CALL(*uartengineMock, uartengine_count_bytes()).WillOnce(Return(58)); /* 48 bytes NTP and 8 bytes header */
 	EXPECT_CALL(*uartengineMock, uartengine_get_bytes()).WillOnce(Return(ntp_response));
 	EXPECT_EQ(wifi_get_time("www.server.pl", &test_item), RETURN_OK);
@@ -1382,8 +1372,8 @@ TEST_F(wifiFixture, wifi_reset_test)
 	 * ************************************************
 	 */
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Return(RETURN_OK));
-	EXPECT_CALL(*time_cnt_mock, time_wait(_)).Times(1);
-	EXPECT_CALL(*uartengineMock, uartengine_clear_rx()).Times(1);
+	EXPECT_CALL(*ts_mock, ts_wait(_));
+	EXPECT_CALL(*uartengineMock, uartengine_clear_rx());
 	EXPECT_EQ(wifi_reset(), RETURN_OK);
 
 }

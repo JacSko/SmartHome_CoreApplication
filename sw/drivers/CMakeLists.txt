@@ -54,7 +54,7 @@ target_include_directories(wifi_driver PUBLIC
 )
 
 target_link_libraries(wifi_driver PUBLIC
-        time_counter
+        system_timestamp
         uart_engine
         string_formatter
         logger

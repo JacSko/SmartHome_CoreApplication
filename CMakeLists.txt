@@ -74,6 +74,7 @@ if(NOT UNIT_TESTS)
 		relays_board
 		inputs_board
 		stairs_led_module
+		system_timestamp
 	)
 	
 #	target_include_directories(${PROJECT_NAME}.elf PUBLIC ext_lib/CMSIS/device
