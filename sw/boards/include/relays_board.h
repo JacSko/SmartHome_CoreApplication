@@ -30,6 +30,7 @@
  * =============================*/
 #include "return_codes.h"
 #include "i2c_driver.h"
+#include "relays_types.h"
 /* =============================
  *      Global variables
  * =============================*/
@@ -37,28 +38,6 @@
 /* =============================
  *       Data structures
  * =============================*/
-typedef enum RELAY_STATE
-{
-   RELAY_STATE_OFF,           /**< Relay is turned OFF */
-   RELAY_STATE_ON,            /**< Relay is turned ON */
-   RELAY_STATE_ENUM_MAX,      /**< Count of enum items */
-} RELAY_STATE;
-typedef enum RELAY_ID
-{
-   RELAY_WARDROBE_LED = 1,
-   RELAY_WARDROBE_AC,
-   RELAY_BATHROOM_LED,
-   RELAY_BATHROOM_AC,
-   RELAY_STAIRCASE_LED,
-   RELAY_STAIRCASE_AC,
-   RELAY_SOCKETS,
-   RELAY_KITCHEN_WALL,
-   RELAY_KITCHEN_AC,
-   RELAY_BEDROOM_AC,
-   RELAY_BATHROOM_FAN,
-   RELAY_ID_ENUM_MAX,
-} RELAY_ID;
-
 typedef struct RELAY_STATUS
 {
    RELAY_ID id;         /**< ID of the relay */

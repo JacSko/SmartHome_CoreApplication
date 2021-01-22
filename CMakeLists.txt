@@ -143,4 +143,5 @@ endif()
 	add_subdirectory(sw/boards)
 	add_subdirectory(sw/env_monitor)
 	add_subdirectory(sw/stairs_module)
+	add_subdirectory(sw/SmartHomeTypes)
 	

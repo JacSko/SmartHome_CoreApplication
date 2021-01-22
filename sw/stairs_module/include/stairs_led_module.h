@@ -29,6 +29,7 @@
  * =============================*/
 #include "return_codes.h"
 #include "i2c_driver.h"
+#include "stairs_led_types.h"
 /* =============================
  *      Global variables
  * =============================*/
@@ -48,26 +49,7 @@ typedef struct SLM_PROGRAM
   SLM_STEP off_effect_steps [SLM_MAX_PROGRAM_STEPS];  /**< Next steps of OFF effect */
   uint8_t off_effect_steps_count;                     /**< Number of OFF effect steps */
 } SLM_PROGRAM;
-typedef enum SLM_STATE
-{
-   SLM_STATE_OFF,                /**< Module is in idle state, ready to work */
-   SLM_STATE_ONGOING_ON,         /**< Program is running, leds goes forward */
-   SLM_STATE_ON,                 /**< All LEDs are ON */
-   SLM_STATE_OFF_EFFECT,         /**< OFF effect is active */
-   SLM_STATE_OFF_EFFECT_READY,   /**< OFF effect is done */
-   SLM_STATE_ONGOING_OFF,        /**< Program is running, leds goes backwards */
-} SLM_STATE;
-typedef enum SLM_PROGRAM_ID
-{
-   SLM_PROGRAM1,
-   SLM_PROGRAM2,
-   SLM_PROGRAM3,
-} SLM_PROGRAM_ID;
-typedef enum SLM_OFF_EFFECT_MODE
-{
-   SLM_OFF_EFFECT_DISABLED,   /**< Leds are disabled directly after timeout */
-   SLM_OFF_EFFECT_ENABLED,    /**< Before switching off the leds, another effect is run */
-} SLM_OFF_EFFECT_MODE;
+
 typedef struct SLM_CONFIG
 {
    SLM_PROGRAM_ID program_id;           /**< ID of the default program */

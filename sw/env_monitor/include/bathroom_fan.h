@@ -31,6 +31,7 @@
  *  Includes of project headers
  * =============================*/
 #include "return_codes.h"
+#include "fan_types.h"
 /* =============================
  *      Global variables
  * =============================*/
@@ -45,14 +46,6 @@ typedef struct FAN_CONFIG
    uint8_t fan_humidity_threshold;     /**< Humidity for starting fan */
    uint8_t fan_threshold_hysteresis;   /**< Hysteresis to disable fan */
 } FAN_CONFIG;
-
-typedef enum FAN_STATE
-{
-   FAN_STATE_OFF,       /**< Fan is stopped */
-   FAN_STATE_ON,        /**< Fan is running*/
-   FAN_STATE_SUSPEND,   /**< Fan blocked */
-   FAN_STATE_UNKNOWN,   /**< Unknown state */
-} FAN_STATE;
 /**
  * @brief Initialize the module.
  * @param[in] config - Configuration of Fan module

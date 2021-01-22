@@ -29,6 +29,7 @@
  *  Includes of project headers
  * =============================*/
 #include "dht_driver.h"
+#include "env_types.h"
 /* =============================
  *      Global variables
  * =============================*/
@@ -36,22 +37,6 @@
 /* =============================
  *       Data structures
  * =============================*/
-typedef enum ENV_EVENT
-{
-   ENV_EV_NEW_DATA,     /**< New data event */
-   ENV_EV_ERROR,        /**< Sensor error event */
-} ENV_EVENT;
-typedef enum ENV_ITEM_ID
-{
-   ENV_UNKNOWN_ITEM,
-   ENV_OUTSIDE,
-   ENV_WARDROBE,
-   ENV_BEDROOM,
-   ENV_BATHROOM,
-   ENV_KITCHEN,
-   ENV_STAIRS,
-} ENV_ITEM_ID;
-
 typedef struct ENV_ERROR_RATE
 {
    uint8_t nr_err_rate; /**< Percent of NoResponse errors */

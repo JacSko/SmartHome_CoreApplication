@@ -12,6 +12,7 @@ target_link_libraries(env_monitor PUBLIC
         dht_driver
         task_scheduler
         logger
+        SmartHomeTypes
 )
 
 ###############################################
@@ -28,6 +29,7 @@ target_link_libraries(bathroom_fan PUBLIC
         env_monitor
         task_scheduler
         logger
+        SmartHomeTypes
 )
 
 ###############################################

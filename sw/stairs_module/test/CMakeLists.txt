@@ -12,6 +12,7 @@ target_link_libraries(stairs_led_module_tests PUBLIC
         i2cdriver_mock
         inputs_board_mock
         loggerMock
+        SmartHomeTypes
 )
 
 add_test(NAME stairs_led_module_tests COMMAND stairs_led_module_tests)

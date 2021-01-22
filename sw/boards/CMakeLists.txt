@@ -18,6 +18,7 @@ target_link_libraries(inputs_board PUBLIC
 		task_scheduler
 		i2c_driver
 		gpio_config
+		SmartHomeTypes
 )
 ##############################
 add_library(relays_board STATIC
@@ -33,6 +34,7 @@ target_link_libraries(relays_board PUBLIC
 		logger
 		task_scheduler
 		i2c_driver
+		SmartHomeTypes
 )
 
 

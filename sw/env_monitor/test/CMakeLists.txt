@@ -11,6 +11,7 @@ target_link_libraries(env_monitor_tests PUBLIC
         dhtdriver_mock
         task_scheduler_mock
         loggerMock
+        SmartHomeTypes
 )
 
 add_test(NAME env_monitor_tests COMMAND env_monitor_tests)
@@ -31,6 +32,7 @@ target_link_libraries(bathroom_fan_tests PUBLIC
         env_monitor_mock
         task_scheduler_mock
         loggerMock
+        SmartHomeTypes
 )
 
 add_test(NAME bathroom_fan_tests COMMAND bathroom_fan_tests)
