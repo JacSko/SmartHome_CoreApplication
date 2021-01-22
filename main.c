@@ -37,11 +37,11 @@
  */
 
 #define UART_COMMON_BUFFER_SIZE 2048
-#define UART_COMMON_STRING_SIZE 512
+#define UART_COMMON_STRING_SIZE 1024
 #define UART_COMMON_BAUD_RATE 115200
 #define INPUTS_I2C_ADDRESS 0x48
 #define RELAYS_I2C_ADDRESS 0x48
-#define ENV_MEASUREMENT_RUNNING 0x00
+#define ENV_MEASUREMENT_RUNNING 0x01
 
 void dummy_task()
 {
@@ -52,7 +52,7 @@ int main(void)
 {
    NVIC_SetPriorityGrouping(0x05);
    uint32_t prio;
-   prio = NVIC_EncodePriority(0x05, 1, 0);
+   prio = NVIC_EncodePriority(0x05, -1, 0);
    NVIC_SetPriority(SysTick_IRQn, prio);
 
    /*
@@ -63,6 +63,8 @@ int main(void)
     */
    prio = NVIC_EncodePriority(0x05, -2, 0);
    NVIC_SetPriority(TIM4_IRQn, prio);
+   prio = NVIC_EncodePriority(0x05, 2, 0);
+   NVIC_SetPriority(USART1_IRQn, prio);
 
    ts_init();
 	time_init();
@@ -87,6 +89,7 @@ int main(void)
    logger_set_group_state(LOG_INPUTS, LOGGER_GROUP_ENABLE);
    logger_set_group_state(LOG_RELAYS, LOGGER_GROUP_ENABLE);
    logger_set_group_state(LOG_ENV, LOGGER_GROUP_ENABLE);
+   logger_set_group_state(LOG_SLM, LOGGER_GROUP_ENABLE);
    if (logger_register_sender(&btengine_send_string) != RETURN_OK)
    {
       logger_send(LOG_ERROR, __func__, "Cannot register BT sender!");
@@ -96,11 +99,11 @@ int main(void)
 //      logger_send(LOG_ERROR, __func__, "Cannot register WIFI sender!");
 //   }
 
-   WIFI_UART_Config wifi_cfg = {UART_COMMON_BAUD_RATE, UART_COMMON_BUFFER_SIZE, UART_COMMON_STRING_SIZE};
-   if (wifimgr_initialize(&wifi_cfg) != RETURN_OK)
-   {
-      logger_send(LOG_ERROR, __func__, "Cannot initiailize wifi manager!");
-   }
+//   WIFI_UART_Config wifi_cfg = {UART_COMMON_BAUD_RATE, UART_COMMON_BUFFER_SIZE, UART_COMMON_STRING_SIZE};
+//   if (wifimgr_initialize(&wifi_cfg) != RETURN_OK)
+//   {
+//      logger_send(LOG_ERROR, __func__, "Cannot initiailize wifi manager!");
+//   }
 
 	cmd_register_sender(&btengine_send_string);
 
@@ -120,41 +123,41 @@ int main(void)
 
 
 
-	INPUTS_CONFIG inp_cfg;
-	inp_cfg.address = INPUTS_I2C_ADDRESS;
-	inp_cfg.items[0].item = INPUT_WARDROBE_LED; inp_cfg.items[0].input_no = 1;
-	inp_cfg.items[1].item = INPUT_BATHROOM_LED; inp_cfg.items[1].input_no = 2;
-	inp_cfg.items[2].item = INPUT_SOCKETS; inp_cfg.items[2].input_no = 9;
-	inp_cfg.items[3].item = INPUT_BEDROOM_AC; inp_cfg.items[3].input_no = 10;
-   inp_cfg.items[4].item = INPUT_WARDROBE_AC; inp_cfg.items[4].input_no = 11;
-   inp_cfg.items[5].item = INPUT_KITCHEN_AC; inp_cfg.items[5].input_no = 12;
-   inp_cfg.items[6].item = INPUT_BATHROOM_AC; inp_cfg.items[6].input_no = 13;
-   inp_cfg.items[7].item = INPUT_STAIRS_AC; inp_cfg.items[7].input_no = 14;
-   inp_cfg.items[8].item = INPUT_STAIRS_SENSOR; inp_cfg.items[8].input_no = 15;
-   inp_cfg.items[9].item = INPUT_KITCHEN_WALL; inp_cfg.items[9].input_no = 16;
-   if (inp_initialize(&inp_cfg) != RETURN_OK)
-   {
-      logger_send(LOG_ERROR, __func__, "Cannot initialize Inputs board");
-   }
+//	INPUTS_CONFIG inp_cfg;
+//	inp_cfg.address = INPUTS_I2C_ADDRESS;
+//	inp_cfg.items[0].item = INPUT_WARDROBE_LED; inp_cfg.items[0].input_no = 1;
+//	inp_cfg.items[1].item = INPUT_BATHROOM_LED; inp_cfg.items[1].input_no = 2;
+//	inp_cfg.items[2].item = INPUT_SOCKETS; inp_cfg.items[2].input_no = 9;
+//	inp_cfg.items[3].item = INPUT_BEDROOM_AC; inp_cfg.items[3].input_no = 10;
+//   inp_cfg.items[4].item = INPUT_WARDROBE_AC; inp_cfg.items[4].input_no = 11;
+//   inp_cfg.items[5].item = INPUT_KITCHEN_AC; inp_cfg.items[5].input_no = 12;
+//   inp_cfg.items[6].item = INPUT_BATHROOM_AC; inp_cfg.items[6].input_no = 13;
+//   inp_cfg.items[7].item = INPUT_STAIRS_AC; inp_cfg.items[7].input_no = 14;
+//   inp_cfg.items[8].item = INPUT_STAIRS_SENSOR; inp_cfg.items[8].input_no = 15;
+//   inp_cfg.items[9].item = INPUT_KITCHEN_WALL; inp_cfg.items[9].input_no = 16;
+//   if (inp_initialize(&inp_cfg) != RETURN_OK)
+//   {
+//      logger_send(LOG_ERROR, __func__, "Cannot initialize Inputs board");
+//   }
 
-   RELAYS_CONFIG rel_cfg;
-   rel_cfg.address = RELAYS_I2C_ADDRESS;
-   rel_cfg.items[0].id = RELAY_WARDROBE_LED; rel_cfg.items[0].relay_no = 1;
-   rel_cfg.items[1].id = RELAY_BATHROOM_LED; rel_cfg.items[1].relay_no = 2;
-   rel_cfg.items[2].id = RELAY_STAIRCASE_LED; rel_cfg.items[2].relay_no = 8;
-   rel_cfg.items[3].id = RELAY_SOCKETS; rel_cfg.items[3].relay_no = 9;
-   rel_cfg.items[4].id = RELAY_BATHROOM_FAN; rel_cfg.items[4].relay_no = 10;
-   rel_cfg.items[5].id = RELAY_KITCHEN_WALL; rel_cfg.items[5].relay_no = 11;
-   rel_cfg.items[6].id = RELAY_STAIRCASE_AC; rel_cfg.items[6].relay_no = 12;
-   rel_cfg.items[7].id = RELAY_BATHROOM_AC; rel_cfg.items[7].relay_no = 13;
-   rel_cfg.items[8].id = RELAY_KITCHEN_AC; rel_cfg.items[8].relay_no = 14;
-   rel_cfg.items[9].id = RELAY_BEDROOM_AC; rel_cfg.items[9].relay_no = 15;
-   rel_cfg.items[10].id = RELAY_WARDROBE_AC; rel_cfg.items[10].relay_no = 16;
-   if (rel_initialize(&rel_cfg) != RETURN_OK)
-   {
-      logger_send(LOG_ERROR, __func__, "Cannot initialize Relays board");
-   }
-
+//   RELAYS_CONFIG rel_cfg;
+//   rel_cfg.address = RELAYS_I2C_ADDRESS;
+//   rel_cfg.items[0].id = RELAY_WARDROBE_LED; rel_cfg.items[0].relay_no = 1;
+//   rel_cfg.items[1].id = RELAY_BATHROOM_LED; rel_cfg.items[1].relay_no = 2;
+//   rel_cfg.items[2].id = RELAY_STAIRCASE_LED; rel_cfg.items[2].relay_no = 8;
+//   rel_cfg.items[3].id = RELAY_SOCKETS; rel_cfg.items[3].relay_no = 9;
+//   rel_cfg.items[4].id = RELAY_BATHROOM_FAN; rel_cfg.items[4].relay_no = 10;
+//   rel_cfg.items[5].id = RELAY_KITCHEN_WALL; rel_cfg.items[5].relay_no = 11;
+//   rel_cfg.items[6].id = RELAY_STAIRCASE_AC; rel_cfg.items[6].relay_no = 12;
+//   rel_cfg.items[7].id = RELAY_BATHROOM_AC; rel_cfg.items[7].relay_no = 13;
+//   rel_cfg.items[8].id = RELAY_KITCHEN_AC; rel_cfg.items[8].relay_no = 14;
+//   rel_cfg.items[9].id = RELAY_BEDROOM_AC; rel_cfg.items[9].relay_no = 15;
+//   rel_cfg.items[10].id = RELAY_WARDROBE_AC; rel_cfg.items[10].relay_no = 16;
+//   if (rel_initialize(&rel_cfg) != RETURN_OK)
+//   {
+//      logger_send(LOG_ERROR, __func__, "Cannot initialize Relays board");
+//   }
+//
    ENV_CONFIG env_cfg;
    env_cfg.measure_running = ENV_MEASUREMENT_RUNNING;
    env_cfg.max_cs_rate = 90;
@@ -169,23 +172,31 @@ int main(void)
    {
       logger_send(LOG_ERROR, __func__, "Cannot initialize ENV module");
    }
+//
+//   FAN_CONFIG fan_cfg;
+//   fan_cfg.fan_humidity_threshold = 70;
+//   fan_cfg.fan_threshold_hysteresis = 5;
+//   fan_cfg.max_working_time_s = 7200;
+//   fan_cfg.min_working_time_s = 600;
+//   if (fan_initialize(&fan_cfg) != RETURN_OK)
+//   {
+//      logger_send(LOG_ERROR, __func__, "Cannot initialize FAN module");
+//   }
+//
 
-   FAN_CONFIG fan_cfg;
-   fan_cfg.fan_humidity_threshold = 70;
-   fan_cfg.fan_threshold_hysteresis = 5;
-   fan_cfg.max_working_time_s = 7200;
-   fan_cfg.min_working_time_s = 600;
-   if (fan_initialize(&fan_cfg) != RETURN_OK)
-   {
-      logger_send(LOG_ERROR, __func__, "Cannot initialize FAN module");
-   }
-
+//   SLM_CONFIG slm_cfg;
+//   slm_cfg.address = 0x48;
+//   slm_cfg.off_effect_mode = SLM_OFF_EFFECT_ENABLED;
+//   slm_cfg.program_id = SLM_PROGRAM1;
+//
+//   slm_initialize(&slm_cfg);
 
    logger_send(LOG_ERROR, __func__, "Booting completed!");
 
 	while (1)
 	{
 	   i2c_watcher();
+	   dht_data_watcher();
 		sch_task_watcher(TASKPRIO_LOW);
 		btengine_string_watcher();
 		uartengine_string_watcher();

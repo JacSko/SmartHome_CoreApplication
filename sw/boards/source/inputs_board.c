@@ -193,6 +193,7 @@ void inp_parse_state(uint16_t state, INPUT_STATUS* buffer)
 
 void inp_on_timeout()
 {
+   logger_send(LOG_INPUTS, __func__, "reading after timeout");
    inp_read_inputs();
 }
 void inp_notify_inputs_change(const INPUT_STATUS* new_inputs)

@@ -224,9 +224,6 @@ TEST_F(wifiFixture, wifi_network_connect)
 	 * <b>expected</b>: RETURN_NOK returned.<br>
 	 * ************************************************
 	 */
-	TimeItem t1, t2 = {};
-	t2.time_raw = t1.time_raw + 60000;
-
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Invoke([&](const char * data)->RET_CODE
 																{
 																	if (!data) return RETURN_NOK;
@@ -329,9 +326,6 @@ TEST_F(wifiFixture, wifi_network_disconnect)
 	 * <b>expected</b>: RETURN_NOK returned.<br>
 	 * ************************************************
 	 */
-	TimeItem t1 = {};
-	TimeItem t2 = {};
-	t2.time_raw = t1.time_raw + 10000;
 	const char wifi_disconn_error[] = "ERROR";
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Invoke([&](const char * data)->RET_CODE
 								{
@@ -383,9 +377,6 @@ TEST_F(wifiFixture, wifi_mac_address_set)
 	 * <b>expected</b>: RETURN_NOK returned.<br>
 	 * ************************************************
 	 */
-	TimeItem t1 = {};
-	TimeItem t2 = {};
-	t2.time_raw = t1.time_raw + 10000;
 	const char wifi_disconn_error[] = "ERROR";
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Invoke([&](const char * data)->RET_CODE
 								{
@@ -430,9 +421,6 @@ TEST_F(wifiFixture, wifi_open_server)
 	 * <b>expected</b>: RETURN_NOK returned.<br>
 	 * ************************************************
 	 */
-	TimeItem t1 = {};
-	TimeItem t2 = {};
-	t2.time_raw = t1.time_raw + 10000;
 	const char wifi_disconn_error[] = "ERROR";
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Invoke([&](const char * data)->RET_CODE
 								{
@@ -478,9 +466,6 @@ TEST_F(wifiFixture, wifi_close_server)
 	 * <b>expected</b>: RETURN_NOK returned.<br>
 	 * ************************************************
 	 */
-	TimeItem t1 = {};
-	TimeItem t2 = {};
-	t2.time_raw = t1.time_raw + 10000;
 	const char wifi_disconn_error[] = "ERROR";
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Invoke([&](const char * data)->RET_CODE
 								{
@@ -590,7 +575,6 @@ TEST_F(wifiFixture, wifi_multiple_connection_test)
 	 * <b>expected</b>: Correct data sent.<br>
 	 * ************************************************
 	 */
-	TimeItem t1 = {};
 	const char response_ok [] = "OK";
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Invoke([&](const char * data)->RET_CODE
 								{
@@ -627,9 +611,6 @@ TEST_F(wifiFixture, wifi_multiple_connection_test)
  */
 TEST_F(wifiFixture, wifi_send_data_to_client_test)
 {
-	TimeItem t1 = {};
-	TimeItem t2 = {};
-	t2.time_raw = t1.time_raw + 5000;
 	const char wrong_char []= "NOK";
 	const char correct_char []= "OK";
 	const char wrong_response [] = "SEND NOK";
@@ -738,7 +719,6 @@ TEST_F(wifiFixture, wifi_connect_disconnect_test)
 	 * <b>expected</b>: RETURN_OK returned.<br>
 	 * ************************************************
 	 */
-	TimeItem t1 = {};
 	const char response_ok [] = "OK";
 	EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Invoke([&](const char * data)->RET_CODE
 								{
@@ -814,7 +794,6 @@ TEST_F(wifiFixture, wifi_set_ip_address)
 	 * <b>expected</b>: RETURN_OK returned.<br>
 	 * ************************************************
 	 */
-	TimeItem t1 = {};
 	IPAddress address = {};
 	address.ip_address[0] = 192;
 	address.ip_address[1] = 168;
@@ -839,10 +818,6 @@ TEST_F(wifiFixture, wifi_set_ip_address)
  */
 TEST_F(wifiFixture, wifi_get_current_ip_address)
 {
-	TimeItem t1 = {};
-	TimeItem t2 = {};
-
-	t2.time_raw = t1.time_raw + 60000;
 	IPAddress address = {};
 
 	/**
@@ -936,9 +911,6 @@ TEST_F(wifiFixture, wifi_get_current_ip_address)
  */
 TEST_F(wifiFixture, wifi_get_current_network_name)
 {
-	TimeItem t1 = {};
-	TimeItem t2 = {};
-	t2.time_raw = t1.time_raw + 60000;
 	char ssid [100];
 	/**
 	 * <b>scenario</b>: Get current network name - buffer is too small.<br>
@@ -1045,9 +1017,6 @@ TEST_F(wifiFixture, wifi_get_current_network_name)
  */
 TEST_F(wifiFixture, wifi_request_client_details)
 {
-	TimeItem t1 = {};
-	TimeItem t2 = {};
-	t2.time_raw = t1.time_raw + 60000;
 	ClientID id = {};
 	/**
 	 * <b>scenario</b>: Get client details- NULL argument<br>
@@ -1133,10 +1102,6 @@ TEST_F(wifiFixture, wifi_request_client_details)
  */
 TEST_F(wifiFixture, wifi_communication_test)
 {
-	TimeItem t1 = {};
-	TimeItem t2 = {};
-
-	t2.time_raw = t1.time_raw + 10000;
 	/**
 	 * <b>scenario</b>: Cannot send test command.<br>
 	 * <b>expected</b>: RETURN_NOK returned.<br>
@@ -1181,9 +1146,6 @@ TEST_F(wifiFixture, wifi_communication_test)
  */
 TEST_F(wifiFixture, wifi_ntp_time_test)
 {
-	TimeItem t1 = {};
-	TimeItem t2 = {};
-	t2.time_raw = t1.time_raw + 60000;
 	TimeItem test_item = {};
 
 	/**
