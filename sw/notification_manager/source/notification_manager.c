@@ -5,7 +5,8 @@
 /* =============================
  *  Includes of project headers
  * =============================*/
-
+#include "notification_manager.h"
+#include "wifi_manager.h"
 /* =============================
  *          Defines
  * =============================*/
@@ -22,14 +23,8 @@
  *      Module variables
  * =============================*/
 
-//TEST TAGS
-
-/**
- * @test Short description
- */
-
-/**
- * <b>scenario</b>: Scenario.<br>
- * <b>expected</b>: Expectations.<br>
- * ************************************************
- */
+RET_CODE ntfmgr_init()
+{
+   RET_CODE result = RETURN_NOK;
+   return result;
+}
