@@ -1,0 +1,3 @@
+[submodule "sw/SmartHomeTypes"]
+	path = sw/SmartHomeTypes
+	url = git@github.com:JacSko/SmartHomeTypes.git
