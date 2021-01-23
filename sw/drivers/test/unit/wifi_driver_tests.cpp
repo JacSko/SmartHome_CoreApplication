@@ -710,6 +710,113 @@ TEST_F(wifiFixture, wifi_send_data_to_client_test)
 }
 
 /**
+ * @test WiFi sending bytes to client
+ */
+TEST_F(wifiFixture, wifi_send_bytes_to_client_test)
+{
+   const char wrong_char []= "NOK";
+   const char correct_char []= "OK";
+   const char wrong_response [] = "SEND NOK";
+   const char correct_response [] = "SEND OK";
+   const uint8_t TEST_BYTES_SIZE = 10;
+   const uint8_t test_bytes [TEST_BYTES_SIZE] = {0,1,2,3,4,5,6,7,8,9};
+   /**
+    * <b>scenario</b>: Send data to client - sign '>' not received.<br>
+    * <b>expected</b>: RETURN_NOK returned.<br>
+    * ************************************************
+    */
+   EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Invoke([&](const char * data)->RET_CODE
+                           {
+                              if (!data) return RETURN_NOK;
+                              EXPECT_STREQ(data, "AT+CIPSEND=1,10\r\n");
+                              return RETURN_OK;
+                           }));
+   EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK))
+                                               .WillOnce(Return(RETURN_OK))
+                                               .WillOnce(Return(RETURN_OK));
+
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(5000));
+   EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(wrong_char))
+                                           .WillOnce(Return(wrong_char))
+                                           .WillOnce(Return(wrong_char));
+
+   EXPECT_EQ(RETURN_NOK, wifi_send_bytes(1, test_bytes, TEST_BYTES_SIZE));
+   Mock::VerifyAndClearExpectations(uartengineMock);
+
+   /* <b>scenario</b>: Send data to client - wrong response received.<br>
+    * <b>expected</b>: RETURN_NOK returned.<br>
+    * ************************************************
+    */
+   EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Invoke([&](const char * data)->RET_CODE
+                           {
+                              if (!data) return RETURN_NOK;
+                              EXPECT_STREQ(data, "AT+CIPSEND=1,10\r\n");
+                              return RETURN_OK;
+                           }));
+   EXPECT_CALL(*uartengineMock, uartengine_send_bytes(_,_)).WillOnce(Invoke([&](const uint8_t * data, uint16_t size)->RET_CODE
+                           {
+                              if (!data) return RETURN_NOK;
+                              EXPECT_EQ(size, TEST_BYTES_SIZE);
+                              return RETURN_OK;
+                           }));
+
+   EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK))
+                                               .WillOnce(Return(RETURN_OK))
+                                               .WillOnce(Return(RETURN_OK))
+                                               .WillOnce(Return(RETURN_OK));
+
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0))
+      .WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(0))
+      .WillOnce(Return(5000));
+   EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(correct_char))
+                                           .WillOnce(Return(wrong_response))
+                                           .WillOnce(Return(wrong_response))
+                                           .WillOnce(Return(wrong_response));
+
+
+   EXPECT_EQ(RETURN_NOK, wifi_send_bytes(1, test_bytes, TEST_BYTES_SIZE));
+   Mock::VerifyAndClearExpectations(uartengineMock);
+
+   /* <b>scenario</b>: Send data to client - wrong response received.<br>
+    * <b>expected</b>: RETURN_NOK returned.<br>
+    * ************************************************
+    */
+   EXPECT_CALL(*uartengineMock, uartengine_send_string(_)).WillOnce(Invoke([&](const char * data)->RET_CODE
+                           {
+                              if (!data) return RETURN_NOK;
+                              EXPECT_STREQ(data, "AT+CIPSEND=1,10\r\n");
+                              return RETURN_OK;
+                           }));
+   EXPECT_CALL(*uartengineMock, uartengine_send_bytes(_,_)).WillOnce(Invoke([&](const uint8_t * data, uint16_t size)->RET_CODE
+                           {
+                              if (!data) return RETURN_NOK;
+                              EXPECT_EQ(size, TEST_BYTES_SIZE);
+                              return RETURN_OK;
+                           }));
+
+   EXPECT_CALL(*uartengineMock, uartengine_can_read_string()).WillOnce(Return(RETURN_OK))
+                                               .WillOnce(Return(RETURN_OK));
+
+   EXPECT_CALL(*ts_mock, ts_get()).WillOnce(Return(0))
+      .WillOnce(Return(0));
+   EXPECT_CALL(*ts_mock, ts_get_diff(_)).WillOnce(Return(0))
+      .WillOnce(Return(0));
+   EXPECT_CALL(*uartengineMock, uartengine_get_string()).WillOnce(Return(correct_char))
+                                           .WillOnce(Return(correct_response));
+
+   EXPECT_EQ(RETURN_OK, wifi_send_bytes(1, test_bytes, TEST_BYTES_SIZE));
+}
+
+
+/**
  * @test WiFi connect / disconnect server
  */
 TEST_F(wifiFixture, wifi_connect_disconnect_test)

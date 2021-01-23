@@ -250,6 +250,20 @@ RET_CODE wifi_send_data(ServerClientID id, const char* data, uint16_t size)
 	return result;
 }
 
+RET_CODE wifi_send_bytes(ServerClientID id, const uint8_t* data, uint16_t size)
+{
+   RET_CODE result = RETURN_NOK;
+   string_format(TX_BUFFER, "AT+CIPSEND=%d,%d\r\n", id, size);
+   if (wifi_send_and_wait_defined_response("OK", DEFAULT_REPLY_TIMEOUT_MS) == RETURN_OK)
+   {
+      if (uartengine_send_bytes(data, size) == RETURN_OK)
+      {
+         result = wifi_wait_for_defined_response("SEND OK", DEFAULT_REPLY_TIMEOUT_MS);
+      }
+   }
+   return result;
+}
+
 RET_CODE wifi_connect_to_network(const char* ssid, const char* password)
 {
 	RET_CODE result = RETURN_NOK;

@@ -15,6 +15,7 @@ struct wifiDriverMock
 	MOCK_METHOD0(wifi_close_server, RET_CODE());
 	MOCK_METHOD1(wifi_allow_multiple_clients, RET_CODE(uint8_t state));
 	MOCK_METHOD3(wifi_send_data, RET_CODE(ServerClientID, const char*, uint16_t));
+   MOCK_METHOD3(wifi_send_bytes, RET_CODE(ServerClientID, const uint8_t*, uint16_t));
 	MOCK_METHOD1(wifi_set_ip_address, RET_CODE(IPAddress*));
 	MOCK_METHOD1(wifi_get_ip_address, RET_CODE(IPAddress*));
 	MOCK_METHOD2(wifi_get_time, RET_CODE(const char*, TimeItem*));
@@ -72,6 +73,10 @@ RET_CODE wifi_allow_multiple_clients(uint8_t state)
 RET_CODE wifi_send_data(ServerClientID id, const char* data, uint16_t size)
 {
 	return wifi_driver_mock->wifi_send_data(id, data, size);
+}
+RET_CODE wifi_send_bytes(ServerClientID id, const uint8_t* data, uint16_t size)
+{
+   return wifi_driver_mock->wifi_send_bytes(id, data, size);
 }
 RET_CODE wifi_set_ip_address(IPAddress* ip_address)
 {

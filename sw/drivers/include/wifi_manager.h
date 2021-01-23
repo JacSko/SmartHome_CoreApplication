@@ -91,6 +91,16 @@ RET_CODE wifimgr_set_server_port(uint16_t port);
  */
 RET_CODE wifimgr_send_data(ServerClientID id, const char* data);
 /**
+ * @brief Send bytes to defined client.
+ * @details
+ * Data cannot be NULL.<br>
+ * @param[in] id - client id
+ * @param[in] data - data to send.
+ * @param[in] size - size of bytes.
+ * @return See RETURN_CODES.
+ */
+RET_CODE wifimgr_send_bytes(ServerClientID id, const uint8_t* data, uint16_t size);
+/**
  * @brief Send data to all connected clients.
  * @details
  * Data cannot be NULL.<br>

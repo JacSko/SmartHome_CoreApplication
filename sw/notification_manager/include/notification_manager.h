@@ -56,7 +56,7 @@ RET_CODE ntfmgr_parse_request(ServerClientID id, const char* data);
  * @param[in] size - size of data bytes
  * @return See RETURN_CODES.
  */
-RET_CODE ntfmgr_register_sender(void(*callback)(ServerClientID id, const char* data, uint16_t size));
+RET_CODE ntfmgr_register_sender(void(*callback)(ServerClientID id, const uint8_t* data, uint16_t size));
 /**
  * @brief Remove function which sends the notifications/responses to client.
  * @return See RETURN_CODES.

@@ -390,6 +390,45 @@ TEST_F(wifiMgrFixture, manager_client_handling)
 /**
  * @test WiFi manager - changing current wifi network data
  */
+TEST_F(wifiMgrFixture, sending_bytes_to_client)
+{
+   setup_test_subject();
+
+   const uint8_t DATA_SIZE =10;
+   const uint8_t TEST_DATA[DATA_SIZE] = {0,1,2,3,4,5,6,7,8,9};
+   const ServerClientID TEST_ID = 1;
+   /**
+    * <b>scenario</b>: Requested client is not connected.<br>
+    * <b>expected</b>: RETURN_NOK returned.<br>
+    * ************************************************
+    */
+   EXPECT_EQ(RETURN_NOK, wifimgr_send_bytes(TEST_ID, TEST_DATA, DATA_SIZE));
+
+
+   /**
+    * <b>scenario</b>: Requested client is connected.<br>
+    * <b>expected</b>: RETURN_OK returned.<br>
+    * ************************************************
+    */
+   EXPECT_CALL(*wifi_driver_mock, wifi_request_client_details(_)).WillOnce(Invoke([&](ClientID* client)->RET_CODE
+         {
+            client->address.ip_address[0] = 5;
+            client->address.ip_address[1] = 6;
+            client->address.ip_address[2] = 7;
+            client->address.ip_address[3] = 8;
+            EXPECT_EQ(client->id, TEST_ID);
+            return RETURN_OK;
+         }));
+
+   wifimgr_on_client_event(CLIENT_CONNECTED, TEST_ID, NULL);
+
+   EXPECT_CALL(*wifi_driver_mock, wifi_send_bytes(TEST_ID, _, DATA_SIZE)).WillOnce(Return(RETURN_OK));
+   EXPECT_EQ(RETURN_OK, wifimgr_send_bytes(TEST_ID, TEST_DATA, DATA_SIZE));
+}
+
+/**
+ * @test WiFi manager - changing current wifi network data
+ */
 TEST_F(wifiMgrFixture, changing_network_name)
 {
 	setup_test_subject();

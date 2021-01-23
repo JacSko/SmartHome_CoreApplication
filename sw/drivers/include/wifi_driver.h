@@ -120,6 +120,14 @@ RET_CODE wifi_allow_multiple_clients(uint8_t state);
  */
 RET_CODE wifi_send_data(ServerClientID id, const char* data, uint16_t size);
 /**
+ * @brief Send data bytes to connected client.
+ * @param[in] id - id of the client.
+ * @param[in] data - bytes to send.
+ * @param[in] size - size of the bytes
+ * @return See RETURN_CODES.
+ */
+RET_CODE wifi_send_bytes(ServerClientID id, const uint8_t* data, uint16_t size);
+/**
  * @brief Set IP address of device.
  * @details Driver should be reset to apply setting
  * @param[in] ip_address - new IP address.

@@ -283,6 +283,17 @@ RET_CODE wifimgr_send_data(ServerClientID id, const char* data)
 	return result;
 }
 
+RET_CODE wifimgr_send_bytes(ServerClientID id, const uint8_t* data, uint16_t size)
+{
+   RET_CODE result = RETURN_NOK;
+
+   if (wifi_mgr.clients[id].connected)
+   {
+      result = wifi_send_bytes(id, data, size);
+   }
+   return result;
+}
+
 RET_CODE wifimgr_broadcast_data(const char* data)
 {
 	RET_CODE result = RETURN_NOK;
