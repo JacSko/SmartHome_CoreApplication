@@ -92,3 +92,35 @@ TEST_F(tsFixture, ts_diff_tests)
 
 
 }
+
+/**
+ * @test Interrupt handling tests
+ */
+TEST_F(tsFixture, iterrupt_handling_tests)
+{
+
+   /**
+    * <b>scenario</b>: Different interrupt flag received.<br>
+    * <b>expected</b>: Time not incremented.<br>
+    * ************************************************
+    */
+   ts_init();
+
+   TIM4->SR &= ~TIM_SR_UIF;
+   TIM4_IRQHandler();
+
+   EXPECT_EQ(system_timestamp, 0);
+
+   /**
+    * <b>scenario</b>: UIF interrupt flag received.<br>
+    * <b>expected</b>: Time incremented.<br>
+    * ************************************************
+    */
+   ts_init();
+
+   TIM4->SR |= TIM_SR_UIF;
+   TIM4_IRQHandler();
+
+   EXPECT_EQ(system_timestamp, 1);
+
+}

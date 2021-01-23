@@ -23,6 +23,7 @@ void ts_init()
    TIM4->CR1 |= TIM_CR1_CEN;
    TIM4->CNT = 0;
    TIM4->DIER |= TIM_DIER_UIE;
+   system_timestamp = 0;
    NVIC_EnableIRQ(TIM4_IRQn);
 }
 void ts_deinit()
