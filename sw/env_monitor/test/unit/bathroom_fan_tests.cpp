@@ -32,14 +32,14 @@ using namespace ::testing;
 
 struct callbackMock
 {
-   MOCK_METHOD0(callback, void());
+   MOCK_METHOD1(callback, void(FAN_STATE));
 };
 
 callbackMock* callMock;
 
-void fake_callback()
+void fake_callback(FAN_STATE state)
 {
-   callMock->callback();
+   callMock->callback(state);
 }
 
 struct fanFixture : public ::testing::Test
@@ -151,6 +151,8 @@ TEST_F(fanFixture, fan_start_stop_hum_drop)
    DHT_SENSOR sensor;
    sensor.type = DHT_TYPE_DHT11;
    sensor.data.hum_h = DEFAULT_HUM_THR + 1;
+
+   EXPECT_EQ(RETURN_OK, fan_add_listener(&fake_callback));
    /**
     * <b>scenario</b>: Error event received.<br>
     * <b>expected</b>: Fan not started.<br>
@@ -203,6 +205,7 @@ TEST_F(fanFixture, fan_start_stop_hum_drop)
     */
    EXPECT_CALL(*sch_mock, sch_set_task_state(_, TASKSTATE_RUNNING)).WillOnce(Return(RETURN_OK));
    EXPECT_CALL(*rel_mock, rel_set(RELAY_BATHROOM_FAN, RELAY_STATE_ON)).WillOnce(Return(RETURN_OK));
+   EXPECT_CALL(*callMock, callback(FAN_STATE_ON));
    fan_on_env_data(ENV_EV_NEW_DATA, ENV_BATHROOM, &sensor);
    EXPECT_EQ(fan_get_state(), FAN_STATE_ON);
 
@@ -242,10 +245,11 @@ TEST_F(fanFixture, fan_start_stop_hum_drop)
     */
    EXPECT_CALL(*sch_mock, sch_set_task_state(_, TASKSTATE_STOPPED)).WillOnce(Return(RETURN_OK));
    EXPECT_CALL(*rel_mock, rel_set(RELAY_BATHROOM_FAN, RELAY_STATE_OFF)).WillOnce(Return(RETURN_OK));
+   EXPECT_CALL(*callMock, callback(FAN_STATE_OFF));
    fan_on_env_data(ENV_EV_NEW_DATA, ENV_BATHROOM, &sensor);
    EXPECT_EQ(fan_get_state(), FAN_STATE_OFF);
 
-
+   EXPECT_EQ(RETURN_OK, fan_remove_listener(&fake_callback));
 }
 
 /**
@@ -257,6 +261,9 @@ TEST_F(fanFixture, fan_start_stop_timeout)
    DHT_SENSOR sensor;
    sensor.type = DHT_TYPE_DHT11;
    sensor.data.hum_h = DEFAULT_HUM_THR + 1;
+
+   EXPECT_EQ(RETURN_OK, fan_add_listener(&fake_callback));
+
    /**
     * <b>scenario</b>: Fan running, timeout occurs.<br>
     * <b>expected</b>: Fan switched to suspend mode.<br>
@@ -264,12 +271,14 @@ TEST_F(fanFixture, fan_start_stop_timeout)
     */
    EXPECT_CALL(*sch_mock, sch_set_task_state(_, TASKSTATE_RUNNING)).WillOnce(Return(RETURN_OK));
    EXPECT_CALL(*rel_mock, rel_set(RELAY_BATHROOM_FAN, RELAY_STATE_ON)).WillOnce(Return(RETURN_OK));
+   EXPECT_CALL(*callMock, callback(FAN_STATE_ON));
    fan_on_env_data(ENV_EV_NEW_DATA, ENV_BATHROOM, &sensor);
    EXPECT_EQ(fan_get_state(), FAN_STATE_ON);
    SIMULATE_TIME(99);
 
    EXPECT_CALL(*sch_mock, sch_set_task_state(_, TASKSTATE_STOPPED)).WillOnce(Return(RETURN_OK));
    EXPECT_CALL(*rel_mock, rel_set(RELAY_BATHROOM_FAN, RELAY_STATE_OFF)).WillOnce(Return(RETURN_OK));
+   EXPECT_CALL(*callMock, callback(FAN_STATE_SUSPEND));
 
    fan_on_timeout();
    EXPECT_EQ(fan_get_state(), FAN_STATE_SUSPEND);
@@ -280,6 +289,7 @@ TEST_F(fanFixture, fan_start_stop_timeout)
     * ************************************************
     */
    sensor.data.hum_h = DEFAULT_HUM_THR - DEFAULT_HYSTER;
+   EXPECT_CALL(*callMock, callback(FAN_STATE_OFF));
    fan_on_env_data(ENV_EV_NEW_DATA, ENV_BATHROOM, &sensor);
    EXPECT_EQ(fan_get_state(), FAN_STATE_OFF);
 
@@ -291,8 +301,11 @@ TEST_F(fanFixture, fan_start_stop_timeout)
    sensor.data.hum_h = DEFAULT_HUM_THR + 1;
    EXPECT_CALL(*sch_mock, sch_set_task_state(_, TASKSTATE_RUNNING)).WillOnce(Return(RETURN_OK));
    EXPECT_CALL(*rel_mock, rel_set(RELAY_BATHROOM_FAN, RELAY_STATE_ON)).WillOnce(Return(RETURN_OK));
+   EXPECT_CALL(*callMock, callback(FAN_STATE_ON));
    fan_on_env_data(ENV_EV_NEW_DATA, ENV_BATHROOM, &sensor);
    EXPECT_EQ(fan_get_state(), FAN_STATE_ON);
+
+   EXPECT_EQ(RETURN_OK, fan_remove_listener(&fake_callback));
 
 }
 
@@ -305,6 +318,9 @@ TEST_F(fanFixture, fan_start_stop_manual)
    DHT_SENSOR sensor;
    sensor.type = DHT_TYPE_DHT11;
    sensor.data.hum_h = DEFAULT_HUM_THR + 1;
+
+   EXPECT_EQ(RETURN_OK, fan_add_listener(&fake_callback));
+
    /**
     * <b>scenario</b>: Fan started manually, cannot set relay.<br>
     * <b>expected</b>: Fan not started.<br>
@@ -320,6 +336,7 @@ TEST_F(fanFixture, fan_start_stop_manual)
     * ************************************************
     */
    EXPECT_CALL(*rel_mock, rel_set(RELAY_BATHROOM_FAN, RELAY_STATE_ON)).WillOnce(Return(RETURN_OK));
+   EXPECT_CALL(*callMock, callback(FAN_STATE_ON));
    EXPECT_EQ(RETURN_OK, fan_start());
    EXPECT_EQ(FAN_STATE_ON, fan_get_state());
 
@@ -355,6 +372,7 @@ TEST_F(fanFixture, fan_start_stop_manual)
     */
    EXPECT_CALL(*rel_mock, rel_set(RELAY_BATHROOM_FAN, RELAY_STATE_OFF)).WillOnce(Return(RETURN_OK));
    EXPECT_CALL(*sch_mock, sch_set_task_state(_, TASKSTATE_STOPPED)).WillOnce(Return(RETURN_OK));
+   EXPECT_CALL(*callMock, callback(FAN_STATE_OFF));
    EXPECT_EQ(RETURN_OK, fan_stop());
    EXPECT_EQ(FAN_STATE_OFF, fan_get_state());
    /**
@@ -372,8 +390,11 @@ TEST_F(fanFixture, fan_start_stop_manual)
    sensor.data.hum_h = DEFAULT_HUM_THR + 1;
    EXPECT_CALL(*sch_mock, sch_set_task_state(_, TASKSTATE_RUNNING)).WillOnce(Return(RETURN_OK));
    EXPECT_CALL(*rel_mock, rel_set(RELAY_BATHROOM_FAN, RELAY_STATE_ON)).WillOnce(Return(RETURN_OK));
+   EXPECT_CALL(*callMock, callback(FAN_STATE_ON));
    fan_on_env_data(ENV_EV_NEW_DATA, ENV_BATHROOM, &sensor);
    EXPECT_EQ(fan_get_state(), FAN_STATE_ON);
+
+   EXPECT_EQ(RETURN_OK, fan_remove_listener(&fake_callback));
 
 }
 

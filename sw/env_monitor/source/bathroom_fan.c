@@ -2,6 +2,7 @@
  *   Includes of common headers
  * =============================*/
 #include <stdint.h>
+#include <stdlib.h>
 /* =============================
  *  Includes of project headers
  * =============================*/
@@ -13,6 +14,7 @@
 /* =============================
  *          Defines
  * =============================*/
+#define FAN_MAX_LISTENERS 5
 #define FAN_MIN_WORKING_TIME_S 10 /* 10s */
 #define FAN_MAX_WORKING_TIME_S 7200 /* 7200s - 2h */
 #define FAN_MAX_HUMIDITY_THR 95
@@ -41,11 +43,13 @@ void fan_on_timeout();
 void fan_on_env_data(ENV_EVENT event, ENV_ITEM_ID id,  const DHT_SENSOR*);
 RET_CODE fan_validate_working_time(uint16_t time_s);
 RET_CODE fan_start_with_type(FAN_TRIGGER_TYPE type);
+void fan_notify_change();
+RET_CODE fan_stop_state(FAN_STATE state);
 /* =============================
  *      Module variables
  * =============================*/
 FAN_MODULE fan_module;
-
+void (*FAN_CALLBACKS[FAN_MAX_LISTENERS])(FAN_STATE);
 
 RET_CODE fan_initialize(const FAN_CONFIG* config)
 {
@@ -58,9 +62,14 @@ RET_CODE fan_initialize(const FAN_CONFIG* config)
       if (env_register_listener(&fan_on_env_data, ENV_BATHROOM) == RETURN_OK)
       {
          result = sch_subscribe_and_set(&fan_on_timeout, TASKPRIO_LOW, 1000, TASKSTATE_STOPPED, TASKTYPE_PERIODIC);
-         fan_stop();
+         fan_stop_state(FAN_STATE_OFF);
          logger_send(LOG_FAN, __func__, "success");
       }
+   }
+
+   for (uint8_t i = 0; i < FAN_MAX_LISTENERS; i++)
+   {
+      FAN_CALLBACKS[i] = NULL;
    }
    logger_send_if(result != RETURN_OK, LOG_ERROR,__func__, "error");
    return result;
@@ -69,6 +78,10 @@ void fan_deinitialize()
 {
    sch_unsubscribe(&fan_on_timeout);
    env_unregister_listener(&fan_on_env_data, ENV_BATHROOM);
+   for (uint8_t i = 0; i < FAN_MAX_LISTENERS; i++)
+   {
+      FAN_CALLBACKS[i] = NULL;
+   }
 }
 
 void fan_on_env_data(ENV_EVENT event, ENV_ITEM_ID id, const DHT_SENSOR* sensor)
@@ -89,13 +102,13 @@ void fan_on_env_data(ENV_EVENT event, ENV_ITEM_ID id, const DHT_SENSOR* sensor)
          if (sensor->data.hum_h <= (fan_module.cfg.fan_humidity_threshold - fan_module.cfg.fan_threshold_hysteresis)
              && fan_module.working_time >= fan_module.cfg.min_working_time_s)
          {
-            fan_stop();
+            fan_stop_state(FAN_STATE_OFF);
          }
          break;
       case FAN_STATE_SUSPEND:
          if (sensor->data.hum_h <= fan_module.cfg.fan_humidity_threshold - fan_module.cfg.fan_threshold_hysteresis)
          {
-            fan_module.state = FAN_STATE_OFF;
+            fan_stop_state(FAN_STATE_OFF);
             logger_send(LOG_FAN, __func__, "return from suspend");
          }
          break;
@@ -116,8 +129,7 @@ void fan_on_timeout()
       fan_module.working_time++;
       if (fan_module.working_time >= fan_module.cfg.max_working_time_s)
       {
-         fan_stop();
-         fan_module.state = FAN_STATE_SUSPEND;
+         fan_stop_state(FAN_STATE_SUSPEND);
          logger_send(LOG_ERROR, __func__, "max working time reached, suspended");
       }
    }
@@ -155,14 +167,51 @@ RET_CODE fan_start_with_type(FAN_TRIGGER_TYPE type)
       if (result == RETURN_OK)
       {
          fan_module.state = FAN_STATE_ON;
+         fan_notify_change();
          logger_send(LOG_FAN, __func__, "starting fan, trigger %u", type);
       }
    }
-
    logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "t: %u, s: %u", type, fan_module.state);
    return result;
 }
-
+RET_CODE fan_add_listener(FAN_LISTENER listener)
+{
+   RET_CODE result = RETURN_NOK;
+   for (uint8_t i = 0; i < FAN_MAX_LISTENERS; i++)
+   {
+      if (FAN_CALLBACKS[i] == NULL)
+      {
+         FAN_CALLBACKS[i] = listener;
+         result = RETURN_OK;
+         break;
+      }
+   }
+   return result;
+}
+RET_CODE fan_remove_listener(FAN_LISTENER listener)
+{
+   RET_CODE result = RETURN_NOK;
+   for (uint8_t i = 0; i < FAN_MAX_LISTENERS; i++)
+   {
+      if (FAN_CALLBACKS[i] == listener)
+      {
+         FAN_CALLBACKS[i] = NULL;
+         result = RETURN_OK;
+         break;
+      }
+   }
+   return result;
+}
+void fan_notify_change()
+{
+   for (uint8_t i = 0; i < FAN_MAX_LISTENERS; i++)
+   {
+      if (FAN_CALLBACKS[i])
+      {
+         FAN_CALLBACKS[i](fan_module.state);
+      }
+   }
+}
 RET_CODE fan_start()
 {
    return fan_start_with_type(FAN_TRIGGER_MANUAL);
@@ -170,20 +219,26 @@ RET_CODE fan_start()
 RET_CODE fan_stop()
 {
    RET_CODE result = RETURN_NOK;
-   if (fan_module.state != FAN_STATE_OFF)
+   if (fan_module.state == FAN_STATE_ON)
+   {
+      result = fan_stop_state(FAN_STATE_OFF);
+   }
+   return result;
+}
+RET_CODE fan_stop_state(FAN_STATE state)
+{
+   RET_CODE result = RETURN_OK;
+   logger_send(LOG_FAN, __func__, "new state %u", state);
+   if (fan_module.state != FAN_STATE_SUSPEND)
    {
       sch_set_task_state(&fan_on_timeout, TASKSTATE_STOPPED);
-      rel_set(RELAY_BATHROOM_FAN, RELAY_STATE_OFF);
       fan_module.trigger = FAN_TRIGGER_AUTO;
-      fan_module.state = FAN_STATE_OFF;
-      fan_module.working_time = 0;
-      logger_send(LOG_ERROR, __func__, "stopped");
-      result = RETURN_OK;
+      result = rel_set(RELAY_BATHROOM_FAN, RELAY_STATE_OFF);
    }
-   else
-   {
-      logger_send(LOG_ERROR, __func__, "already stopped");
-   }
+   fan_module.state = state;
+   fan_notify_change();
+   fan_module.working_time = 0;
+
    return result;
 }
 FAN_STATE fan_get_state()

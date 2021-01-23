@@ -39,6 +39,9 @@
 /* =============================
  *       Data structures
  * =============================*/
+
+typedef void(*FAN_LISTENER)(FAN_STATE state);
+
 typedef struct FAN_CONFIG
 {
    uint16_t min_working_time_s;        /**< Minimum fan working time after start */
@@ -79,6 +82,18 @@ FAN_STATE fan_get_state();
  * @return See RETURN_CODES.
  */
 RET_CODE fan_set_max_working_time(uint16_t time_s);
+/**
+ * @brief Add listener for fan status change.
+ * @param[in] listener - function pointer to be called on fan status change.
+ * @return See RETURN_CODES.
+ */
+RET_CODE fan_add_listener(FAN_LISTENER listener);
+/**
+ * @brief Remove listener.
+ * @param[in] listener - function pointer to remove.
+ * @return See RETURN_CODES.
+ */
+RET_CODE fan_remove_listener(FAN_LISTENER listener);
 /**
  * @brief Sets the fan minimum working time.
  * @param[in] time_s - time in seconds.
