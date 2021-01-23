@@ -30,6 +30,18 @@ extern "C" {
 
 using namespace ::testing;
 
+struct callbackMock
+{
+   MOCK_METHOD1(callback, void(SLM_STATE));
+};
+
+callbackMock* callMock;
+
+void fake_callback(SLM_STATE state)
+{
+   callMock->callback(state);
+}
+
 MATCHER_P(I2C_DATA_MATCH, byte1, "I2C_DATA_MATCH error")
 {
    if (!arg)
@@ -37,6 +49,13 @@ MATCHER_P(I2C_DATA_MATCH, byte1, "I2C_DATA_MATCH error")
       return false;
    }
    return byte1 == arg[0];
+}
+
+void EXPECT_STEP_SEND(uint8_t data, uint16_t period)
+{
+   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(data),_));
+   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
+   EXPECT_CALL(*sch_mock, sch_set_task_period(_, period));
 }
 
 struct ledFixture : public ::testing::Test
@@ -47,6 +66,7 @@ struct ledFixture : public ::testing::Test
 	   mock_sch_init();
 	   mock_i2c_init();
 	   mock_inp_init();
+	   callMock = new callbackMock();
 	   SLM_CONFIG config = {};
 	   config.address = 0x11;
 	   config.off_effect_mode = SLM_OFF_EFFECT_ENABLED;
@@ -66,6 +86,7 @@ struct ledFixture : public ::testing::Test
 	   mock_sch_deinit();
 	   mock_i2c_deinit();
 	   mock_inp_deinit();
+	   delete callMock;
 	}
 };
 
@@ -77,6 +98,7 @@ struct ledFixtureNoEffect : public ::testing::Test
       mock_sch_init();
       mock_i2c_init();
       mock_inp_init();
+      callMock = new callbackMock();
       SLM_CONFIG config = {};
       config.address = 0x11;
       config.off_effect_mode = SLM_OFF_EFFECT_DISABLED;
@@ -95,7 +117,9 @@ struct ledFixtureNoEffect : public ::testing::Test
       mock_sch_deinit();
       mock_i2c_deinit();
       mock_inp_deinit();
+      delete callMock;
    }
+
 };
 
 /**
@@ -176,171 +200,128 @@ TEST_F(ledFixture, start_led_program)
    uint8_t PROGRAM1_STEP_PERIOD = 20;
    uint8_t PROGRAM1_OFF_EFFECT_PERIOD = 200;
    uint16_t PROGRAM1_LIGHT_TIME = 20000;
+
+   EXPECT_EQ(RETURN_OK, slm_add_listener(&fake_callback));
    /**
     * <b>scenario</b>: LED program started via module method.<br>
     * <b>expected</b>: Correct I2C data sequence.<br>
     * ************************************************
     */
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x01),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x01, PROGRAM1_STEP_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_ON));
    EXPECT_EQ(RETURN_OK, slm_start_program());
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x03),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x03, PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x07),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x07, PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x0F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x0F, PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x1F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x1F, PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x3F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x3F, PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x7F, PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
    /* last step, all leds on */
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0xFF),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_LIGHT_TIME));
+   EXPECT_STEP_SEND(0xFF, PROGRAM1_LIGHT_TIME);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ON));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ON, slm_get_state());
 
    /* timeout reached, off effect should be started */
    EXPECT_CALL(*inp_mock, inp_get(_)).WillOnce(Return(INPUT_STATE_INACTIVE));
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_OFF_EFFECT_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_OFF_EFFECT));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0xFF),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0xFF,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0xFF),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0xFF,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0xFF),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0xFF,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0xFF),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0xFF,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0xFF),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0xFF,PROGRAM1_OFF_EFFECT_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_OFF_EFFECT_READY));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT_READY, slm_get_state());
 
    /* off effect done, disabling leds */
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_STEP_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_OFF));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x3F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x3F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x1F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x1F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x0F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x0F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x07),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x07,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x03),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x03,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x01),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x00),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, 0));
+   EXPECT_STEP_SEND(0x00,0);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_OFF));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF, slm_get_state());
 
+   EXPECT_EQ(RETURN_OK, slm_remove_listener(&fake_callback));
 }
 
 /**
@@ -351,71 +332,56 @@ TEST_F(ledFixture, start_led_program_sensor_acitvated_during_off_effect)
    uint8_t PROGRAM1_STEP_PERIOD = 20;
    uint8_t PROGRAM1_OFF_EFFECT_PERIOD = 200;
    uint16_t PROGRAM1_LIGHT_TIME = 20000;
+
+   EXPECT_EQ(RETURN_OK, slm_add_listener(&fake_callback));
    /**
     * <b>scenario</b>: LED program started - sensor is activated during shutdown effect.<br>
     * <b>expected</b>: All leds enabled again, than disabled after timoeut.<br>
     * ************************************************
     */
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x01),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_ON));
    EXPECT_EQ(RETURN_OK, slm_start_program());
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x03),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x03,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x07),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x07,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x0F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x0F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x1F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x1F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x3F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x3F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
    /* last state, all leds are on */
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0xFF),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_LIGHT_TIME));
+   EXPECT_STEP_SEND(0xFF,PROGRAM1_LIGHT_TIME);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ON));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ON, slm_get_state());
 
    /* starting shutdown effect */
    EXPECT_CALL(*inp_mock, inp_get(_)).WillOnce(Return(INPUT_STATE_INACTIVE));
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_OFF_EFFECT_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_OFF_EFFECT));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0xFF),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0xFF,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
@@ -424,122 +390,91 @@ TEST_F(ledFixture, start_led_program_sensor_acitvated_during_off_effect)
    inp_status.state = INPUT_STATE_ACTIVE;
 
    /* notification with sensor state change, all leds should be enabled again */
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0xFF),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_LIGHT_TIME));
+   EXPECT_STEP_SEND(0xFF,PROGRAM1_LIGHT_TIME);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ON));
    slm_on_sensor_state_change(inp_status);
    EXPECT_EQ(SLM_STATE_ON, slm_get_state());
 
    /* timeout, starting shutdown effect */
    EXPECT_CALL(*inp_mock, inp_get(_)).WillOnce(Return(INPUT_STATE_INACTIVE));
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_OFF_EFFECT_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_OFF_EFFECT));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0xFF),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0xFF,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0xFF),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0xFF,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0xFF),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0xFF,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0xFF),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0xFF,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0xFF),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0xFF,PROGRAM1_OFF_EFFECT_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_OFF_EFFECT_READY));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT_READY, slm_get_state());
 
    /* OFF effect ready, disabling leds */
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_STEP_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_OFF));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x3F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x3F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x1F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x1F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x0F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x0F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x07),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x07,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x03),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x03,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x01),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x00),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, 0));
+   EXPECT_STEP_SEND(0x00,0);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_OFF));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF, slm_get_state());
+
+   EXPECT_EQ(RETURN_OK, slm_remove_listener(&fake_callback));
 
 }
 
@@ -550,108 +485,84 @@ TEST_F(ledFixtureNoEffect, start_led_program)
 {
    uint8_t PROGRAM1_STEP_PERIOD = 20;
    uint16_t PROGRAM1_LIGHT_TIME = 20000;
+
+   EXPECT_EQ(RETURN_OK, slm_add_listener(&fake_callback));
    /**
     * <b>scenario</b>: LED program started using module method.<br>
     * <b>expected</b>: Correct I2C data sequence.<br>
     * ************************************************
     */
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x01),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_ON));
    EXPECT_EQ(RETURN_OK, slm_start_program());
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x03),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x03,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x07),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x07,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x0F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x0F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x1F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x1F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x3F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x3F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
    /* all leds are enabled */
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0xFF),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_LIGHT_TIME));
+   EXPECT_STEP_SEND(0xFF,PROGRAM1_LIGHT_TIME);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ON));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ON, slm_get_state());
 
    EXPECT_CALL(*inp_mock, inp_get(_)).WillOnce(Return(INPUT_STATE_INACTIVE));
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_STEP_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_OFF));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x3F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x3F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x1F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x1F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x0F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x0F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x07),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x07,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x03),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x03,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x01),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x00),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, 0));
+   EXPECT_STEP_SEND(0x00,0);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_OFF));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF, slm_get_state());
+
+   EXPECT_EQ(RETURN_OK, slm_remove_listener(&fake_callback));
 
 }
 
@@ -662,56 +573,44 @@ TEST_F(ledFixtureNoEffect, start_led_program_sensor_acitve_on_timeout)
 {
    uint8_t PROGRAM1_STEP_PERIOD = 20;
    uint16_t PROGRAM1_LIGHT_TIME = 20000;
+
+   EXPECT_EQ(RETURN_OK, slm_add_listener(&fake_callback));
    /**
     * <b>scenario</b>: LED program running, on timeout sensor is still active.<br>
     * <b>expected</b>: Timeout counter should be restarted.<br>
     * ************************************************
     */
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x01),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_ON));
    EXPECT_EQ(RETURN_OK, slm_start_program());
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x03),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x03,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x07),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x07,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x0F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x0F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x1F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x1F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x3F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x3F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0xFF),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_LIGHT_TIME));
+   EXPECT_STEP_SEND(0xFF,PROGRAM1_LIGHT_TIME);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ON));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ON, slm_get_state());
 
@@ -721,53 +620,41 @@ TEST_F(ledFixtureNoEffect, start_led_program_sensor_acitve_on_timeout)
    slm_on_timeout();
 
    EXPECT_CALL(*inp_mock, inp_get(_)).WillOnce(Return(INPUT_STATE_INACTIVE));
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_STEP_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_OFF));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x3F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x3F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x1F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x1F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x0F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x0F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x07),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x07,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x03),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x03,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x01),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x00),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, 0));
+   EXPECT_STEP_SEND(0x00,0);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_OFF));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF, slm_get_state());
+
+   EXPECT_EQ(RETURN_OK, slm_remove_listener(&fake_callback));
 
 }
 
@@ -778,52 +665,42 @@ TEST_F(ledFixtureNoEffect, start_led_alw_on)
 {
    uint8_t PROGRAM1_STEP_PERIOD = 20;
    uint16_t PROGRAM1_LIGHT_TIME = 20000;
+
+   EXPECT_EQ(RETURN_OK, slm_add_listener(&fake_callback));
+
    /**
     * <b>scenario</b>: LED program started - with always on flag.<br>
     * <b>expected</b>: Correct I2C data sequence.<br>
     * ************************************************
     */
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x01),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_ON));
    EXPECT_EQ(RETURN_OK, slm_start_program_alw_on());
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
    EXPECT_EQ(SLM_PROGRAM1, slm_get_current_program_id());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x03),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x03,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x07),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x07,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x0F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x0F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x1F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x1F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x3F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x3F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
@@ -832,57 +709,46 @@ TEST_F(ledFixtureNoEffect, start_led_alw_on)
    /* task should be stopped due to AlwaysOn flag */
    EXPECT_CALL(*sch_mock, sch_set_task_state(_, TASKSTATE_STOPPED));
    EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_LIGHT_TIME));
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ON));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ON, slm_get_state());
 
    /* program stopped manually */
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_STEP_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_OFF));
    EXPECT_EQ(RETURN_OK, slm_stop_program());
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x3F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x3F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x1F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x1F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x0F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x0F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x07),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x07,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x03),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x03,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x01),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x00),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, 0));
+   EXPECT_STEP_SEND(0x00,0);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_OFF));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF, slm_get_state());
+
+   EXPECT_EQ(RETURN_OK, slm_remove_listener(&fake_callback));
 
 }
 
@@ -894,52 +760,42 @@ TEST_F(ledFixture, start_led_alw_on_with_effect)
    uint8_t PROGRAM1_STEP_PERIOD = 20;
    uint8_t PROGRAM1_OFF_EFFECT_PERIOD = 200;
    uint16_t PROGRAM1_LIGHT_TIME = 20000;
+
+   EXPECT_EQ(RETURN_OK, slm_add_listener(&fake_callback));
+
    /**
     * <b>scenario</b>: LED program started on sensor state changed - with always on flag.<br>
     * <b>expected</b>: Correct I2C data sequence.<br>
     * ************************************************
     */
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x01),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_ON));
    EXPECT_EQ(RETURN_OK, slm_start_program_alw_on());
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
    EXPECT_EQ(SLM_PROGRAM1, slm_get_current_program_id());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x03),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x03,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x07),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x07,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x0F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x0F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x1F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x1F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x3F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x3F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
@@ -948,119 +804,90 @@ TEST_F(ledFixture, start_led_alw_on_with_effect)
    /* task should be stopped due to AlwaysOn flag */
    EXPECT_CALL(*sch_mock, sch_set_task_state(_, TASKSTATE_STOPPED));
    EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_LIGHT_TIME));
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ON));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ON, slm_get_state());
 
    /* program stopped manually, effect started */
    /* timeout, starting shutdown effect */
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_OFF_EFFECT_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_OFF_EFFECT));
    EXPECT_EQ(RETURN_OK, slm_stop_program());
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0xFF),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0xFF,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0xFF),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0xFF,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0xFF),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0xFF,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0xFF),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0xFF,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_OFF_EFFECT_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0xFF),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_OFF_EFFECT_PERIOD));
+   EXPECT_STEP_SEND(0xFF,PROGRAM1_OFF_EFFECT_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_OFF_EFFECT_READY));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF_EFFECT_READY, slm_get_state());
 
    /* effect ready, disabling leds*/
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_STEP_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_OFF));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x3F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x3F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x1F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x1F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x0F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x0F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x07),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x07,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x03),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x03,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x01),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x00),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, 0));
+   EXPECT_STEP_SEND(0x00,0);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_OFF));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF, slm_get_state());
+
+   EXPECT_EQ(RETURN_OK, slm_remove_listener(&fake_callback));
 
 }
 
@@ -1074,108 +901,84 @@ TEST_F(ledFixtureNoEffect, led_on_sensor_change)
    INPUT_STATUS inp_status {};
    inp_status.id = INPUT_STAIRS_SENSOR;
    inp_status.state = INPUT_STATE_ACTIVE;
+
+   EXPECT_EQ(RETURN_OK, slm_add_listener(&fake_callback));
+
    /**
     * <b>scenario</b>: Sensor state changed.<br>
     * <b>expected</b>: LED module program started.<br>
     * ************************************************
     */
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x01),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_ON));
    slm_on_sensor_state_change(inp_status);
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x03),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x03,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x07),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x07,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x0F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x0F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x1F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x1F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x3F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x3F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0xFF),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_LIGHT_TIME));
+   EXPECT_STEP_SEND(0xFF,PROGRAM1_LIGHT_TIME);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ON));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ON, slm_get_state());
 
    EXPECT_CALL(*inp_mock, inp_get(_)).WillOnce(Return(INPUT_STATE_INACTIVE));
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_STEP_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_OFF));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x3F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x3F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x1F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x1F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x0F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x0F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x07),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x07,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x03),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x03,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x01),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x00),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, 0));
+   EXPECT_STEP_SEND(0x00,0);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_OFF));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF, slm_get_state());
 
+   EXPECT_EQ(RETURN_OK, slm_remove_listener(&fake_callback));
 
 }
 
@@ -1190,167 +993,130 @@ TEST_F(ledFixtureNoEffect, led_sensor_active_during_shutdown)
    inp_status.id = INPUT_STAIRS_SENSOR;
    inp_status.state = INPUT_STATE_ACTIVE;
 
+   EXPECT_EQ(RETURN_OK, slm_add_listener(&fake_callback));
+
+
    /**
    * <b>scenario</b>: Sensor state ON received during leds switching off.<br>
    * <b>expected</b>: LEDs enabled again.<br>
    * ************************************************
    */
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x01),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_ON));
    slm_on_sensor_state_change(inp_status);
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x03),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x03,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x07),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x07,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x0F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x0F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x1F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x1F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x3F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x3F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0xFF),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_LIGHT_TIME));
+   EXPECT_STEP_SEND(0xFF,PROGRAM1_LIGHT_TIME);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ON));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ON, slm_get_state());
 
    EXPECT_CALL(*inp_mock, inp_get(_)).WillOnce(Return(INPUT_STATE_INACTIVE));
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_STEP_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_OFF));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x3F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x3F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x1F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x1F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x0F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x0F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x0F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x0F,PROGRAM1_STEP_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_ON));
    /* notification with sensor state active, leds enabled again from current position */
+
    slm_on_sensor_state_change(inp_status);
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x1F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x1F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x3F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x3F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0xFF),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_LIGHT_TIME));
+   EXPECT_STEP_SEND(0xFF,PROGRAM1_LIGHT_TIME);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ON));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ON, slm_get_state());
 
    EXPECT_CALL(*inp_mock, inp_get(_)).WillOnce(Return(INPUT_STATE_INACTIVE));
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x7F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x7F,PROGRAM1_STEP_PERIOD);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_OFF));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x3F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x3F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x1F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x1F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x0F),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x0F,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x07),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x07,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x03),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x03,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x01),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x00),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, 0));
+   EXPECT_STEP_SEND(0x00,0);
+   EXPECT_CALL(*callMock, callback(SLM_STATE_OFF));
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_OFF, slm_get_state());
 
    /* timeout reached when state is OFF - task should be disabled */
    EXPECT_CALL(*sch_mock, sch_set_task_state(_,TASKSTATE_STOPPED));
    slm_on_timeout();
+
+   EXPECT_EQ(RETURN_OK, slm_remove_listener(&fake_callback));
 
 }
 
@@ -1364,9 +1130,7 @@ TEST_F(ledFixtureNoEffect, led_start_when_incorrect_state)
    inp_status.id = INPUT_STAIRS_SENSOR;
    inp_status.state = INPUT_STATE_ACTIVE;
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x01),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
    slm_on_sensor_state_change(inp_status);
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
 
@@ -1456,9 +1220,7 @@ TEST_F(ledFixtureNoEffect, led_replace_program)
    */
    uint8_t PROGRAM1_STEP_PERIOD = 20;
 
-   EXPECT_CALL(*i2c_mock, i2c_write(_,I2C_DATA_MATCH(0x01),_));
-   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
-   EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));
+   EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
    slm_start_program();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
    EXPECT_EQ(RETURN_NOK, slm_replace_program(SLM_PROGRAM1, &new_program));

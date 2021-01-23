@@ -1,7 +1,7 @@
 /* =============================
  *   Includes of common headers
  * =============================*/
-
+#include <stdlib.h>
 /* =============================
  *  Includes of project headers
  * =============================*/
@@ -13,7 +13,7 @@
 /* =============================
  *          Defines
  * =============================*/
-
+#define SLM_MAX_LISTENERS 5
 /* =============================
  *       Internal types
  * =============================*/
@@ -40,12 +40,14 @@ void slm_send_step(const SLM_STEP* step);
 void slm_run_program(SLM_REQ_TYPE type);
 RET_CODE slm_is_program_valid(const SLM_PROGRAM* program);
 void slm_on_sensor_state_change(INPUT_STATUS status);
+void slm_set_state(SLM_STATE state);
+void slm_notify_change();
 /* =============================
  *      Module variables
  * =============================*/
 SLM_PROGRAM LED_PROGRAMS[SLM_MAX_PROGRAMS];
 SLM_MODULE led_module;
-
+void (*SLM_CALLBACKS[SLM_MAX_LISTENERS])(SLM_STATE);
 RET_CODE slm_initialize(const SLM_CONFIG* config)
 {
    RET_CODE result = RETURN_NOK;
@@ -69,6 +71,10 @@ RET_CODE slm_initialize(const SLM_CONFIG* config)
          result = inp_add_input_listener(&slm_on_sensor_state_change);
          logger_send(LOG_SLM, __func__,"init OK");
       }
+      for (uint8_t i = 0; i < SLM_MAX_LISTENERS; i++)
+      {
+         SLM_CALLBACKS[i] = NULL;
+      }
    }
 
    return result;
@@ -87,13 +93,13 @@ void slm_on_timeout()
       {
          if (led_module.cfg.off_effect_mode == SLM_OFF_EFFECT_ENABLED)
          {
-            led_module.state = SLM_STATE_OFF_EFFECT;
+            slm_set_state(SLM_STATE_OFF_EFFECT);
             led_module.step_id = 0;
             led_module.step = &(led_module.program->off_effect_steps[led_module.step_id]);
          }
          else
          {
-            led_module.state = SLM_STATE_ONGOING_OFF;
+            slm_set_state(SLM_STATE_ONGOING_OFF);
             led_module.step_id = led_module.program->program_steps_count - 2;
             led_module.step = &(led_module.program->program_steps[led_module.step_id]);
          }
@@ -108,14 +114,14 @@ void slm_on_timeout()
       led_module.step_id++;
       if (led_module.step_id == led_module.program->off_effect_steps_count - 1)
       {
-         led_module.state = SLM_STATE_OFF_EFFECT_READY;
+         slm_set_state(SLM_STATE_OFF_EFFECT_READY);
       }
       led_module.step = &(led_module.program->off_effect_steps[led_module.step_id]);
       slm_send_step(led_module.step);
       break;
    case SLM_STATE_OFF_EFFECT_READY:
       led_module.step_id = led_module.program->program_steps_count - 2;
-      led_module.state = SLM_STATE_ONGOING_OFF;
+      slm_set_state(SLM_STATE_ONGOING_OFF);
       led_module.step = &(led_module.program->program_steps[led_module.step_id]);
       slm_send_step(led_module.step);
       break;
@@ -123,7 +129,7 @@ void slm_on_timeout()
       led_module.step_id--;
       if (led_module.step_id == 0)
       {
-         led_module.state = SLM_STATE_OFF;
+         slm_set_state(SLM_STATE_OFF);
       }
       led_module.step = &(led_module.program->program_steps[led_module.step_id]);
       slm_send_step(led_module.step);
@@ -132,7 +138,7 @@ void slm_on_timeout()
       led_module.step_id++;
       if (led_module.step_id == led_module.program->program_steps_count - 1)
       {
-         led_module.state = SLM_STATE_ON;
+         slm_set_state(SLM_STATE_ON);
       }
       led_module.step = &(led_module.program->program_steps[led_module.step_id]);
       slm_send_step(led_module.step);
@@ -156,12 +162,12 @@ void slm_on_sensor_state_change(INPUT_STATUS status)
          slm_run_program(SLM_REQ_NORMAL);
          break;
       case SLM_STATE_ONGOING_OFF:
-         led_module.state = SLM_STATE_ONGOING_ON;
+         slm_set_state(SLM_STATE_ONGOING_ON);
          slm_send_step(led_module.step);
          break;
       case SLM_STATE_OFF_EFFECT:
       case SLM_STATE_OFF_EFFECT_READY:
-         led_module.state = SLM_STATE_ON;
+         slm_set_state(SLM_STATE_ON);
          led_module.step_id = led_module.program->program_steps_count - 1;
          led_module.step = &(led_module.program->program_steps[led_module.step_id]);
          slm_send_step(led_module.step);
@@ -173,7 +179,10 @@ void slm_on_sensor_state_change(INPUT_STATUS status)
 }
 void slm_deinitialize()
 {
-
+   for (uint8_t i = 0; i < SLM_MAX_LISTENERS; i++)
+   {
+      SLM_CALLBACKS[i] = NULL;
+   }
 }
 void slm_prepare_default_programs()
 {
@@ -292,7 +301,6 @@ void slm_prepare_default_programs()
 }
 void slm_send_step(const SLM_STEP* step)
 {
-   logger_send(LOG_SLM, __func__,"sending %x, t;%dms", step->leds_state, step->period);
    i2c_write(led_module.cfg.address, &(step->leds_state), 2);
    sch_set_task_period(&slm_on_timeout, step->period);
    sch_trigger_task(&slm_on_timeout);
@@ -335,11 +343,16 @@ void slm_run_program(SLM_REQ_TYPE type)
 {
    logger_send(LOG_SLM, __func__,"");
    led_module.type = type;
-   led_module.state = SLM_STATE_ONGOING_ON;
+   slm_set_state(SLM_STATE_ONGOING_ON);
    led_module.program = &LED_PROGRAMS[led_module.cfg.program_id];
    led_module.step_id = 1;
    led_module.step = &(led_module.program->program_steps[led_module.step_id]);
    slm_send_step(led_module.step);
+}
+void slm_set_state(SLM_STATE state)
+{
+   led_module.state = state;
+   slm_notify_change();
 }
 RET_CODE slm_stop_program()
 {
@@ -349,7 +362,7 @@ RET_CODE slm_stop_program()
    {
       if (led_module.cfg.off_effect_mode == SLM_OFF_EFFECT_ENABLED)
       {
-         led_module.state = SLM_STATE_OFF_EFFECT;
+         slm_set_state(SLM_STATE_OFF_EFFECT);
          led_module.step_id = 0;
          led_module.step = &(led_module.program->off_effect_steps[led_module.step_id]);
          slm_send_step(led_module.step);
@@ -357,7 +370,7 @@ RET_CODE slm_stop_program()
       }
       else
       {
-         led_module.state = SLM_STATE_ONGOING_OFF;
+         slm_set_state(SLM_STATE_ONGOING_OFF);
          led_module.step_id = led_module.program->program_steps_count - 2;
          led_module.step = &(led_module.program->program_steps[led_module.step_id]);
          slm_send_step(led_module.step);
@@ -367,6 +380,44 @@ RET_CODE slm_stop_program()
    }
    logger_send_if(result != RETURN_OK, LOG_ERROR, __func__,"invalid state");
    return result;
+}
+RET_CODE slm_add_listener(SLM_LISTENER listener)
+{
+   RET_CODE result = RETURN_NOK;
+   for (uint8_t i = 0; i < SLM_MAX_LISTENERS; i++)
+   {
+      if (SLM_CALLBACKS[i] == NULL)
+      {
+         SLM_CALLBACKS[i] = listener;
+         result = RETURN_OK;
+         break;
+      }
+   }
+   return result;
+}
+RET_CODE slm_remove_listener(SLM_LISTENER listener)
+{
+   RET_CODE result = RETURN_NOK;
+   for (uint8_t i = 0; i < SLM_MAX_LISTENERS; i++)
+   {
+      if (SLM_CALLBACKS[i] == listener)
+      {
+         SLM_CALLBACKS[i] = NULL;
+         result = RETURN_OK;
+         break;
+      }
+   }
+   return result;
+}
+void slm_notify_change()
+{
+   for (uint8_t i = 0; i < SLM_MAX_LISTENERS; i++)
+   {
+      if (SLM_CALLBACKS[i])
+      {
+         SLM_CALLBACKS[i](led_module.state);
+      }
+   }
 }
 SLM_STATE slm_get_state()
 {

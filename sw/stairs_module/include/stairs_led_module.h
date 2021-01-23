@@ -50,6 +50,9 @@ typedef struct SLM_PROGRAM
   uint8_t off_effect_steps_count;                     /**< Number of OFF effect steps */
 } SLM_PROGRAM;
 
+typedef void(*SLM_LISTENER)(SLM_STATE state);
+
+
 typedef struct SLM_CONFIG
 {
    SLM_PROGRAM_ID program_id;           /**< ID of the default program */
@@ -88,6 +91,18 @@ RET_CODE slm_start_program();
  * @return See RETURN_CODES.
  */
 RET_CODE slm_stop_program();
+/**
+ * @brief Add listener for module state.
+ * @param[in] listener - pointer to function to be called on state change.
+ * @return See RETURN_CODES.
+ */
+RET_CODE slm_add_listener(SLM_LISTENER listener);
+/**
+ * @brief Remove listener.
+ * @param[in] listener - pointer to function.
+ * @return See RETURN_CODES.
+ */
+RET_CODE slm_remove_listener(SLM_LISTENER listener);
 /**
  * @brief Get current module state.
  * @return State of the SLM module.
