@@ -14,7 +14,7 @@
 #include "env_monitor.h"
 #include "bathroom_fan.h"
 #include "system_timestamp.h"
-
+#include "notification_manager.h"
 /**
  * 	System config:
  * 	HSI - 16MHz
@@ -43,12 +43,25 @@
 #define RELAYS_I2C_ADDRESS 0x48
 #define ENV_MEASUREMENT_RUNNING 0x01
 
+/* global settings */
+
+//#define SH_USE_WIFI
+//#define SH_USE_BT
+//#define SH_USE_LOGGER
+//#define SH_LOGS_OVER_WIFI
+//#define SH_USE_RELAYS
+//#define SH_USE_INPUTS
+//#define SH_USE_ENV
+//#define SH_USE_FAN
+//#define SH_USE_SLM
+//#define SH_USE_CMD_PARSER
+
 void dummy_task()
 {
    logger_send(LOG_ERROR, "", "S T R I N G S T R I N G S T R I N G S T R I N G S T R I N G");
 }
 
-int main(void)
+void sm_setup_int_priorities()
 {
    NVIC_SetPriorityGrouping(0x05);
    uint32_t prio;
@@ -66,22 +79,16 @@ int main(void)
    prio = NVIC_EncodePriority(0x05, 2, 0);
    NVIC_SetPriority(USART1_IRQn, prio);
 
-   ts_init();
-	time_init();
-	sch_initialize();
-//	sch_subscribe_and_set(&dummy_task, TASKPRIO_LOW, 10, TASKSTATE_RUNNING, TASKTYPE_PERIODIC);
+}
 
-	BT_Config config = {UART_COMMON_BAUD_RATE, UART_COMMON_BUFFER_SIZE, UART_COMMON_STRING_SIZE};
-	btengine_initialize(&config);
-
+void sm_setup_logger()
+{
    if (logger_initialize(UART_COMMON_STRING_SIZE) != RETURN_OK)
    {
       logger_send(LOG_ERROR, __func__, "Cannot init BT engine!");
    }
    logger_enable();
-
    logger_send(LOG_DEBUG, __func__, "Booting up!");
-
    logger_set_group_state(LOG_DHT_DRV, LOGGER_GROUP_ENABLE);
    logger_set_group_state(LOG_WIFI_MANAGER, LOGGER_GROUP_ENABLE);
    logger_set_group_state(LOG_WIFI_DRIVER, LOGGER_GROUP_ENABLE);
@@ -99,27 +106,50 @@ int main(void)
 //      logger_send(LOG_ERROR, __func__, "Cannot register WIFI sender!");
 //   }
 
-//   WIFI_UART_Config wifi_cfg = {UART_COMMON_BAUD_RATE, UART_COMMON_BUFFER_SIZE, UART_COMMON_STRING_SIZE};
-//   if (wifimgr_initialize(&wifi_cfg) != RETURN_OK)
-//   {
-//      logger_send(LOG_ERROR, __func__, "Cannot initiailize wifi manager!");
-//   }
+}
 
-	cmd_register_sender(&btengine_send_string);
+int main(void)
+{
+   sm_setup_int_priorities();
+
+   ts_init();
+	time_init();
+	sch_initialize();
+//	sch_subscribe_and_set(&dummy_task, TASKPRIO_LOW, 10, TASKSTATE_RUNNING, TASKTYPE_PERIODIC);
+
+	BT_Config config = {UART_COMMON_BAUD_RATE, UART_COMMON_BUFFER_SIZE, UART_COMMON_STRING_SIZE};
+	btengine_initialize(&config);
+
+#ifdef SH_USE_LOGGER
+	sm_setup_logger();
+
+   if (i2c_initialize() != RETURN_OK)
+   {
+      logger_send(LOG_ERROR, __func__, "Cannot initialize I2C driver");
+   }
+   if (dht_initialize() != RETURN_OK)
+   {
+      logger_send(LOG_ERROR, __func__, "Cannot initialize DHT driver");
+   }
+#endif
+
+#ifdef SM_USE_WIFI
+   WIFI_UART_Config wifi_cfg = {UART_COMMON_BAUD_RATE, UART_COMMON_BUFFER_SIZE, UART_COMMON_STRING_SIZE};
+   if (wifimgr_initialize(&wifi_cfg) != RETURN_OK)
+   {
+      logger_send(LOG_ERROR, __func__, "Cannot initiailize wifi manager!");
+   }
+#endif
+
+#ifdef SH_USE_CMD_PARSER
+   cmd_register_sender(&btengine_send_string);
 
 	if (btengine_register_callback(&cmd_handle_data) != RETURN_OK)
 	{
 		logger_send(LOG_ERROR, __func__, "Cannot add BT callback!");
 	}
+#endif
 
-	if (i2c_initialize() != RETURN_OK)
-	{
-	   logger_send(LOG_ERROR, __func__, "Cannot initialize I2C driver");
-	}
-   if (dht_initialize() != RETURN_OK)
-   {
-      logger_send(LOG_ERROR, __func__, "Cannot initialize DHT driver");
-   }
 
 
 
