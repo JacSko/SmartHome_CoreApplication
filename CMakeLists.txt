@@ -75,6 +75,7 @@ if(NOT UNIT_TESTS)
 		inputs_board
 		stairs_led_module
 		system_timestamp
+		notification_manager
 	)
 	
 #	target_include_directories(${PROJECT_NAME}.elf PUBLIC ext_lib/CMSIS/device

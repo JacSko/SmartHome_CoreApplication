@@ -10,6 +10,10 @@ target_link_libraries(notification_manager_tests PUBLIC
         gmock_main
         wifimanager_mock
 		time_counterMock
+		SmartHomeTypes
+		inputs_board_mock
+		env_monitor_mock
+		loggerMock
 )
 
 add_test(NAME notification_manager_tests COMMAND notification_manager_tests)
