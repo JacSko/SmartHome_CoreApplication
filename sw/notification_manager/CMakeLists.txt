@@ -10,7 +10,9 @@ target_include_directories(notification_manager PUBLIC
 
 target_link_libraries(notification_manager PUBLIC
 		wifi_manager
-		
+		env_monitor
+		inputs_board
+		logger
 )
 
 else ()

@@ -12,7 +12,10 @@ target_link_libraries(notification_manager_tests PUBLIC
 		time_counterMock
 		SmartHomeTypes
 		inputs_board_mock
+		relays_board_mock
+		bathroom_fan_mock
 		env_monitor_mock
+		stairs_led_module_mock
 		loggerMock
 )
 

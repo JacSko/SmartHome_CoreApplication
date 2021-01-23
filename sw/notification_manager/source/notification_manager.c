@@ -6,10 +6,13 @@
  *  Includes of project headers
  * =============================*/
 #include "notification_manager.h"
-#include "wifi_manager.h"
 #include "notification_types.h"
+#include "wifi_manager.h"
 #include "inputs_board.h"
+#include "relays_board.h"
 #include "env_monitor.h"
+#include "bathroom_fan.h"
+#include "stairs_led_module.h"
 #include "Logger.h"
 /* =============================
  *          Defines
@@ -19,7 +22,10 @@
  *   Internal module functions
  * =============================*/
 void ntfmgr_on_inputs_change(INPUT_STATUS status);
+void ntfmgr_on_relays_change(const RELAY_STATUS* status);
 void ntfmgr_on_env_change(ENV_EVENT event, ENV_ITEM_ID id,  const DHT_SENSOR*);
+void ntfmgr_on_fan_change(FAN_STATE state);
+void ntfmgr_on_slm_change(SLM_STATE state);
 /* =============================
  *       Internal types
  * =============================*/
@@ -53,6 +59,15 @@ RET_CODE ntfmgr_init()
       logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "cannot subscribe for env %d", (uint8_t)i);
    }
 
+   result = rel_add_listener(&ntfmgr_on_relays_change);
+   logger_send_if(result != RETURN_NOK, LOG_ERROR, __func__, "cannot subscribe for relays");
+
+   result = fan_add_listener(&ntfmgr_on_fan_change);
+   logger_send_if(result != RETURN_NOK, LOG_ERROR, __func__, "cannot subscribe for fan");
+
+   result = slm_add_listener(&ntfmgr_on_slm_change);
+   logger_send_if(result != RETURN_NOK, LOG_ERROR, __func__, "cannot subscribe for SLM state");
+
    return result;
 }
 RET_CODE ntfmgr_parse_request(ServerClientID id, const char* data)
@@ -73,7 +88,19 @@ void ntfmgr_on_inputs_change(INPUT_STATUS status)
 {
 
 }
-void ntfmgr_on_env_change(ENV_EVENT event, ENV_ITEM_ID id,  const DHT_SENSOR*)
+void ntfmgr_on_env_change(ENV_EVENT event, ENV_ITEM_ID id,  const DHT_SENSOR* sensor)
+{
+
+}
+void ntfmgr_on_relays_change(const RELAY_STATUS* status)
+{
+
+}
+void ntfmgr_on_fan_change(FAN_STATE state)
+{
+
+}
+void ntfmgr_on_slm_change(SLM_STATE state)
 {
 
 }
