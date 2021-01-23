@@ -14,6 +14,8 @@ struct relMock
    MOCK_METHOD1(rel_read_all, RET_CODE(RELAY_STATUS*));
    MOCK_METHOD1(rel_get_config, RET_CODE(RELAYS_CONFIG*));
    MOCK_METHOD1(rel_set_verification_period, RET_CODE(uint16_t));
+   MOCK_METHOD1(rel_add_listener, RET_CODE(REL_CALLBACK));
+   MOCK_METHOD1(rel_remove_listener, RET_CODE(REL_CALLBACK));
    MOCK_METHOD0(rel_get_verification_period, uint16_t());
    MOCK_METHOD0(rel_enable_verification, void());
    MOCK_METHOD0(rel_disable_verification, void());
@@ -78,6 +80,14 @@ void rel_disable_verification()
 RET_CODE rel_get_verification_state()
 {
    return rel_mock->rel_get_verification_state();
+}
+RET_CODE rel_add_listener(REL_CALLBACK clb)
+{
+   return rel_mock->rel_add_listener(clb);
+}
+RET_CODE rel_remove_listener(REL_CALLBACK clb)
+{
+   return rel_mock->rel_remove_listener(clb);
 }
 
 #endif

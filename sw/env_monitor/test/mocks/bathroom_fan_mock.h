@@ -11,6 +11,8 @@ struct fanMock
    MOCK_METHOD0(fan_start, RET_CODE());
    MOCK_METHOD0(fan_stop, RET_CODE());
    MOCK_METHOD0(fan_get_state, FAN_STATE());
+   MOCK_METHOD1(fan_add_listener, RET_CODE(FAN_LISTENER));
+   MOCK_METHOD1(fan_remove_listener, RET_CODE(FAN_LISTENER));
    MOCK_METHOD1(fan_set_max_working_time, RET_CODE(uint16_t));
    MOCK_METHOD1(fan_set_min_working_time, RET_CODE(uint16_t));
    MOCK_METHOD1(fan_set_humidity_threshold, RET_CODE(uint8_t));
@@ -69,6 +71,14 @@ RET_CODE fan_set_threshold_hysteresis(uint8_t hum_trigger)
 RET_CODE fan_get_config(FAN_CONFIG* buffer)
 {
    return fan_mock->fan_get_config(buffer);
+}
+RET_CODE fan_add_listener(FAN_LISTENER listener)
+{
+   return fan_mock->fan_add_listener(listener);
+}
+RET_CODE fan_remove_listener(FAN_LISTENER listener)
+{
+   return fan_mock->fan_remove_listener(listener);
 }
 
 #endif

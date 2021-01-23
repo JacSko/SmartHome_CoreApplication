@@ -14,6 +14,8 @@ struct slmMock
    MOCK_METHOD0(slm_stop_program, RET_CODE());
    MOCK_METHOD0(slm_get_state, SLM_STATE());
    MOCK_METHOD0(slm_get_current_program_id, SLM_PROGRAM_ID());
+   MOCK_METHOD1(slm_add_listener, RET_CODE(SLM_LISTENER));
+   MOCK_METHOD1(slm_remove_listener, RET_CODE(SLM_LISTENER));
    MOCK_METHOD1(slm_set_current_program_id, RET_CODE(SLM_PROGRAM_ID));
    MOCK_METHOD2(slm_get_program_by_id, RET_CODE(SLM_PROGRAM_ID, SLM_PROGRAM*));
    MOCK_METHOD2(slm_replace_program, RET_CODE(SLM_PROGRAM_ID, const SLM_PROGRAM*));
@@ -74,7 +76,14 @@ RET_CODE slm_replace_program(SLM_PROGRAM_ID id, const SLM_PROGRAM* program)
 {
    return slm_mock->slm_replace_program(id, program);
 }
-
+RET_CODE slm_add_listener(SLM_LISTENER listener)
+{
+   return slm_mock->slm_add_listener(listener);
+}
+RET_CODE slm_remove_listener(SLM_LISTENER listener)
+{
+   return slm_mock->slm_remove_listener(listener);
+}
 
 
 #endif
