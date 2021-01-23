@@ -11,6 +11,7 @@
 /* =============================
  *          Defines
  * =============================*/
+#define RELAYS_CALLBACK_MAX_SIZE 5
 #define RELAYS_VERIFICATION_STATE 1
 #define RELAYS_VERIFICATION_DEF_TIME_MS 5000
 #define RELAYS_VERIFICATION_MIN_TIME_MS 100
@@ -24,6 +25,7 @@ uint16_t rel_relay_to_mask(uint8_t relay_no);
 RET_CODE rel_verify_period(uint16_t period);
 void rel_read_state();
 void rel_update_relays_state(uint16_t relays, RELAY_STATUS* status);
+void rel_notify_change(const RELAY_STATUS* status);
 /* =============================
  *       Internal types
  * =============================*/
@@ -39,7 +41,7 @@ typedef struct RELAY_MODULE
  *      Module variables
  * =============================*/
 RELAY_MODULE rel_module;
-
+void (*REL_CALLBACKS[RELAYS_CALLBACK_MAX_SIZE])(const RELAY_STATUS*);
 
 RET_CODE rel_initialize(const RELAYS_CONFIG* config)
 {
@@ -53,11 +55,14 @@ RET_CODE rel_initialize(const RELAYS_CONFIG* config)
       rel_module.cfg = *config;
       result = sch_subscribe_and_set(&rel_read_state, TASKPRIO_LOW, rel_module.verification_time,
                rel_module.verification_enabled? TASKSTATE_RUNNING : TASKSTATE_STOPPED, TASKTYPE_PERIODIC);
-
+      for (uint8_t i = 0; i < RELAYS_CALLBACK_MAX_SIZE; i++)
+      {
+         REL_CALLBACKS[i] = NULL;
+      }
       for (uint8_t i = 0; i < RELAYS_BOARD_COUNT; i++)
       {
          rel_module.current_status[i].id = rel_module.cfg.items[i].id;
-         rel_module.current_status[i].state = RELAY_STATE_ON;
+         rel_module.current_status[i].state = RELAY_STATE_OFF;
       }
 
       rel_read_state();
@@ -232,7 +237,54 @@ void rel_update_relays_state(uint16_t relays, RELAY_STATUS* status)
 {
    for (uint8_t i = 0; i < RELAYS_BOARD_COUNT; i++)
    {
-      status[i].id = rel_module.cfg.items[i].id;
-      status[i].state = (relays & rel_id_to_mask(rel_module.cfg.items[i].id)) > 0? RELAY_STATE_ON : RELAY_STATE_OFF;
+      RELAY_STATUS rel = {};
+      rel.id = rel_module.cfg.items[i].id;
+      rel.state = (relays & rel_id_to_mask(rel_module.cfg.items[i].id)) > 0? RELAY_STATE_ON : RELAY_STATE_OFF;
+
+      if (status[i].id != rel.id || status[i].state != rel.state)
+      {
+         status[i] = rel;
+         rel_notify_change(&rel);
+      }
    }
+}
+
+void rel_notify_change(const RELAY_STATUS* status)
+{
+   for (uint8_t i = 0; i < RELAYS_CALLBACK_MAX_SIZE; i++)
+   {
+      if (REL_CALLBACKS[i])
+      {
+         REL_CALLBACKS[i](status);
+      }
+   }
+}
+
+RET_CODE rel_add_listener(REL_CALLBACK clb)
+{
+   RET_CODE result = RETURN_NOK;
+   for (uint8_t i = 0; i < RELAYS_CALLBACK_MAX_SIZE; i++)
+   {
+      if (REL_CALLBACKS[i] == NULL)
+      {
+         REL_CALLBACKS[i] = clb;
+         result = RETURN_OK;
+         break;
+      }
+   }
+   return result;
+}
+RET_CODE rel_remove_listener(REL_CALLBACK clb)
+{
+   RET_CODE result = RETURN_NOK;
+   for (uint8_t i = 0; i < RELAYS_CALLBACK_MAX_SIZE; i++)
+   {
+      if (REL_CALLBACKS[i] == clb)
+      {
+         REL_CALLBACKS[i] = NULL;
+         result = RETURN_OK;
+         break;
+      }
+   }
+   return result;
 }

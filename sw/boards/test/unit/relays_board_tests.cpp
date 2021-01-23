@@ -28,6 +28,23 @@ extern "C" {
 
 using namespace ::testing;
 
+struct callbackMock
+{
+   MOCK_METHOD1(callback, void(const RELAY_STATUS*));
+};
+
+callbackMock* callMock;
+
+void fake_callback(const RELAY_STATUS* state)
+{
+   callMock->callback(state);
+}
+
+MATCHER_P(RELAYS_STATUS_MATCH, expected, "")
+{
+   return expected.id == arg->id && expected.state == arg->state;
+}
+
 struct relaysBoardFixture : public ::testing::Test
 {
 	virtual void SetUp()
@@ -47,6 +64,7 @@ struct relaysBoardFixture : public ::testing::Test
 	   mock_i2c_init();
 	   mock_logger_init();
 		mock_sch_init();
+		callMock = new callbackMock();
 
       EXPECT_CALL(*sch_mock, sch_subscribe_and_set(_, _, _, _, _)).WillOnce(Return(RETURN_OK));
       EXPECT_CALL(*i2c_mock, i2c_read(_,_,_)).WillOnce(Invoke([&](I2C_ADDRESS addr , uint8_t* buf, uint8_t size) -> I2C_STATUS
@@ -69,6 +87,7 @@ struct relaysBoardFixture : public ::testing::Test
 	   mock_i2c_deinit();
 	   mock_logger_deinit();
 		mock_sch_deinit();
+		delete callMock;
 	}
    RELAYS_CONFIG cfg;
 };
@@ -110,6 +129,14 @@ TEST(relaysBoardTests, initialization)
     * ************************************************
     */
    EXPECT_CALL(*sch_mock, sch_subscribe_and_set(_, _, _, _, _)).WillOnce(Return(RETURN_NOK));
+   EXPECT_CALL(*i2c_mock, i2c_read(_,_,_)).WillOnce(Invoke([&](I2C_ADDRESS addr , uint8_t* buf, uint8_t size) -> I2C_STATUS
+         {
+            EXPECT_EQ(size, 2);
+            EXPECT_EQ(cfg.address + 1, addr);
+            buf[0] = 0xFF;
+            buf[1] = 0xFF;
+            return I2C_STATUS_OK;
+         }));
    EXPECT_EQ(RETURN_NOK, rel_initialize(&cfg));
 
    /**
@@ -159,6 +186,7 @@ TEST(relaysBoardTests, initialization)
  */
 TEST_F(relaysBoardFixture, relay_set_unset_tests)
 {
+   EXPECT_EQ(RETURN_OK, rel_add_listener(&fake_callback));
    /**
     * <b>scenario</b>: Set relay - incorrect ID the relay <br>
     * <b>expected</b>: I2C message not send <br>
@@ -195,6 +223,7 @@ TEST_F(relaysBoardFixture, relay_set_unset_tests)
             EXPECT_EQ(size, 2U);
             return I2C_STATUS_OK;
          }));
+   EXPECT_CALL(*callMock, callback(RELAYS_STATUS_MATCH(RELAY_STATUS{RELAY_BATHROOM_AC, RELAY_STATE_ON})));
    EXPECT_EQ(RETURN_OK, rel_set(RELAY_BATHROOM_AC, RELAY_STATE_ON));
    EXPECT_EQ(RELAY_STATE_ON, rel_get(RELAY_BATHROOM_AC));
    EXPECT_EQ(RELAY_STATE_OFF, rel_get(RELAY_BATHROOM_LED));
@@ -211,9 +240,11 @@ TEST_F(relaysBoardFixture, relay_set_unset_tests)
             EXPECT_EQ(size, 2U);
             return I2C_STATUS_OK;
          }));
+   EXPECT_CALL(*callMock, callback(RELAYS_STATUS_MATCH(RELAY_STATUS{RELAY_BATHROOM_LED, RELAY_STATE_ON})));
    EXPECT_EQ(RETURN_OK, rel_set(RELAY_BATHROOM_LED, RELAY_STATE_ON));
    EXPECT_EQ(RELAY_STATE_ON, rel_get(RELAY_BATHROOM_AC));
    EXPECT_EQ(RELAY_STATE_ON, rel_get(RELAY_BATHROOM_LED));
+
    /**
     * <b>scenario</b>: Set relay - setting RELAY_BATHROOM_AC to OFF <br>
     * <b>expected</b>: Relay 13 set to OFF, previous relay unchanged <br>
@@ -227,6 +258,7 @@ TEST_F(relaysBoardFixture, relay_set_unset_tests)
             EXPECT_EQ(size, 2U);
             return I2C_STATUS_OK;
          }));
+   EXPECT_CALL(*callMock, callback(RELAYS_STATUS_MATCH(RELAY_STATUS{RELAY_BATHROOM_AC, RELAY_STATE_OFF})));
    EXPECT_EQ(RETURN_OK, rel_set(RELAY_BATHROOM_AC, RELAY_STATE_OFF));
    EXPECT_EQ(RELAY_STATE_OFF, rel_get(RELAY_BATHROOM_AC));
    EXPECT_EQ(RELAY_STATE_ON, rel_get(RELAY_BATHROOM_LED));
@@ -243,9 +275,12 @@ TEST_F(relaysBoardFixture, relay_set_unset_tests)
             EXPECT_EQ(size, 2U);
             return I2C_STATUS_OK;
          }));
+   EXPECT_CALL(*callMock, callback(RELAYS_STATUS_MATCH(RELAY_STATUS{RELAY_BATHROOM_LED, RELAY_STATE_OFF})));
    EXPECT_EQ(RETURN_OK, rel_set(RELAY_BATHROOM_LED, RELAY_STATE_OFF));
    EXPECT_EQ(RELAY_STATE_OFF, rel_get(RELAY_BATHROOM_AC));
    EXPECT_EQ(RELAY_STATE_OFF, rel_get(RELAY_BATHROOM_LED));
+
+   EXPECT_EQ(RETURN_OK, rel_remove_listener(&fake_callback));
 }
 
 /**

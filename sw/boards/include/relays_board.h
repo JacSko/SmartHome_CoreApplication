@@ -55,6 +55,10 @@ typedef struct RELAYS_CONFIG
    I2C_ADDRESS address; /**< Board address */
    RELAY_ITEM items [RELAYS_BOARD_COUNT];   /**< Board configuration */
 } RELAYS_CONFIG;
+
+typedef void(REL_CALLBACK)(const RELAY_STATUS*);
+
+
 /**
  * @brief Initialize relays module.
  * @param[in] address - I2C bus address.
@@ -66,6 +70,18 @@ RET_CODE rel_initialize(const RELAYS_CONFIG* config);
  * @return None.
  */
 void rel_deinitialize();
+/**
+ * @brief Add listener called on relays state change.
+ * @param[in] clb - pointer to function to be called.
+ * @return See RETURN_CODES.
+ */
+RET_CODE rel_add_listener(REL_CALLBACK clb);
+/**
+ * @brief Remove listener.
+ * @param[in] clb - pointer to function to remove.
+ * @return See RETURN_CODES.
+ */
+RET_CODE rel_remove_listener(REL_CALLBACK clb);
 /**
  * @brief Set relay state.
  * @param[in] id - id of the relay.
