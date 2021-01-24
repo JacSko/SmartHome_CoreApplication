@@ -204,6 +204,7 @@ TEST_F(wifiMgrFixture, manager_client_handling)
 	setup_test_subject();
 	uint8_t clientid = 0;
 	const char string [] = "TEST_STRING";
+	const uint8_t test_bytes [] = {0,1,2,3,4,5,6,7,8,9};
 
 	/**
 	 * <b>scenario</b>: First client connected to server.<br>
@@ -303,6 +304,15 @@ TEST_F(wifiMgrFixture, manager_client_handling)
 	EXPECT_CALL(*wifi_driver_mock, wifi_send_data(1,_,strlen(string))).WillOnce(Return(RETURN_OK));
 	EXPECT_EQ(RETURN_OK, wifimgr_broadcast_data(string));
 
+   /**
+    * <b>scenario</b>: Broadcast bytes to all clients.<br>
+    * <b>expected</b>: Data send successfully.<br>
+    * ************************************************
+    */
+   EXPECT_CALL(*wifi_driver_mock, wifi_send_bytes(0,_,10)).WillOnce(Return(RETURN_OK));
+   EXPECT_CALL(*wifi_driver_mock, wifi_send_bytes(1,_,10)).WillOnce(Return(RETURN_OK));
+   EXPECT_EQ(RETURN_OK, wifimgr_broadcast_bytes(test_bytes, 10));
+
 	/**
 	 * <b>scenario</b>: Data from client 1 received, no callback registered.<br>
 	 * <b>expected</b>: Callback not called.<br>
@@ -376,12 +386,19 @@ TEST_F(wifiMgrFixture, manager_client_handling)
 
 	/**
 	 * <b>scenario</b>: Broadcast data to all clients - currently no clients connected.<br>
-	 * <b>expected</b>: Data send successfully.<br>
+	 * <b>expected</b>: Data not send.<br>
     * ************************************************
 	 */
-	EXPECT_CALL(*wifi_driver_mock, wifi_send_data(0,_,_)).Times(0);
-	EXPECT_CALL(*wifi_driver_mock, wifi_send_data(1,_,_)).Times(0);
+	EXPECT_CALL(*wifi_driver_mock, wifi_send_data(_,_,_)).Times(0);
 	EXPECT_EQ(RETURN_NOK, wifimgr_broadcast_data(string));
+
+	/**
+    * <b>scenario</b>: Broadcast bytes to all clients - currently no clients connected.<br>
+    * <b>expected</b>: Data not send.<br>
+    * ************************************************
+    */
+   EXPECT_CALL(*wifi_driver_mock, wifi_send_bytes(_,_,_)).Times(0);
+   EXPECT_EQ(RETURN_NOK, wifimgr_broadcast_bytes(test_bytes, 10));
 
 	teardown_test_subject();
 

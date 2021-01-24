@@ -104,10 +104,18 @@ RET_CODE wifimgr_send_bytes(ServerClientID id, const uint8_t* data, uint16_t siz
  * @brief Send data to all connected clients.
  * @details
  * Data cannot be NULL.<br>
- * @param[in] port - server port.
+ * @param[in] data - pointer to char data.
  * @return See RETURN_CODES.
  */
 RET_CODE wifimgr_broadcast_data(const char* data);
+/**
+ * @brief Send bytes to all connected clients.
+ * @details
+ * Data cannot be NULL.<br>
+ * @param[in] port - server port.
+ * @return See RETURN_CODES.
+ */
+RET_CODE wifimgr_broadcast_bytes(const uint8_t* bytes, uint16_t size);
 /**
  * @brief Read time from NTP server.
  * @details

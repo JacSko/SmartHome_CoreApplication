@@ -13,6 +13,7 @@ struct wifiMgrMock
 	MOCK_METHOD1(wifimgr_set_server_port, RET_CODE(uint16_t));
 	MOCK_METHOD2(wifimgr_send_data, RET_CODE(ServerClientID, const char*));
 	MOCK_METHOD1(wifimgr_broadcast_data, RET_CODE(const char*));
+	MOCK_METHOD1(wifimgr_broadcast_bytes, RET_CODE(const uint8_t*, uint16_t));
 	MOCK_METHOD1(wifimgr_get_time, RET_CODE(TimeItem*));
 	MOCK_METHOD0(wifimgr_count_clients, uint8_t());
 	MOCK_METHOD1(wifimgr_get_ip_address, RET_CODE(IPAddress*));

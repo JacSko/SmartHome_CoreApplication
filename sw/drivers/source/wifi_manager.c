@@ -308,6 +308,20 @@ RET_CODE wifimgr_broadcast_data(const char* data)
 	return result;
 }
 
+RET_CODE wifimgr_broadcast_bytes(const uint8_t* bytes, uint16_t size)
+{
+   RET_CODE result = RETURN_NOK;
+   for (uint8_t i = 0; i < WIFIMGR_MAX_CLIENTS; i++)
+   {
+      if (wifi_mgr.clients[i].connected == 1)
+      {
+         wifi_send_bytes(wifi_mgr.clients[i].id.id, bytes, size);
+         result = RETURN_OK;
+      }
+   }
+   return result;
+}
+
 RET_CODE wifimgr_get_time(TimeItem* item)
 {
 	RET_CODE result = RETURN_NOK;
