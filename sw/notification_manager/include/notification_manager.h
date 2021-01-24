@@ -46,9 +46,9 @@ RET_CODE ntfmgr_init();
  * @brief Parse request received.
  * @param[in] id - id of the sending client
  * @param[in] data - request
- * @return See RETURN_CODES.
+ * @return None.
  */
-RET_CODE ntfmgr_parse_request(ServerClientID id, const char* data);
+void ntfmgr_parse_request(ServerClientID id, const char* data);
 /**
  * @brief Add function which sends the notifications/responses to client. Only one function can be registered!
  * @param[in] id - id of the client

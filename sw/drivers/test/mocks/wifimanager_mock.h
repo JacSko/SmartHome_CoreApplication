@@ -12,8 +12,9 @@ struct wifiMgrMock
 	MOCK_METHOD1(wifimgr_set_ip_address, RET_CODE(const char*));
 	MOCK_METHOD1(wifimgr_set_server_port, RET_CODE(uint16_t));
 	MOCK_METHOD2(wifimgr_send_data, RET_CODE(ServerClientID, const char*));
+   MOCK_METHOD3(wifimgr_send_bytes, RET_CODE(ServerClientID, const uint8_t*, uint16_t size));
 	MOCK_METHOD1(wifimgr_broadcast_data, RET_CODE(const char*));
-	MOCK_METHOD1(wifimgr_broadcast_bytes, RET_CODE(const uint8_t*, uint16_t));
+	MOCK_METHOD2(wifimgr_broadcast_bytes, RET_CODE(const uint8_t*, uint16_t));
 	MOCK_METHOD1(wifimgr_get_time, RET_CODE(TimeItem*));
 	MOCK_METHOD0(wifimgr_count_clients, uint8_t());
 	MOCK_METHOD1(wifimgr_get_ip_address, RET_CODE(IPAddress*));
@@ -65,9 +66,17 @@ RET_CODE wifimgr_send_data(ServerClientID id, const char* data)
 {
 	return wifimgr_mock->wifimgr_send_data(id, data);
 }
+RET_CODE wifimgr_send_bytes(ServerClientID id, const uint8_t* data, uint16_t size)
+{
+   return wifimgr_mock->wifimgr_send_bytes(id, data, size);
+}
 RET_CODE wifimgr_broadcast_data(const char* data)
 {
 	return wifimgr_mock->wifimgr_broadcast_data(data);
+}
+RET_CODE wifimgr_broadcast_bytes(const uint8_t* data, uint16_t size)
+{
+   return wifimgr_mock->wifimgr_broadcast_bytes(data, size);
 }
 RET_CODE wifimgr_get_time(TimeItem* item)
 {

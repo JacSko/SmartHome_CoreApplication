@@ -13,6 +13,8 @@ target_link_libraries(notification_manager PUBLIC
 		env_monitor
 		inputs_board
 		logger
+		stairs_led_module
+		time_counter
 )
 
 else ()
