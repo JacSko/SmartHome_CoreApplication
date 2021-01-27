@@ -382,4 +382,34 @@ TEST_F(envFixture, env_error_rates_calc_tests)
    EXPECT_EQ(result.nr_err_rate, 2);
 }
 
+/**
+ * @test Getting data from defined sensor
+ */
+TEST_F(envFixture, env_getting_sensor_datat)
+{
+
+   DHT_SENSOR sensor = {};
+
+   /**
+    * <b>scenario</b>: No buffer provided.<br>
+    * <b>expected</b>: RETURN_ERROR returned.<br>
+    * ************************************************
+    */
+   EXPECT_EQ(RETURN_ERROR, env_get_sensor_data(ENV_OUTSIDE, NULL));
+
+   /**
+    * <b>scenario</b>: Requested sensor not found.<br>
+    * <b>expected</b>: RETURN_NOK returned.<br>
+    * ************************************************
+    */
+   EXPECT_EQ(RETURN_ERROR, env_get_sensor_data(ENV_UNKNOWN_ITEM, &sensor));
+
+   /**
+    * <b>scenario</b>: Data gt correctly.<br>
+    * <b>expected</b>: RETURN_OK returned.<br>
+    * ************************************************
+    */
+   EXPECT_EQ(RETURN_OK, env_get_sensor_data(ENV_OUTSIDE, &sensor));
+}
+
 

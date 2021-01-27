@@ -74,9 +74,16 @@ void env_deinitialize();
  * @brief Read data from defined sensor.
  * @param[in] id - the id of the sensor to be read
  * @param[out] buffer - place, where data will be written
- * @return Temperature and humidity data.
+ * @return See RETURN_CODES.
  */
 RET_CODE env_read_sensor(ENV_ITEM_ID id, DHT_SENSOR* buffer);
+/**
+ * @brief RGet data from defined sensor.
+ * @param[in] id - the id of the sensor
+ * @param[out] buffer - place, where data will be written
+ * @return See RETURN_CODES.
+ */
+RET_CODE env_get_sensor_data(ENV_ITEM_ID id, DHT_SENSOR* buffer);
 /**
  * @brief Get current error stats for sensor.
  * @param[in] id - the id of the sensor.

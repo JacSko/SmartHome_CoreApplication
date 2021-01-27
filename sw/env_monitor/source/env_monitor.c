@@ -221,6 +221,25 @@ RET_CODE env_read_sensor(ENV_ITEM_ID id, DHT_SENSOR* buffer)
    }
    return result;
 }
+RET_CODE env_get_sensor_data(ENV_ITEM_ID id, DHT_SENSOR* buffer)
+{
+   RET_CODE result = RETURN_ERROR;
+   if (buffer)
+   {
+      for (uint8_t i = 0; i < ENV_SENSORS_COUNT; i++)
+      {
+         if (env_module.sensors[i].env_id == id)
+         {
+            buffer->id = env_module.sensors[i].dht_id;
+            buffer->type = env_module.sensors[i].type;
+            buffer->data = env_module.sensors[i].data;
+            result = RETURN_OK;
+            break;
+         }
+      }
+   }
+   return result;
+}
 ENV_ERROR_RATE env_get_error_stats(ENV_ITEM_ID id)
 {
    ENV_ERROR_RATE result;
