@@ -45,14 +45,17 @@
 
 /* global settings */
 #define SH_USE_WIFI
+#define SH_USE_NTF
+
 #define SH_USE_BT
 #define SH_USE_LOGGER
+
 //#define SH_LOGS_OVER_WIFI
 //#define SH_USE_RELAYS
 //#define SH_USE_INPUTS
-//#define SH_USE_ENV
-//#define SH_USE_FAN
-//#define SH_USE_SLM
+#define SH_USE_ENV
+#define SH_USE_FAN
+#define SH_USE_SLM
 #define SH_USE_CMD_PARSER
 
 void dummy_task()
@@ -130,7 +133,7 @@ int main(void)
 #endif
 #endif
    logger_send(LOG_ERROR, __func__, "Booting started!");
-#ifdef SM_USE_WIFI
+#ifdef SH_USE_WIFI
    WIFI_UART_Config wifi_cfg = {UART_COMMON_BAUD_RATE, UART_COMMON_BUFFER_SIZE, UART_COMMON_STRING_SIZE};
    if (wifimgr_initialize(&wifi_cfg) != RETURN_OK)
    {
@@ -149,6 +152,11 @@ int main(void)
 
 #ifdef SH_USE_INPUTS
 	INPUTS_CONFIG inp_cfg;
+	for (uint8_t i = 0; i < INPUTS_MAX_INPUT_LINES; i++)
+	{
+	   inp_cfg.items[i].item = INPUT_ENUM_COUNT;
+	   inp_cfg.items[i].input_no = 0;
+	}
 	inp_cfg.address = INPUTS_I2C_ADDRESS;
 	inp_cfg.items[0].item = INPUT_WARDROBE_LED; inp_cfg.items[0].input_no = 1;
 	inp_cfg.items[1].item = INPUT_BATHROOM_LED; inp_cfg.items[1].input_no = 2;
@@ -168,6 +176,11 @@ int main(void)
 
 #ifdef SH_USE_RELAYS
    RELAYS_CONFIG rel_cfg;
+   for (uint8_t i = 0; i < RELAYS_BOARD_COUNT; i++)
+   {
+      rel_cfg.items[i].id = RELAY_ID_ENUM_MAX;
+      rel_cfg.items[i].relay_no = 0;
+   }
    rel_cfg.address = RELAYS_I2C_ADDRESS;
    rel_cfg.items[0].id = RELAY_WARDROBE_LED; rel_cfg.items[0].relay_no = 1;
    rel_cfg.items[1].id = RELAY_BATHROOM_LED; rel_cfg.items[1].relay_no = 2;
@@ -225,6 +238,9 @@ int main(void)
    slm_initialize(&slm_cfg);
 #endif
 
+#ifdef SH_USE_NTF
+   ntfmgr_init();
+#endif
    logger_send(LOG_ERROR, __func__, "Booting completed!");
 
 	while (1)

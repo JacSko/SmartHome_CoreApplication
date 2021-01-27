@@ -298,3 +298,413 @@ TEST_F(ntfmgrFixture, system_module_commands)
       ntfmgr_parse_request(1, (char*) command);
    }
 }
+
+/**
+ * @test This test case covers commands related to Relays module
+ */
+TEST_F(ntfmgrFixture, relays_module_commands)
+{
+   /**
+    * <b>scenario</b>: Set RELAYS_STATE command received.<br>
+    * <b>expected</b>: Correct NTF message sent.<br>
+    * ************************************************
+    */
+   {
+      uint8_t command [] = {NTF_GROUP_RELAYS, NTF_RELAYS_STATE, NTF_SET, NTF_REPLY_UNKNOWN, 2, RELAY_BATHROOM_LED, RELAY_STATE_ON};
+      uint8_t expected_result [] = {NTF_GROUP_RELAYS, NTF_RELAYS_STATE, NTF_SET, NTF_REPLY_OK, 0, '\n'};
+      EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
+            {
+               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
+               for (uint8_t i = 0; i < size; i++)
+               {
+                  EXPECT_EQ(data[i], expected_result[i]);
+               }
+               return RETURN_OK;
+            }));
+      EXPECT_CALL(*rel_mock, rel_set(RELAY_BATHROOM_LED, RELAY_STATE_ON)).WillOnce(Return(RETURN_OK));
+      ntfmgr_parse_request(1, (char*) command);
+   }
+
+   /**
+    * <b>scenario</b>: Set RELAYS_STATE_ALL command received.<br>
+    * <b>expected</b>: Correct NTF message sent.<br>
+    * ************************************************
+    */
+   {
+      uint8_t command [] = {NTF_GROUP_RELAYS, NTF_RELAYS_STATE_ALL, NTF_SET, NTF_REPLY_UNKNOWN, 10, RELAY_BATHROOM_AC, RELAY_STATE_ON,
+                                                                                               RELAY_STAIRCASE_AC, RELAY_STATE_ON,
+                                                                                               RELAY_BEDROOM_AC, RELAY_STATE_ON,
+                                                                                               RELAY_KITCHEN_AC, RELAY_STATE_ON,
+                                                                                               RELAY_WARDROBE_AC, RELAY_STATE_ON};
+      uint8_t expected_result [] = {NTF_GROUP_RELAYS, NTF_RELAYS_STATE_ALL, NTF_SET, NTF_REPLY_OK, 0, '\n'};
+      EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
+            {
+               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
+               for (uint8_t i = 0; i < size; i++)
+               {
+                  EXPECT_EQ(data[i], expected_result[i]);
+               }
+               return RETURN_OK;
+            }));
+      EXPECT_CALL(*rel_mock, rel_set(RELAY_BATHROOM_AC, RELAY_STATE_ON)).WillOnce(Return(RETURN_OK));
+      EXPECT_CALL(*rel_mock, rel_set(RELAY_STAIRCASE_AC, RELAY_STATE_ON)).WillOnce(Return(RETURN_OK));
+      EXPECT_CALL(*rel_mock, rel_set(RELAY_BEDROOM_AC, RELAY_STATE_ON)).WillOnce(Return(RETURN_OK));
+      EXPECT_CALL(*rel_mock, rel_set(RELAY_KITCHEN_AC, RELAY_STATE_ON)).WillOnce(Return(RETURN_OK));
+      EXPECT_CALL(*rel_mock, rel_set(RELAY_WARDROBE_AC, RELAY_STATE_ON)).WillOnce(Return(RETURN_OK));
+      ntfmgr_parse_request(1, (char*) command);
+   }
+
+   /**
+    * <b>scenario</b>: Get RELAYS_STATE command received.<br>
+    * <b>expected</b>: Correct NTF message sent.<br>
+    * ************************************************
+    */
+   {
+      uint8_t command [] =         {NTF_GROUP_RELAYS, NTF_RELAYS_STATE, NTF_GET, NTF_REPLY_UNKNOWN, 1, RELAY_SOCKETS};
+      uint8_t expected_result [] = {NTF_GROUP_RELAYS, NTF_RELAYS_STATE, NTF_GET, NTF_REPLY_OK, 1, RELAY_STATE_ON, '\n'};
+      EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
+            {
+               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
+               for (uint8_t i = 0; i < size; i++)
+               {
+                  EXPECT_EQ(data[i], expected_result[i]);
+               }
+               return RETURN_OK;
+            }));
+      EXPECT_CALL(*rel_mock, rel_get(RELAY_SOCKETS)).WillOnce(Return(RELAY_STATE_ON));
+      ntfmgr_parse_request(1, (char*) command);
+   }
+
+   /**
+    * <b>scenario</b>: Get RELAYS_STATE_ALL command received.<br>
+    * <b>expected</b>: Correct NTF message sent.<br>
+    * ************************************************
+    */
+   {
+      uint8_t command [] =         {NTF_GROUP_RELAYS, NTF_RELAYS_STATE_ALL, NTF_GET, NTF_REPLY_UNKNOWN, 0};
+      uint8_t expected_result [] = {NTF_GROUP_RELAYS, NTF_RELAYS_STATE_ALL, NTF_GET, NTF_REPLY_OK, 10, RELAY_BATHROOM_AC, RELAY_STATE_ON,
+                                                                                                       RELAY_STAIRCASE_AC, RELAY_STATE_ON,
+                                                                                                       RELAY_BEDROOM_AC, RELAY_STATE_ON,
+                                                                                                       RELAY_KITCHEN_AC, RELAY_STATE_ON,
+                                                                                                       RELAY_WARDROBE_AC, RELAY_STATE_ON, '\n'};
+      EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
+            {
+               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
+               for (uint8_t i = 0; i < size; i++)
+               {
+                  EXPECT_EQ(data[i], expected_result[i]);
+               }
+               return RETURN_OK;
+            }));
+      EXPECT_CALL(*rel_mock, rel_get_all(_)).WillOnce(Invoke([&](RELAY_STATUS* status)
+            {
+                  status[0].id = RELAY_BATHROOM_AC; status[0].state = RELAY_STATE_ON;
+                  status[1].id = RELAY_STAIRCASE_AC; status[1].state = RELAY_STATE_ON;
+                  status[2].id = RELAY_ID_ENUM_MAX; status[2].state = RELAY_STATE_ON;
+                  status[3].id = RELAY_BEDROOM_AC; status[3].state = RELAY_STATE_ON;
+                  status[4].id = RELAY_KITCHEN_AC; status[4].state = RELAY_STATE_ON;
+                  status[5].id = RELAY_WARDROBE_AC; status[5].state = RELAY_STATE_ON;
+                  status[6].id = RELAY_ID_ENUM_MAX; status[6].state = RELAY_STATE_ON;
+                  status[7].id = RELAY_ID_ENUM_MAX; status[7].state = RELAY_STATE_ON;
+                  status[8].id = RELAY_ID_ENUM_MAX; status[8].state = RELAY_STATE_ON;
+                  status[9].id = RELAY_ID_ENUM_MAX; status[9].state = RELAY_STATE_ON;
+                  status[10].id = RELAY_ID_ENUM_MAX; status[10].state = RELAY_STATE_ON;
+                  status[11].id = RELAY_ID_ENUM_MAX; status[11].state = RELAY_STATE_ON;
+                  status[12].id = RELAY_ID_ENUM_MAX; status[12].state = RELAY_STATE_ON;
+                  status[13].id = RELAY_ID_ENUM_MAX; status[13].state = RELAY_STATE_ON;
+                  status[14].id = RELAY_ID_ENUM_MAX; status[14].state = RELAY_STATE_ON;
+                  status[15].id = RELAY_ID_ENUM_MAX; status[15].state = RELAY_STATE_ON;
+                  return RETURN_OK;
+            }));
+      ntfmgr_parse_request(1, (char*) command);
+   }
+}
+
+/**
+ * @test This test case covers commands related to Inputs module
+ */
+TEST_F(ntfmgrFixture, inputs_module_commands)
+{
+   /**
+    * <b>scenario</b>: Get INPUTS_STATE command received.<br>
+    * <b>expected</b>: Correct NTF message sent.<br>
+    * ************************************************
+    */
+   {
+      uint8_t command [] =         {NTF_GROUP_INPUTS, NTF_INPUTS_STATE, NTF_GET, NTF_REPLY_UNKNOWN, 1, INPUT_BEDROOM_AC};
+      uint8_t expected_result [] = {NTF_GROUP_INPUTS, NTF_INPUTS_STATE, NTF_GET, NTF_REPLY_OK, 1, INPUT_STATE_ACTIVE, '\n'};
+      EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
+            {
+               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
+               for (uint8_t i = 0; i < size; i++)
+               {
+                  EXPECT_EQ(data[i], expected_result[i]);
+               }
+               return RETURN_OK;
+            }));
+      EXPECT_CALL(*inp_mock, inp_get(INPUT_BEDROOM_AC)).WillOnce(Return(INPUT_STATE_ACTIVE));
+      ntfmgr_parse_request(1, (char*) command);
+
+   }
+
+   /**
+    * <b>scenario</b>: Get INPUTS_STATE_ALL command received.<br>
+    * <b>expected</b>: Correct NTF message sent.<br>
+    * ************************************************
+    */
+   {
+      uint8_t command [] =         {NTF_GROUP_INPUTS, NTF_INPUTS_STATE_ALL, NTF_GET, NTF_REPLY_UNKNOWN, 0};
+      uint8_t expected_result [] = {NTF_GROUP_INPUTS, NTF_INPUTS_STATE_ALL, NTF_GET, NTF_REPLY_OK, 10, INPUT_BATHROOM_AC, INPUT_STATE_ACTIVE,
+                                                                                                       INPUT_STAIRS_AC, INPUT_STATE_ACTIVE,
+                                                                                                       INPUT_BEDROOM_AC, INPUT_STATE_ACTIVE,
+                                                                                                       INPUT_KITCHEN_AC, INPUT_STATE_ACTIVE,
+                                                                                                       INPUT_WARDROBE_AC, INPUT_STATE_ACTIVE, '\n'};
+      EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
+            {
+               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
+               for (uint8_t i = 0; i < size; i++)
+               {
+                  EXPECT_EQ(data[i], expected_result[i]);
+               }
+               return RETURN_OK;
+            }));
+      EXPECT_CALL(*inp_mock, inp_get_all(_)).WillOnce(Invoke([&](INPUT_STATUS* status)
+            {
+                  status[0].id = INPUT_BATHROOM_AC; status[0].state = INPUT_STATE_ACTIVE;
+                  status[1].id = INPUT_STAIRS_AC; status[1].state = INPUT_STATE_ACTIVE;
+                  status[2].id = INPUT_ENUM_COUNT; status[2].state = INPUT_STATE_ACTIVE;
+                  status[3].id = INPUT_BEDROOM_AC; status[3].state = INPUT_STATE_ACTIVE;
+                  status[4].id = INPUT_KITCHEN_AC; status[4].state = INPUT_STATE_ACTIVE;
+                  status[5].id = INPUT_WARDROBE_AC; status[5].state = INPUT_STATE_ACTIVE;
+                  status[6].id = INPUT_ENUM_COUNT; status[6].state = INPUT_STATE_ACTIVE;
+                  status[7].id = INPUT_ENUM_COUNT; status[7].state = INPUT_STATE_ACTIVE;
+                  status[8].id = INPUT_ENUM_COUNT; status[8].state = INPUT_STATE_ACTIVE;
+                  status[9].id = INPUT_ENUM_COUNT; status[9].state = INPUT_STATE_ACTIVE;
+                  status[10].id = INPUT_ENUM_COUNT; status[10].state = INPUT_STATE_ACTIVE;
+                  status[11].id = INPUT_ENUM_COUNT; status[11].state = INPUT_STATE_ACTIVE;
+                  status[12].id = INPUT_ENUM_COUNT; status[12].state = INPUT_STATE_ACTIVE;
+                  status[13].id = INPUT_ENUM_COUNT; status[13].state = INPUT_STATE_ACTIVE;
+                  status[14].id = INPUT_ENUM_COUNT; status[14].state = INPUT_STATE_ACTIVE;
+                  status[15].id = INPUT_ENUM_COUNT; status[15].state = INPUT_STATE_ACTIVE;
+                  return RETURN_OK;
+            }));
+      ntfmgr_parse_request(1, (char*) command);
+   }
+
+}
+
+
+/**
+ * @test This test case covers commands related to Fan module
+ */
+TEST_F(ntfmgrFixture, fan_module_commands)
+{
+   /**
+    * <b>scenario</b>: Get FAN_STATE command received.<br>
+    * <b>expected</b>: Correct NTF message sent.<br>
+    * ************************************************
+    */
+   {
+      uint8_t command [] =         {NTF_GROUP_FAN, NTF_FAN_STATE, NTF_GET, NTF_REPLY_UNKNOWN, 0};
+      uint8_t expected_result [] = {NTF_GROUP_FAN, NTF_FAN_STATE, NTF_GET, NTF_REPLY_OK, 1, FAN_STATE_ON, '\n'};
+      EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
+            {
+               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
+               for (uint8_t i = 0; i < size; i++)
+               {
+                  EXPECT_EQ(data[i], expected_result[i]);
+               }
+               return RETURN_OK;
+            }));
+      EXPECT_CALL(*fan_mock, fan_get_state()).WillOnce(Return(FAN_STATE_ON));
+      ntfmgr_parse_request(1, (char*) command);
+
+   }
+
+   /**
+    * <b>scenario</b>: Set FAN_STATE command received.<br>
+    * <b>expected</b>: Correct NTF message sent.<br>
+    * ************************************************
+    */
+   {
+      uint8_t command [] =         {NTF_GROUP_FAN, NTF_FAN_STATE, NTF_SET, NTF_REPLY_UNKNOWN, 1, FAN_STATE_ON};
+      uint8_t expected_result [] = {NTF_GROUP_FAN, NTF_FAN_STATE, NTF_SET, NTF_REPLY_NOK, 0, '\n'};
+      EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
+            {
+               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
+               for (uint8_t i = 0; i < size; i++)
+               {
+                  EXPECT_EQ(data[i], expected_result[i]);
+               }
+               return RETURN_OK;
+            }));
+      EXPECT_CALL(*fan_mock, fan_start()).WillOnce(Return(RETURN_NOK));
+      ntfmgr_parse_request(1, (char*) command);
+   }
+
+   {
+      uint8_t command [] =         {NTF_GROUP_FAN, NTF_FAN_STATE, NTF_SET, NTF_REPLY_UNKNOWN, 1, FAN_STATE_OFF};
+      uint8_t expected_result [] = {NTF_GROUP_FAN, NTF_FAN_STATE, NTF_SET, NTF_REPLY_NOK, 0, '\n'};
+      EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
+            {
+               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
+               for (uint8_t i = 0; i < size; i++)
+               {
+                  EXPECT_EQ(data[i], expected_result[i]);
+               }
+               return RETURN_OK;
+            }));
+      EXPECT_CALL(*fan_mock, fan_stop()).WillOnce(Return(RETURN_NOK));
+      ntfmgr_parse_request(1, (char*) command);
+   }
+
+}
+
+/**
+ * @test This test case covers commands related to SLM module
+ */
+TEST_F(ntfmgrFixture, slm_module_commands)
+{
+   /**
+    * <b>scenario</b>: Get SLM_STATE command received.<br>
+    * <b>expected</b>: Correct NTF message sent.<br>
+    * ************************************************
+    */
+   {
+      uint8_t command [] =         {NTF_GROUP_SLM, NTF_SLM_STATE, NTF_GET, NTF_REPLY_UNKNOWN, 0};
+      uint8_t expected_result [] = {NTF_GROUP_SLM, NTF_SLM_STATE, NTF_GET, NTF_REPLY_OK, 1, SLM_STATE_ONGOING_OFF, '\n'};
+      EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
+            {
+               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
+               for (uint8_t i = 0; i < size; i++)
+               {
+                  EXPECT_EQ(data[i], expected_result[i]);
+               }
+               return RETURN_OK;
+            }));
+      EXPECT_CALL(*slm_mock, slm_get_state()).WillOnce(Return(SLM_STATE_ONGOING_OFF));
+      ntfmgr_parse_request(1, (char*) command);
+
+   }
+
+   /**
+    * <b>scenario</b>: Get SLM_PROGRAM_ID command received.<br>
+    * <b>expected</b>: Correct NTF message sent.<br>
+    * ************************************************
+    */
+   {
+      uint8_t command [] =         {NTF_GROUP_SLM, NTF_SLM_PROGRAM_ID, NTF_GET, NTF_REPLY_UNKNOWN, 0};
+      uint8_t expected_result [] = {NTF_GROUP_SLM, NTF_SLM_PROGRAM_ID, NTF_GET, NTF_REPLY_OK, 1, SLM_PROGRAM3, '\n'};
+      EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
+            {
+               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
+               for (uint8_t i = 0; i < size; i++)
+               {
+                  EXPECT_EQ(data[i], expected_result[i]);
+               }
+               return RETURN_OK;
+            }));
+      EXPECT_CALL(*slm_mock, slm_get_current_program_id()).WillOnce(Return(SLM_PROGRAM3));
+      ntfmgr_parse_request(1, (char*) command);
+
+   }
+
+   /**
+    * <b>scenario</b>: Set SLM_STATE command received.<br>
+    * <b>expected</b>: Correct NTF message sent.<br>
+    * ************************************************
+    */
+   {
+      uint8_t command [] = {NTF_GROUP_SLM, NTF_SLM_STATE, NTF_SET, NTF_REPLY_UNKNOWN, 1, SLM_STATE_ON};
+      uint8_t expected_result [] = {NTF_GROUP_SLM, NTF_SLM_STATE, NTF_SET, NTF_REPLY_OK, 0, '\n'};
+      EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
+            {
+               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
+               for (uint8_t i = 0; i < size; i++)
+               {
+                  EXPECT_EQ(data[i], expected_result[i]);
+               }
+               return RETURN_OK;
+            }));
+      EXPECT_CALL(*slm_mock, slm_start_program()).WillOnce(Return(RETURN_OK));
+      ntfmgr_parse_request(1, (char*) command);
+   }
+
+   /**
+    * <b>scenario</b>: Set SLM_STATE command received.<br>
+    * <b>expected</b>: Correct NTF message sent.<br>
+    * ************************************************
+    */
+   {
+      uint8_t command [] = {NTF_GROUP_SLM, NTF_SLM_PROGRAM_ID, NTF_SET, NTF_REPLY_UNKNOWN, 1, SLM_PROGRAM2};
+      uint8_t expected_result [] = {NTF_GROUP_SLM, NTF_SLM_PROGRAM_ID, NTF_SET, NTF_REPLY_OK, 0, '\n'};
+      EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
+            {
+               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
+               for (uint8_t i = 0; i < size; i++)
+               {
+                  EXPECT_EQ(data[i], expected_result[i]);
+               }
+               return RETURN_OK;
+            }));
+      EXPECT_CALL(*slm_mock, slm_set_current_program_id(SLM_PROGRAM2)).WillOnce(Return(RETURN_OK));
+      ntfmgr_parse_request(1, (char*) command);
+   }
+}
+
+/**
+ * @test This test case covers commands related to ENV module
+ */
+TEST_F(ntfmgrFixture, env_module_commands)
+{
+   /**
+    * <b>scenario</b>: Get ENV_SENSOR_DATA command received.<br>
+    * <b>expected</b>: Correct NTF message sent.<br>
+    * ************************************************
+    */
+   {
+      uint8_t command [] =         {NTF_GROUP_ENV, NTF_ENV_SENSOR_DATA, NTF_GET, NTF_REPLY_UNKNOWN, 1, ENV_OUTSIDE};
+      uint8_t expected_result [] = {NTF_GROUP_ENV, NTF_ENV_SENSOR_DATA, NTF_GET, NTF_REPLY_OK, 5, DHT_TYPE_DHT22, 10, 20, 30, 40, '\n'};
+      EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
+            {
+               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
+               for (uint8_t i = 0; i < size; i++)
+               {
+                  EXPECT_EQ(data[i], expected_result[i]);
+               }
+               return RETURN_OK;
+            }));
+      EXPECT_CALL(*env_mock, env_get_sensor_data(ENV_OUTSIDE, _)).WillOnce(Invoke([&](ENV_ITEM_ID id, DHT_SENSOR* buffer) -> RET_CODE
+            {
+               buffer->type = DHT_TYPE_DHT22;
+               buffer->data.hum_h = 10;
+               buffer->data.hum_l = 20;
+               buffer->data.temp_h = 30;
+               buffer->data.temp_l = 40;
+               return RETURN_OK;
+            }));
+      ntfmgr_parse_request(1, (char*) command);
+   }
+
+   /**
+    * <b>scenario</b>: Get ENV_SENSOR_ERROR command received.<br>
+    * <b>expected</b>: Correct NTF message sent.<br>
+    * ************************************************
+    */
+   {
+      uint8_t command [] =         {NTF_GROUP_ENV, NTF_ENV_SENSOR_ERROR, NTF_GET, NTF_REPLY_UNKNOWN, 1, ENV_OUTSIDE};
+      uint8_t expected_result [] = {NTF_GROUP_ENV, NTF_ENV_SENSOR_ERROR, NTF_GET, NTF_REPLY_OK, 2, 20, 30, '\n'};
+      EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
+            {
+               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
+               for (uint8_t i = 0; i < size; i++)
+               {
+                  EXPECT_EQ(data[i], expected_result[i]);
+               }
+               return RETURN_OK;
+            }));
+      ENV_ERROR_RATE sensor_error = {30, 20};
+      EXPECT_CALL(*env_mock, env_get_error_stats(ENV_OUTSIDE)).WillOnce(Return(sensor_error));
+      ntfmgr_parse_request(1, (char*) command);
+   }
+}
