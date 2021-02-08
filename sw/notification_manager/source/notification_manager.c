@@ -20,23 +20,69 @@
  * =============================*/
 #define WIFI_BROADCAST_ID 0xFF
 /* =============================
+ *       Internal types
+ * =============================*/
+typedef struct
+{
+   uint8_t data_size;
+   const uint8_t* data;
+} NTF_MESSAGE;
+typedef struct
+{
+   NTF_CMD_ID id;
+   NTF_REQ_TYPE type;
+   RET_CODE (*process)(const NTF_MESSAGE*);
+} NTF_HANDLE_ITEM;
+/* =============================
  *   Internal module functions
  * =============================*/
+RET_CODE ntfmgr_handle_get_system_time_cmd(const NTF_MESSAGE* msg);
+RET_CODE ntfmgr_handle_set_system_time_cmd(const NTF_MESSAGE* msg);
+RET_CODE ntfmgr_handle_get_inputs_state_cmd(const NTF_MESSAGE* msg);
+RET_CODE ntfmgr_handle_get_all_inputs_state_cmd(const NTF_MESSAGE* msg);
+RET_CODE ntfmgr_handle_get_relays_state_cmd(const NTF_MESSAGE* msg);
+RET_CODE ntfmgr_handle_get_all_relays_state_cmd(const NTF_MESSAGE* msg);
+RET_CODE ntfmgr_handle_set_relays_state_cmd(const NTF_MESSAGE* msg);
+RET_CODE ntfmgr_handle_set_all_relays_state_cmd(const NTF_MESSAGE* msg);
+RET_CODE ntfmgr_handle_set_fan_state_cmd(const NTF_MESSAGE* msg);
+RET_CODE ntfmgr_handle_get_fan_state_cmd(const NTF_MESSAGE* msg);
+RET_CODE ntfmgr_handle_get_slm_state_cmd(const NTF_MESSAGE* msg);
+RET_CODE ntfmgr_handle_get_slm_program_id_cmd(const NTF_MESSAGE* msg);
+RET_CODE ntfmgr_handle_set_slm_state_cmd(const NTF_MESSAGE* msg);
+RET_CODE ntfmgr_handle_set_slm_program_id_cmd(const NTF_MESSAGE* msg);
+RET_CODE ntfmgr_handle_get_env_sensor_data_cmd(const NTF_MESSAGE* msg);
+RET_CODE ntfmgr_handle_get_env_sensor_rate_cmd(const NTF_MESSAGE* msg);
+
+void ntfmgr_prepare_header(NTF_CMD_ID id, NTF_REQ_TYPE req_type, uint8_t data_size);
+void ntfmgr_set_message_size(uint8_t size);
 void ntfmgr_send_data(uint8_t clientID);
+
 void ntfmgr_on_inputs_change(INPUT_STATUS status);
 void ntfmgr_on_relays_change(const RELAY_STATUS* status);
 void ntfmgr_on_env_change(ENV_EVENT event, ENV_ITEM_ID id,  const DHT_SENSOR*);
 void ntfmgr_on_fan_change(FAN_STATE state);
 void ntfmgr_on_slm_change(SLM_STATE state);
-void ntfmgr_process_system_cmd(uint8_t subcmd, NTF_REQ_TYPE req_type, uint8_t data_size, const uint8_t* args);
-void ntfmgr_process_relay_cmd(uint8_t subcmd, NTF_REQ_TYPE req_type, uint8_t data_size, const uint8_t* args);
-void ntfmgr_process_inputs_cmd(uint8_t subcmd, NTF_REQ_TYPE req_type, uint8_t data_size, const uint8_t* args);
-void ntfmgr_process_fan_cmd(uint8_t subcmd, NTF_REQ_TYPE req_type, uint8_t data_size, const uint8_t* args);
-void ntfmgr_process_slm_cmd(uint8_t subcmd, NTF_REQ_TYPE req_type, uint8_t data_size, const uint8_t* args);
-void ntfmgr_process_env_cmd(uint8_t subcmd, NTF_REQ_TYPE req_type, uint8_t data_size, const uint8_t* args);
-/* =============================
- *       Internal types
- * =============================*/
+//void ntfmgr_process_slm_cmd(uint8_t subcmd, NTF_REQ_TYPE req_type, uint8_t data_size, const uint8_t* args);
+//void ntfmgr_process_env_cmd(uint8_t subcmd, NTF_REQ_TYPE req_type, uint8_t data_size, const uint8_t* args);
+
+NTF_HANDLE_ITEM m_handlers[] = {{NTF_SYSTEM_TIME,      NTF_GET, &ntfmgr_handle_get_system_time_cmd},
+                                {NTF_SYSTEM_TIME,      NTF_SET, &ntfmgr_handle_set_system_time_cmd},
+                                {NTF_INPUTS_STATE,     NTF_GET, &ntfmgr_handle_get_inputs_state_cmd},
+                                {NTF_INPUTS_STATE_ALL, NTF_GET, &ntfmgr_handle_get_all_inputs_state_cmd},
+                                {NTF_RELAYS_STATE,     NTF_GET, &ntfmgr_handle_get_relays_state_cmd},
+                                {NTF_RELAYS_STATE,     NTF_SET, &ntfmgr_handle_set_relays_state_cmd},
+                                {NTF_RELAYS_STATE_ALL, NTF_GET, &ntfmgr_handle_get_all_relays_state_cmd},
+                                {NTF_RELAYS_STATE_ALL, NTF_SET, &ntfmgr_handle_set_all_relays_state_cmd},
+                                {NTF_FAN_STATE,        NTF_GET, &ntfmgr_handle_get_fan_state_cmd},
+                                {NTF_FAN_STATE,        NTF_SET, &ntfmgr_handle_set_fan_state_cmd},
+                                {NTF_SLM_STATE,        NTF_SET, &ntfmgr_handle_set_slm_state_cmd},
+                                {NTF_SLM_STATE,        NTF_GET, &ntfmgr_handle_get_slm_state_cmd},
+                                {NTF_SLM_PROGRAM_ID,   NTF_SET, &ntfmgr_handle_set_slm_program_id_cmd},
+                                {NTF_SLM_PROGRAM_ID,   NTF_GET, &ntfmgr_handle_get_slm_program_id_cmd},
+                                {NTF_ENV_SENSOR_DATA,  NTF_GET, &ntfmgr_handle_get_env_sensor_data_cmd},
+                                {NTF_ENV_SENSOR_ERROR, NTF_GET, &ntfmgr_handle_get_env_sensor_rate_cmd}};
+
+uint8_t m_handlers_size;
 uint8_t m_buffer [NTF_MAX_MESSAGE_SIZE];
 uint16_t m_bytes_count;
 /* =============================
@@ -50,6 +96,7 @@ RET_CODE ntfmgr_init()
    {
       m_buffer[i] = 0;
    }
+   m_handlers_size = sizeof(m_handlers) / sizeof(m_handlers[0]);
 
    if (wifimgr_register_data_callback(&ntfmgr_parse_request) == RETURN_OK)
    {
@@ -77,42 +124,25 @@ RET_CODE ntfmgr_init()
 void ntfmgr_parse_request(ServerClientID id, const char* data)
 {
    m_bytes_count = 0;
+   NTF_CMD_ID cmd_id = (NTF_CMD_ID) data[0];
+   NTF_REQ_TYPE cmd_type = (NTF_REQ_TYPE) data[1];
+   uint8_t data_size = data[2];
 
-   const uint8_t* request = (uint8_t*) data;
-   NTF_GROUP    group = (NTF_GROUP) request[NTF_GROUP_OFFSET];
-   uint8_t      subcmd = (uint8_t) request[NTF_GROUP_SUBCMD_OFFSET];
-   NTF_REQ_TYPE req_type = (NTF_REQ_TYPE) request[NTF_GROUP_REQ_TYPE_OFFSET];
-   uint8_t      data_size = (uint8_t)request[NTF_GROUP_BYTES_COUNT_OFFSET];
-
-   logger_send(LOG_ERROR, __func__, "%u %u %u %u", (uint8_t) group, subcmd, (uint8_t) req_type, data_size);
-   switch(group)
+   for (uint8_t i = 0; i < m_handlers_size; i++)
    {
-   case NTF_GROUP_SYSTEM:
-      ntfmgr_process_system_cmd(subcmd, req_type, data_size, request + NTF_HEADER_SIZE);
-      break;
-   case NTF_GROUP_RELAYS:
-      ntfmgr_process_relay_cmd(subcmd, req_type, data_size, request + NTF_HEADER_SIZE);
-      break;
-   case NTF_GROUP_INPUTS:
-      ntfmgr_process_inputs_cmd(subcmd, req_type, data_size, request + NTF_HEADER_SIZE);
-      break;
-   case NTF_GROUP_FAN:
-      ntfmgr_process_fan_cmd(subcmd, req_type, data_size, request + NTF_HEADER_SIZE);
-      break;
-   case NTF_GROUP_SLM:
-      ntfmgr_process_slm_cmd(subcmd, req_type, data_size, request + NTF_HEADER_SIZE);
-      break;
-   case NTF_GROUP_ENV:
-      ntfmgr_process_env_cmd(subcmd, req_type, data_size, request + NTF_HEADER_SIZE);
-      break;
-   }
-
-   if (m_bytes_count)
-   {
-      ntfmgr_send_data(id);
+      if (m_handlers[i].id == cmd_id && m_handlers[i].type == cmd_type && m_handlers[i].process)
+      {
+         NTF_MESSAGE msg = {data_size, (uint8_t*)data + NTF_HEADER_SIZE};
+         if (m_handlers[i].process(&msg) != RETURN_OK)
+         {
+            ntfmgr_prepare_header(cmd_id, cmd_type, 1);
+            m_buffer[m_bytes_count++] = (uint8_t) NTF_REPLY_NOK;
+         }
+         m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
+         ntfmgr_send_data(id);
+      }
    }
 }
-
 void ntfmgr_send_data(uint8_t clientID)
 {
    if (clientID == WIFI_BROADCAST_ID)
@@ -126,19 +156,21 @@ void ntfmgr_send_data(uint8_t clientID)
    m_bytes_count = 0;
 }
 
-void ntfmgr_prepare_header(NTF_GROUP group, uint8_t subcmd, NTF_REQ_TYPE req_type, NTF_REPLY_TYPE rep_type, uint8_t data_size)
+void ntfmgr_prepare_header(NTF_CMD_ID id, NTF_REQ_TYPE req_type, uint8_t data_size)
 {
-   m_buffer[NTF_GROUP_OFFSET] = group;
-   m_buffer[NTF_GROUP_SUBCMD_OFFSET] = subcmd;
-   m_buffer[NTF_GROUP_REQ_TYPE_OFFSET] = req_type;
-   m_buffer[NTF_GROUP_REP_TYPE_OFFSET] = rep_type;
-   m_buffer[NTF_GROUP_BYTES_COUNT_OFFSET] = data_size;
+   m_buffer[NTF_ID_OFFSET] = id;
+   m_buffer[NTF_REQ_TYPE_OFFSET] = req_type;
+   ntfmgr_set_message_size(data_size);
    m_bytes_count = NTF_HEADER_SIZE;
+}
+void ntfmgr_set_message_size(uint8_t size)
+{
+   m_buffer[NTF_BYTES_COUNT_OFFSET] = size;
 }
 
 void ntfmgr_on_inputs_change(INPUT_STATUS status)
 {
-   ntfmgr_prepare_header(NTF_GROUP_INPUTS, NTF_INPUTS_STATE, NTF_NTF, NTF_REPLY_UNKNOWN, 2);
+   ntfmgr_prepare_header(NTF_INPUTS_STATE, NTF_NTF, 2);
    m_buffer[m_bytes_count++] = status.id;
    m_buffer[m_bytes_count++] = status.state;
    m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
@@ -146,7 +178,7 @@ void ntfmgr_on_inputs_change(INPUT_STATUS status)
 }
 void ntfmgr_on_relays_change(const RELAY_STATUS* status)
 {
-   ntfmgr_prepare_header(NTF_GROUP_RELAYS, NTF_RELAYS_STATE, NTF_NTF, NTF_REPLY_UNKNOWN, 2);
+   ntfmgr_prepare_header(NTF_RELAYS_STATE, NTF_NTF, 2);
    m_buffer[m_bytes_count++] = status->id;
    m_buffer[m_bytes_count++] = status->state;
    m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
@@ -154,7 +186,7 @@ void ntfmgr_on_relays_change(const RELAY_STATUS* status)
 }
 void ntfmgr_on_env_change(ENV_EVENT event, ENV_ITEM_ID id,  const DHT_SENSOR* sensor)
 {
-   ntfmgr_prepare_header(NTF_GROUP_ENV, event == ENV_EV_ERROR? NTF_ENV_SENSOR_ERROR : NTF_ENV_SENSOR_DATA, NTF_NTF, NTF_REPLY_UNKNOWN, 6);
+   ntfmgr_prepare_header(event == ENV_EV_ERROR? NTF_ENV_SENSOR_ERROR : NTF_ENV_SENSOR_DATA, NTF_NTF, 6);
    m_buffer[m_bytes_count++] = (uint8_t)id;
    m_buffer[m_bytes_count++] = (uint8_t)sensor->type;
    m_buffer[m_bytes_count++] = (uint8_t)sensor->data.hum_h;
@@ -166,290 +198,287 @@ void ntfmgr_on_env_change(ENV_EVENT event, ENV_ITEM_ID id,  const DHT_SENSOR* se
 }
 void ntfmgr_on_fan_change(FAN_STATE state)
 {
-   ntfmgr_prepare_header(NTF_GROUP_FAN, NTF_FAN_STATE, NTF_NTF, NTF_REPLY_UNKNOWN, 1);
+   ntfmgr_prepare_header(NTF_FAN_STATE, NTF_NTF, 1);
    m_buffer[m_bytes_count++] = (uint8_t) state;
    m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
    ntfmgr_send_data(WIFI_BROADCAST_ID);
 }
 void ntfmgr_on_slm_change(SLM_STATE state)
 {
-   ntfmgr_prepare_header(NTF_GROUP_SLM, NTF_SLM_STATE, NTF_NTF, NTF_REPLY_UNKNOWN, 1);
+   ntfmgr_prepare_header(NTF_SLM_STATE, NTF_NTF, 1);
    m_buffer[m_bytes_count++] = (uint8_t) state;
    m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
    ntfmgr_send_data(WIFI_BROADCAST_ID);
 }
 
-void ntfmgr_process_system_cmd(uint8_t subcmd, NTF_REQ_TYPE req_type, uint8_t data_size, const uint8_t* args)
+RET_CODE ntfmgr_handle_get_system_time_cmd(const NTF_MESSAGE* msg)
 {
-   switch((NTF_SYSTEM_SUBCMDS)subcmd)
+   RET_CODE result = RETURN_NOK;
+   TimeItem* item = time_get();
+   if (item)
    {
-   case NTF_SYSTEM_TIME:
-      if (req_type == NTF_SET)
+      ntfmgr_prepare_header(NTF_SYSTEM_TIME, NTF_GET, 8);
+      m_buffer[m_bytes_count++] = (uint8_t) NTF_REPLY_OK;
+      m_buffer[m_bytes_count++] = item->day;
+      m_buffer[m_bytes_count++] = item->month;
+      m_buffer[m_bytes_count++] = ((item->year) >> 8) & 0xFF;
+      m_buffer[m_bytes_count++] = (item->year) & 0xFF;
+      m_buffer[m_bytes_count++] = item->hour;
+      m_buffer[m_bytes_count++] = item->minute;
+      m_buffer[m_bytes_count++] = item->second;
+      result = RETURN_OK;
+   }
+   return result;
+}
+RET_CODE ntfmgr_handle_set_system_time_cmd(const NTF_MESSAGE* msg)
+{
+   RET_CODE result = RETURN_NOK;
+   if (msg->data_size == 7)
+   {
+      TimeItem item = {};
+      item.day = msg->data[0];
+      item.month = msg->data[1];
+      item.year = msg->data[2] << 8;
+      item.year |= msg->data[3];
+      item.hour = msg->data[4];
+      item.minute = msg->data[5];
+      item.second = msg->data[6];
+      result = time_set_utc(&item);
+      ntfmgr_prepare_header(NTF_SYSTEM_TIME, NTF_SET, 1);
+      m_buffer[m_bytes_count++] = NTF_REPLY_OK;
+   }
+   return result;
+}
+RET_CODE ntfmgr_handle_get_inputs_state_cmd(const NTF_MESSAGE* msg)
+{
+   RET_CODE result = RETURN_NOK;
+   if (msg->data_size == 1)
+   {
+      INPUT_STATE state = inp_get((INPUT_ID)msg->data[0]);
+      ntfmgr_prepare_header(NTF_INPUTS_STATE, NTF_GET, 2);
+      m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
+      m_buffer[m_bytes_count++] = (uint8_t)state;
+      result = RETURN_OK;
+   }
+   return result;
+}
+RET_CODE ntfmgr_handle_get_all_inputs_state_cmd(const NTF_MESSAGE* msg)
+{
+   INPUT_STATUS inp_status [INPUTS_MAX_INPUT_LINES];
+   RET_CODE result = inp_get_all(inp_status);
+   uint8_t inputs_found = 0;
+   if (result == RETURN_OK)
+   {
+      ntfmgr_prepare_header(NTF_INPUTS_STATE_ALL, NTF_GET, 0);
+      m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
+      for (uint8_t i = 0; i < INPUTS_MAX_INPUT_LINES; i++)
       {
-         TimeItem item = {};
-         item.day = args[0];
-         item.month = args[1];
-         item.year = args[2] << 8;
-         item.year |= args[3];
-         item.hour = args[4];
-         item.minute = args[5];
-         item.second = args[6];
+         if (inp_status[i].id != INPUT_ENUM_COUNT)
+         {
+            m_buffer[m_bytes_count++] = (uint8_t) inp_status[i].id;
+            m_buffer[m_bytes_count++] = (uint8_t) inp_status[i].state;
+            inputs_found++;
+         }
+      }
+      ntfmgr_set_message_size(1 + (inputs_found * 2));
+   }
+   return result;
+}
 
-         RET_CODE result = time_set_utc(&item);
-         ntfmgr_prepare_header(NTF_GROUP_SYSTEM, subcmd, req_type, result == RETURN_OK? NTF_REPLY_OK : NTF_REPLY_NOK, 0);
-         m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
-      }
-      else if (req_type == NTF_GET)
+RET_CODE ntfmgr_handle_get_relays_state_cmd(const NTF_MESSAGE* msg)
+{
+   RET_CODE result = RETURN_NOK;
+   if (msg->data_size == 1)
+   {
+      RELAY_STATE status = rel_get((RELAY_ID)msg->data[0]);
+      if (status != RELAY_STATE_ENUM_MAX)
       {
-         TimeItem* item = time_get();
-         if (!item)
+         ntfmgr_prepare_header(NTF_RELAYS_STATE, NTF_GET, 2);
+         m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
+         m_buffer[m_bytes_count++] = (uint8_t)status;
+         result = RETURN_OK;
+      }
+   }
+   return result;
+}
+RET_CODE ntfmgr_handle_get_all_relays_state_cmd(const NTF_MESSAGE* msg)
+{
+   RELAY_STATUS rel_status [RELAYS_BOARD_COUNT];
+   RET_CODE result = rel_get_all(rel_status);
+   uint8_t relays_found = 0;
+   if (result == RETURN_OK)
+   {
+      ntfmgr_prepare_header(NTF_RELAYS_STATE_ALL, NTF_GET, 0);
+      m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
+      for (uint8_t i = 0; i < RELAYS_BOARD_COUNT; i++)
+      {
+         if (rel_status[i].id != RELAY_ID_ENUM_MAX)
          {
-            ntfmgr_prepare_header(NTF_GROUP_SYSTEM, subcmd, req_type, NTF_REPLY_NOK, 0);
-            m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
-         }
-         else
-         {
-            ntfmgr_prepare_header(NTF_GROUP_SYSTEM, subcmd, req_type, NTF_REPLY_OK, 7);
-            m_buffer[m_bytes_count++] = item->day;
-            m_buffer[m_bytes_count++] = item->month;
-            m_buffer[m_bytes_count++] = ((item->year) >> 8) & 0xFF;
-            m_buffer[m_bytes_count++] = (item->year) & 0xFF;
-            m_buffer[m_bytes_count++] = item->hour;
-            m_buffer[m_bytes_count++] = item->minute;
-            m_buffer[m_bytes_count++] = item->second;
-            m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
+            m_buffer[m_bytes_count++] = (uint8_t) rel_status[i].id;
+            m_buffer[m_bytes_count++] = (uint8_t) rel_status[i].state;
+            relays_found++;
          }
       }
-      break;
+      ntfmgr_set_message_size(1 + (relays_found * 2));
    }
+   return result;
+}
+RET_CODE ntfmgr_handle_set_relays_state_cmd(const NTF_MESSAGE* msg)
+{
+   RET_CODE result = RETURN_NOK;
+   if (msg->data_size == 2)
+   {
+      result = rel_set((RELAY_ID)msg->data[0], (RELAY_STATE)msg->data[1]);
+      ntfmgr_prepare_header(NTF_RELAYS_STATE, NTF_SET, 1);
+      m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
+   }
+   return result;
+}
+RET_CODE ntfmgr_handle_set_all_relays_state_cmd(const NTF_MESSAGE* msg)
+{
+   RET_CODE result = RETURN_OK;
+   if ((msg->data_size%2) != 1)
+   {
+      for (uint8_t i = 0; i < msg->data_size / 2; i++)
+      {
+         RELAY_ID id = (RELAY_ID)msg->data[(i*2)];
+         RELAY_STATE state = (RELAY_STATE)msg->data[(i*2)+1];
+         result = rel_set(id, state);
+         if (result != RETURN_OK)
+         {
+            break;
+         }
+      }
+      if (result == RETURN_OK)
+      {
+         ntfmgr_prepare_header(NTF_RELAYS_STATE_ALL, NTF_SET, 1);
+         m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
+      }
+   }
+   return result;
+}
+RET_CODE ntfmgr_handle_set_fan_state_cmd(const NTF_MESSAGE* msg)
+{
+   RET_CODE result = RETURN_NOK;
+   if (msg->data_size == 1)
+   {
+      FAN_STATE state = (FAN_STATE)msg->data[0];
+      if (state == FAN_STATE_ON)
+      {
+         result = fan_start();
+      }
+      else if (state == FAN_STATE_OFF)
+      {
+         result = fan_stop();
+      }
 
-}
-void ntfmgr_process_relay_cmd(uint8_t subcmd, NTF_REQ_TYPE req_type, uint8_t data_size, const uint8_t* args)
-{
-   switch((NTF_RELAYS_SUBCMDS)subcmd)
-   {
-   case NTF_RELAYS_STATE:
-      if (req_type == NTF_SET)
+      if (result == RETURN_OK)
       {
-         RET_CODE result = rel_set((RELAY_ID)args[0], (RELAY_STATE)args[1]);
-         ntfmgr_prepare_header(NTF_GROUP_RELAYS, subcmd, req_type, result == RETURN_OK? NTF_REPLY_OK : NTF_REPLY_NOK, 0);
-         m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
+         ntfmgr_prepare_header(NTF_FAN_STATE, NTF_SET, 1);
+         m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
       }
-      else if (req_type == NTF_GET)
-      {
-         RELAY_STATE status = rel_get((RELAY_ID)args[0]);
-         if (status != RELAY_STATE_ENUM_MAX)
-         {
-            ntfmgr_prepare_header(NTF_GROUP_RELAYS, subcmd, req_type, NTF_REPLY_OK, 1);
-            m_buffer[m_bytes_count++] = (uint8_t)status;
-            m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
-         }
-         else
-         {
-            ntfmgr_prepare_header(NTF_GROUP_RELAYS, subcmd, req_type, NTF_REPLY_NOK, 0);
-            m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
-         }
-      }
-      break;
-   case NTF_RELAYS_STATE_ALL:
-      if (req_type == NTF_SET)
-      {
-         RET_CODE result = RETURN_OK;
-         for (uint8_t i = 0; i < data_size / 2; i++)
-         {
-            RELAY_ID id = (RELAY_ID)args[(i*2)];
-            RELAY_STATE state = (RELAY_STATE)args[(i*2)+1];
-            result = rel_set(id, state);
-            if (result != RETURN_OK)
-            {
-               break;
-            }
-         }
-         ntfmgr_prepare_header(NTF_GROUP_RELAYS, subcmd, req_type, result == RETURN_OK? NTF_REPLY_OK : NTF_REPLY_NOK, 0);
-         m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
-      }
-      else if (req_type == NTF_GET)
-      {
-         RELAY_STATUS rel_status [RELAYS_BOARD_COUNT];
-         RET_CODE result = rel_get_all(rel_status);
-         uint8_t relays_found = 0;
-         if (result == RETURN_OK)
-         {
-            for (uint8_t i = 0; i < RELAYS_BOARD_COUNT; i++)
-            {
-               if (rel_status[i].id != RELAY_ID_ENUM_MAX)
-               {
-                  rel_status[relays_found] = rel_status[i];
-                  relays_found++;
-               }
-            }
-            ntfmgr_prepare_header(NTF_GROUP_RELAYS, subcmd, req_type, NTF_REPLY_OK, relays_found * 2);
-            for (uint8_t i = 0; i < relays_found; i++)
-            {
-               m_buffer[m_bytes_count++] = (uint8_t) rel_status[i].id;
-               m_buffer[m_bytes_count++] = (uint8_t) rel_status[i].state;
-            }
-            m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
-         }
-         else
-         {
-            ntfmgr_prepare_header(NTF_GROUP_RELAYS, subcmd, req_type, NTF_REPLY_NOK, 0);
-            m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
-         }
-      }
-      break;
    }
+   return result;
 }
-void ntfmgr_process_inputs_cmd(uint8_t subcmd, NTF_REQ_TYPE req_type, uint8_t data_size, const uint8_t* args)
+RET_CODE ntfmgr_handle_get_fan_state_cmd(const NTF_MESSAGE* msg)
 {
-   switch((NTF_INPUTS_SUBCMDS)subcmd)
+   RET_CODE result = RETURN_NOK;
+   FAN_STATE state = fan_get_state();
+   if (state != FAN_STATE_UNKNOWN)
    {
-   case NTF_INPUTS_STATE:
-      if (req_type == NTF_GET)
-      {
-         INPUT_STATE state = inp_get((INPUT_ID)args[0]);
-         ntfmgr_prepare_header(NTF_GROUP_INPUTS, subcmd, req_type, NTF_REPLY_OK, 1);
-         m_buffer[m_bytes_count++] = (uint8_t)state;
-         m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
-      }
-      break;
-   case NTF_INPUTS_STATE_ALL:
-      if (req_type == NTF_GET)
-      {
-         INPUT_STATUS inp_status [INPUTS_MAX_INPUT_LINES];
-         RET_CODE result = inp_get_all(inp_status);
-         uint8_t inputs_found = 0;
-         if (result == RETURN_OK)
-         {
-            for (uint8_t i = 0; i < RELAYS_BOARD_COUNT; i++)
-            {
-               if (inp_status[i].id != INPUT_ENUM_COUNT)
-               {
-                  inp_status[inputs_found] = inp_status[i];
-                  inputs_found++;
-               }
-            }
-            ntfmgr_prepare_header(NTF_GROUP_INPUTS, subcmd, req_type, NTF_REPLY_OK, inputs_found * 2);
-            for (uint8_t i = 0; i < inputs_found; i++)
-            {
-               m_buffer[m_bytes_count++] = (uint8_t) inp_status[i].id;
-               m_buffer[m_bytes_count++] = (uint8_t) inp_status[i].state;
-            }
-            m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
-         }
-         else
-         {
-            ntfmgr_prepare_header(NTF_GROUP_INPUTS, subcmd, req_type, NTF_REPLY_NOK, 0);
-            m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
-         }
-      }
-      break;
+      ntfmgr_prepare_header(NTF_FAN_STATE, NTF_GET, 2);
+      m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
+      m_buffer[m_bytes_count++] = (uint8_t)state;
+      result = RETURN_OK;
    }
+   return result;
 }
-void ntfmgr_process_fan_cmd(uint8_t subcmd, NTF_REQ_TYPE req_type, uint8_t data_size, const uint8_t* args)
+RET_CODE ntfmgr_handle_get_slm_state_cmd(const NTF_MESSAGE* msg)
 {
-   switch((NTF_FAN_SUBCMDS)subcmd)
-   {
-   case NTF_FAN_STATE:
-      if (req_type == NTF_GET)
-      {
-         ntfmgr_prepare_header(NTF_GROUP_FAN, subcmd, req_type, NTF_REPLY_OK, 1);
-         m_buffer[m_bytes_count++] = (uint8_t)fan_get_state();
-         m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
-      }
-      else if (req_type == NTF_SET)
-      {
-         FAN_STATE state = (FAN_STATE)args[0];
-         if (state == FAN_STATE_OFF)
-         {
-            RET_CODE result = fan_stop();
-            ntfmgr_prepare_header(NTF_GROUP_FAN, subcmd, req_type, result == RETURN_OK? NTF_REPLY_OK : NTF_REPLY_NOK, 0);
-            m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
-         }
-         else if (state == FAN_STATE_ON)
-         {
-            RET_CODE result = fan_start();
-            ntfmgr_prepare_header(NTF_GROUP_FAN, subcmd, req_type, result == RETURN_OK? NTF_REPLY_OK : NTF_REPLY_NOK, 0);
-            m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
-         }
-      }
-      break;
-   }
+   SLM_STATE state = slm_get_state();
+   ntfmgr_prepare_header(NTF_SLM_STATE, NTF_GET, 2);
+   m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
+   m_buffer[m_bytes_count++] = (uint8_t)state;
+   return RETURN_OK;
 }
-void ntfmgr_process_slm_cmd(uint8_t subcmd, NTF_REQ_TYPE req_type, uint8_t data_size, const uint8_t* args)
+RET_CODE ntfmgr_handle_get_slm_program_id_cmd(const NTF_MESSAGE* msg)
 {
-   switch((NTF_SLM_SUBCMDS)subcmd)
-   {
-   case NTF_SLM_STATE:
-      if (req_type == NTF_GET)
-      {
-         ntfmgr_prepare_header(NTF_GROUP_SLM, subcmd, req_type, NTF_REPLY_OK, 1);
-         m_buffer[m_bytes_count++] = (uint8_t)slm_get_state();
-         m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
-      }
-      else if (req_type == NTF_SET)
-      {
-         SLM_STATE state = (SLM_STATE)args[0];
-         if (state == SLM_STATE_ON)
-         {
-            RET_CODE result = slm_start_program();
-            ntfmgr_prepare_header(NTF_GROUP_SLM, subcmd, req_type, result == RETURN_OK? NTF_REPLY_OK : NTF_REPLY_NOK, 0);
-            m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
-         }
-         else if (state == SLM_STATE_OFF)
-         {
-            RET_CODE result = slm_stop_program();
-            ntfmgr_prepare_header(NTF_GROUP_SLM, subcmd, req_type, result == RETURN_OK? NTF_REPLY_OK : NTF_REPLY_NOK, 0);
-            m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
-         }
-      }
-      break;
-   case NTF_SLM_PROGRAM_ID:
-      if (req_type == NTF_GET)
-      {
-         ntfmgr_prepare_header(NTF_GROUP_SLM, subcmd, req_type, NTF_REPLY_OK, 1);
-         m_buffer[m_bytes_count++] = (uint8_t)slm_get_current_program_id();
-         m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
-      }
-      else if (req_type == NTF_SET)
-      {
-         RET_CODE result = slm_set_current_program_id((SLM_PROGRAM_ID)args[0]);
-         ntfmgr_prepare_header(NTF_GROUP_SLM, subcmd, req_type, result == RETURN_OK? NTF_REPLY_OK : NTF_REPLY_NOK, 0);
-         m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
-      }
-      break;
-   }
+   SLM_PROGRAM_ID id = slm_get_current_program_id();
+   ntfmgr_prepare_header(NTF_SLM_PROGRAM_ID, NTF_GET, 2);
+   m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
+   m_buffer[m_bytes_count++] = (uint8_t)id;
+   return RETURN_OK;
 }
-void ntfmgr_process_env_cmd(uint8_t subcmd, NTF_REQ_TYPE req_type, uint8_t data_size, const uint8_t* args)
+RET_CODE ntfmgr_handle_set_slm_state_cmd(const NTF_MESSAGE* msg)
 {
-   switch((NTF_ENV_SUBCMDS)subcmd)
+   RET_CODE result = RETURN_NOK;
+   if (msg->data_size == 1)
    {
-   case NTF_ENV_SENSOR_DATA:
-      if (req_type == NTF_GET)
+      SLM_STATE state = (SLM_STATE)msg->data[0];
+      if (state == SLM_STATE_OFF)
       {
-         DHT_SENSOR sensor;
-         RET_CODE result = env_get_sensor_data((ENV_ITEM_ID)args[0], &sensor);
-         ntfmgr_prepare_header(NTF_GROUP_ENV, subcmd, req_type, result == RETURN_OK? NTF_REPLY_OK : NTF_REPLY_NOK, result == RETURN_OK? 5 : 0);
-         if (result == RETURN_OK)
-         {
-            m_buffer[m_bytes_count++] = (uint8_t) sensor.type;
-            m_buffer[m_bytes_count++] = (uint8_t) sensor.data.hum_h;
-            m_buffer[m_bytes_count++] = (uint8_t) sensor.data.hum_l;
-            m_buffer[m_bytes_count++] = (uint8_t) sensor.data.temp_h;
-            m_buffer[m_bytes_count++] = (uint8_t) sensor.data.temp_l;
-         }
-         m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
+         result = slm_stop_program();
       }
-      break;
-   case NTF_ENV_SENSOR_ERROR:
-      if (req_type == NTF_GET)
+      else if (state == SLM_STATE_ON)
       {
-         ENV_ERROR_RATE result = env_get_error_stats((ENV_ITEM_ID)args[0]);
-         ntfmgr_prepare_header(NTF_GROUP_ENV, subcmd, req_type, NTF_REPLY_OK, 2);
-         m_buffer[m_bytes_count++] = (uint8_t) result.cs_err_rate;
-         m_buffer[m_bytes_count++] = (uint8_t) result.nr_err_rate;
-         m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
+         result = slm_start_program();
       }
-      break;
+
+      if (result == RETURN_OK)
+      {
+         ntfmgr_prepare_header(NTF_SLM_STATE, NTF_SET, 1);
+         m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
+      }
    }
+   return result;
+}
+RET_CODE ntfmgr_handle_set_slm_program_id_cmd(const NTF_MESSAGE* msg)
+{
+   RET_CODE result = RETURN_NOK;
+   if (msg->data_size == 1)
+   {
+      SLM_PROGRAM_ID id = (SLM_PROGRAM_ID)msg->data[0];
+      result = slm_set_current_program_id(id);
+      if (result == RETURN_OK)
+      {
+         ntfmgr_prepare_header(NTF_SLM_PROGRAM_ID, NTF_SET, 1);
+         m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
+      }
+   }
+   return result;
+}
+
+RET_CODE ntfmgr_handle_get_env_sensor_data_cmd(const NTF_MESSAGE* msg)
+{
+   DHT_SENSOR sensor = {};
+   RET_CODE result = RETURN_NOK;
+   if (msg->data_size == 1)
+   {
+      result = env_get_sensor_data((ENV_ITEM_ID)msg->data[0], &sensor);
+      ntfmgr_prepare_header(NTF_ENV_SENSOR_DATA, NTF_GET, 6);
+      if (result == RETURN_OK)
+      {
+         m_buffer[m_bytes_count++] = (uint8_t) NTF_REPLY_OK;
+         m_buffer[m_bytes_count++] = (uint8_t) sensor.type;
+         m_buffer[m_bytes_count++] = (uint8_t) sensor.data.hum_h;
+         m_buffer[m_bytes_count++] = (uint8_t) sensor.data.hum_l;
+         m_buffer[m_bytes_count++] = (uint8_t) sensor.data.temp_h;
+         m_buffer[m_bytes_count++] = (uint8_t) sensor.data.temp_l;
+      }
+   }
+   return result;
+}
+RET_CODE ntfmgr_handle_get_env_sensor_rate_cmd(const NTF_MESSAGE* msg)
+{
+   RET_CODE result = RETURN_NOK;
+   if (msg->data_size == 1)
+   {
+      ENV_ERROR_RATE rate = env_get_error_stats((ENV_ITEM_ID)msg->data[0]);
+      ntfmgr_prepare_header(NTF_ENV_SENSOR_ERROR, NTF_GET, 3);
+      m_buffer[m_bytes_count++] = (uint8_t) NTF_REPLY_OK;
+      m_buffer[m_bytes_count++] = (uint8_t) rate.cs_err_rate;
+      m_buffer[m_bytes_count++] = (uint8_t) rate.nr_err_rate;
+      result = RETURN_OK;
+   }
+   return result;
 }

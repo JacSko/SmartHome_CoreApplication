@@ -109,16 +109,13 @@ TEST_F(ntfmgrFixture, periodic_notification_tests)
     */
    {
       RELAY_STATUS status = {RELAY_BEDROOM_AC, RELAY_STATE_ON};
-      uint8_t expected_result [] = {NTF_GROUP_RELAYS, NTF_RELAYS_STATE, NTF_NTF, NTF_REPLY_UNKNOWN, 2, RELAY_BEDROOM_AC, RELAY_STATE_ON, '\n'};
+      std::vector<uint8_t> exp = {NTF_RELAYS_STATE, NTF_NTF, 2, RELAY_BEDROOM_AC, RELAY_STATE_ON, '\n'};
       EXPECT_CALL(*wifimgr_mock, wifimgr_broadcast_bytes(_,_)).WillOnce(Invoke([&](const uint8_t* data, uint16_t size) -> RET_CODE
-            {
-               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
-               for (uint8_t i = 0; i < size; i++)
-               {
-                  EXPECT_EQ(data[i], expected_result[i]);
-               }
-               return RETURN_OK;
-            }));
+      {
+         std::vector<uint8_t> rec(data, data + size);
+         EXPECT_THAT(rec, ContainerEq(exp));
+         return RETURN_OK;
+      }));
       ntfmgr_on_relays_change(&status);
    }
    /**
@@ -128,16 +125,13 @@ TEST_F(ntfmgrFixture, periodic_notification_tests)
     */
    {
       INPUT_STATUS status = {INPUT_BEDROOM_AC, INPUT_STATE_ACTIVE};
-      uint8_t expected_result [] = {NTF_GROUP_INPUTS, NTF_INPUTS_STATE, NTF_NTF, NTF_REPLY_UNKNOWN, 2, INPUT_BEDROOM_AC, INPUT_STATE_ACTIVE, '\n'};
+      std::vector<uint8_t> exp = {NTF_INPUTS_STATE, NTF_NTF, 2, INPUT_BEDROOM_AC, INPUT_STATE_ACTIVE, '\n'};
       EXPECT_CALL(*wifimgr_mock, wifimgr_broadcast_bytes(_,_)).WillOnce(Invoke([&](const uint8_t* data, uint16_t size) -> RET_CODE
-            {
-               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
-               for (uint8_t i = 0; i < size; i++)
-               {
-                  EXPECT_EQ(data[i], expected_result[i]);
-               }
-               return RETURN_OK;
-            }));
+      {
+         std::vector<uint8_t> rec(data, data + size);
+         EXPECT_THAT(rec, ContainerEq(exp));
+         return RETURN_OK;
+      }));
       ntfmgr_on_inputs_change(status);
    }
    /**
@@ -147,16 +141,13 @@ TEST_F(ntfmgrFixture, periodic_notification_tests)
     */
    {
       DHT_SENSOR sensor = {DHT_SENSOR1, DHT_TYPE_DHT22, {22, 5, 60, 1}};
-      uint8_t expected_result [] = {NTF_GROUP_ENV, NTF_ENV_SENSOR_DATA, NTF_NTF, NTF_REPLY_UNKNOWN, 6, ENV_KITCHEN, DHT_TYPE_DHT22, 60, 1, 22, 5, '\n'};
+      std::vector<uint8_t> exp = {NTF_ENV_SENSOR_DATA, NTF_NTF, 6, ENV_KITCHEN, DHT_TYPE_DHT22, 60, 1, 22, 5, '\n'};
       EXPECT_CALL(*wifimgr_mock, wifimgr_broadcast_bytes(_,_)).WillOnce(Invoke([&](const uint8_t* data, uint16_t size) -> RET_CODE
-            {
-               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
-               for (uint8_t i = 0; i < size; i++)
-               {
-                  EXPECT_EQ(data[i], expected_result[i]);
-               }
-               return RETURN_OK;
-            }));
+      {
+         std::vector<uint8_t> rec(data, data + size);
+         EXPECT_THAT(rec, ContainerEq(exp));
+         return RETURN_OK;
+      }));
       ntfmgr_on_env_change(ENV_EV_NEW_DATA, ENV_KITCHEN, &sensor);
    }
    /**
@@ -165,16 +156,13 @@ TEST_F(ntfmgrFixture, periodic_notification_tests)
     * ************************************************
     */
    {
-      uint8_t expected_result [] = {NTF_GROUP_FAN, NTF_FAN_STATE, NTF_NTF, NTF_REPLY_UNKNOWN, 1, FAN_STATE_SUSPEND, '\n'};
+      std::vector<uint8_t> exp = {NTF_FAN_STATE, NTF_NTF, 1, FAN_STATE_SUSPEND, '\n'};
       EXPECT_CALL(*wifimgr_mock, wifimgr_broadcast_bytes(_,_)).WillOnce(Invoke([&](const uint8_t* data, uint16_t size) -> RET_CODE
-            {
-               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
-               for (uint8_t i = 0; i < size; i++)
-               {
-                  EXPECT_EQ(data[i], expected_result[i]);
-               }
-               return RETURN_OK;
-            }));
+      {
+         std::vector<uint8_t> rec(data, data + size);
+         EXPECT_THAT(rec, ContainerEq(exp));
+         return RETURN_OK;
+      }));
       ntfmgr_on_fan_change(FAN_STATE_SUSPEND);
    }
    /**
@@ -183,16 +171,13 @@ TEST_F(ntfmgrFixture, periodic_notification_tests)
     * ************************************************
     */
    {
-      uint8_t expected_result [] = {NTF_GROUP_SLM, NTF_SLM_STATE, NTF_NTF, NTF_REPLY_UNKNOWN, 1, SLM_STATE_ONGOING_OFF, '\n'};
+      std::vector<uint8_t> exp = {NTF_SLM_STATE, NTF_NTF, 1, SLM_STATE_ONGOING_OFF, '\n'};
       EXPECT_CALL(*wifimgr_mock, wifimgr_broadcast_bytes(_,_)).WillOnce(Invoke([&](const uint8_t* data, uint16_t size) -> RET_CODE
-            {
-               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
-               for (uint8_t i = 0; i < size; i++)
-               {
-                  EXPECT_EQ(data[i], expected_result[i]);
-               }
-               return RETURN_OK;
-            }));
+      {
+         std::vector<uint8_t> rec(data, data + size);
+         EXPECT_THAT(rec, ContainerEq(exp));
+         return RETURN_OK;
+      }));
       ntfmgr_on_slm_change(SLM_STATE_ONGOING_OFF);
    }
 }
@@ -208,27 +193,24 @@ TEST_F(ntfmgrFixture, system_module_commands)
     * ************************************************
     */
    {
-      uint8_t command [] = {NTF_GROUP_SYSTEM, NTF_SYSTEM_TIME, NTF_SET, NTF_REPLY_UNKNOWN, 7, 0x0F, 0x0B, 0x07, 0xE5, 10, 11, 12};
-      uint8_t expected_result [] = {NTF_GROUP_SYSTEM, NTF_SYSTEM_TIME, NTF_SET, NTF_REPLY_OK, 0, '\n'};
+      uint8_t command [] = {NTF_SYSTEM_TIME, NTF_SET, 7, 0x0F, 0x0B, 0x07, 0xE5, 10, 11, 12};
+      std::vector<uint8_t> exp = {NTF_SYSTEM_TIME, NTF_SET, 1, NTF_REPLY_OK, '\n'};
       EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
-            {
-               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
-               for (uint8_t i = 0; i < size; i++)
-               {
-                  EXPECT_EQ(data[i], expected_result[i]);
-               }
-               return RETURN_OK;
-            }));
+      {
+         std::vector<uint8_t> rec(data, data + size);
+         EXPECT_THAT(rec, ContainerEq(exp));
+         return RETURN_OK;
+      }));
       EXPECT_CALL(*time_cnt_mock, time_set_utc(_)).WillOnce(Invoke([&](TimeItem* time) -> RET_CODE
-            {
-               EXPECT_EQ(time->day, 15);
-               EXPECT_EQ(time->month, 11);
-               EXPECT_EQ(time->year, 2021);
-               EXPECT_EQ(time->hour, 10);
-               EXPECT_EQ(time->minute, 11);
-               EXPECT_EQ(time->second, 12);
-               return RETURN_OK;
-            }));
+      {
+         EXPECT_EQ(time->day, 15);
+         EXPECT_EQ(time->month, 11);
+         EXPECT_EQ(time->year, 2021);
+         EXPECT_EQ(time->hour, 10);
+         EXPECT_EQ(time->minute, 11);
+         EXPECT_EQ(time->second, 12);
+         return RETURN_OK;
+      }));
       ntfmgr_parse_request(1, (char*) command);
    }
 
@@ -238,38 +220,33 @@ TEST_F(ntfmgrFixture, system_module_commands)
     * ************************************************
     */
    {
-      uint8_t command [] = {NTF_GROUP_SYSTEM, NTF_SYSTEM_TIME, NTF_SET, NTF_REPLY_UNKNOWN, 7, 0x0F, 0x0B, 0x07, 0xE5, 10, 11, 12};
-      uint8_t expected_result [] = {NTF_GROUP_SYSTEM, NTF_SYSTEM_TIME, NTF_SET, NTF_REPLY_NOK, 0, '\n'};
+      uint8_t command [] = {NTF_SYSTEM_TIME, NTF_SET, 7, 0x0F, 0x0B, 0x07, 0xE5, 10, 11, 12};
+      std::vector<uint8_t> exp = {NTF_SYSTEM_TIME, NTF_SET, 1, NTF_REPLY_NOK, '\n'};
       EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
-            {
-               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
-               for (uint8_t i = 0; i < size; i++)
-               {
-                  EXPECT_EQ(data[i], expected_result[i]);
-               }
-               return RETURN_OK;
-            }));
+      {
+         std::vector<uint8_t> rec(data, data + size);
+         EXPECT_THAT(rec, ContainerEq(exp));
+         return RETURN_OK;
+         return RETURN_OK;
+      }));
       EXPECT_CALL(*time_cnt_mock, time_set_utc(_)).WillOnce(Return(RETURN_NOK));
       ntfmgr_parse_request(1, (char*) command);
    }
 
    /**
-    * <b>scenario</b>: Get SYSTEM_TIME command received, but cannot to set time<br>
+    * <b>scenario</b>: Get SYSTEM_TIME command received, but cannot to get time<br>
     * <b>expected</b>: Correct NTF message sent.<br>
     * ************************************************
     */
    {
-      uint8_t command [] = {NTF_GROUP_SYSTEM, NTF_SYSTEM_TIME, NTF_GET, NTF_REPLY_UNKNOWN, 0};
-      uint8_t expected_result [] = {NTF_GROUP_SYSTEM, NTF_SYSTEM_TIME, NTF_GET, NTF_REPLY_NOK, 0, '\n'};
+      uint8_t command [] = {NTF_SYSTEM_TIME, NTF_GET, 0};
+      std::vector<uint8_t> exp = {NTF_SYSTEM_TIME, NTF_GET, 1, NTF_REPLY_NOK, '\n'};
       EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
-            {
-               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
-               for (uint8_t i = 0; i < size; i++)
-               {
-                  EXPECT_EQ(data[i], expected_result[i]);
-               }
-               return RETURN_OK;
-            }));
+      {
+         std::vector<uint8_t> rec(data, data + size);
+         EXPECT_THAT(rec, ContainerEq(exp));
+         return RETURN_OK;
+      }));
 
       EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(nullptr));
       ntfmgr_parse_request(1, (char*) command);
@@ -281,17 +258,14 @@ TEST_F(ntfmgrFixture, system_module_commands)
     * ************************************************
     */
    {
-      uint8_t command [] = {NTF_GROUP_SYSTEM, NTF_SYSTEM_TIME, NTF_GET, NTF_REPLY_UNKNOWN, 0};
-      uint8_t expected_result [] = {NTF_GROUP_SYSTEM, NTF_SYSTEM_TIME, NTF_GET, NTF_REPLY_OK, 7, 0x0F, 0x0B, 0x07, 0xE5, 10, 11, 12, '\n'};
+      uint8_t command [] = {NTF_SYSTEM_TIME, NTF_GET, 0};
+      std::vector<uint8_t> exp = {NTF_SYSTEM_TIME, NTF_GET, 8, NTF_REPLY_OK, 0x0F, 0x0B, 0x07, 0xE5, 10, 11, 12, '\n'};
       EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
-            {
-               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
-               for (uint8_t i = 0; i < size; i++)
-               {
-                  EXPECT_EQ(data[i], expected_result[i]);
-               }
-               return RETURN_OK;
-            }));
+      {
+        std::vector<uint8_t> rec(data, data + size);
+        EXPECT_THAT(rec, ContainerEq(exp));
+        return RETURN_OK;
+      }));
 
       TimeItem item = {15, 11, 2021, 10, 11, 12};
       EXPECT_CALL(*time_cnt_mock, time_get()).WillOnce(Return(&item));
@@ -310,17 +284,14 @@ TEST_F(ntfmgrFixture, relays_module_commands)
     * ************************************************
     */
    {
-      uint8_t command [] = {NTF_GROUP_RELAYS, NTF_RELAYS_STATE, NTF_SET, NTF_REPLY_UNKNOWN, 2, RELAY_BATHROOM_LED, RELAY_STATE_ON};
-      uint8_t expected_result [] = {NTF_GROUP_RELAYS, NTF_RELAYS_STATE, NTF_SET, NTF_REPLY_OK, 0, '\n'};
+      uint8_t command [] = {NTF_RELAYS_STATE, NTF_SET, 2, RELAY_BATHROOM_LED, RELAY_STATE_ON};
+      std::vector<uint8_t> exp = {NTF_RELAYS_STATE, NTF_SET, 1, NTF_REPLY_OK, '\n'};
       EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
-            {
-               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
-               for (uint8_t i = 0; i < size; i++)
-               {
-                  EXPECT_EQ(data[i], expected_result[i]);
-               }
-               return RETURN_OK;
-            }));
+      {
+        std::vector<uint8_t> rec(data, data + size);
+        EXPECT_THAT(rec, ContainerEq(exp));
+        return RETURN_OK;
+      }));
       EXPECT_CALL(*rel_mock, rel_set(RELAY_BATHROOM_LED, RELAY_STATE_ON)).WillOnce(Return(RETURN_OK));
       ntfmgr_parse_request(1, (char*) command);
    }
@@ -331,21 +302,18 @@ TEST_F(ntfmgrFixture, relays_module_commands)
     * ************************************************
     */
    {
-      uint8_t command [] = {NTF_GROUP_RELAYS, NTF_RELAYS_STATE_ALL, NTF_SET, NTF_REPLY_UNKNOWN, 10, RELAY_BATHROOM_AC, RELAY_STATE_ON,
-                                                                                               RELAY_STAIRCASE_AC, RELAY_STATE_ON,
-                                                                                               RELAY_BEDROOM_AC, RELAY_STATE_ON,
-                                                                                               RELAY_KITCHEN_AC, RELAY_STATE_ON,
-                                                                                               RELAY_WARDROBE_AC, RELAY_STATE_ON};
-      uint8_t expected_result [] = {NTF_GROUP_RELAYS, NTF_RELAYS_STATE_ALL, NTF_SET, NTF_REPLY_OK, 0, '\n'};
+      uint8_t command [] = {NTF_RELAYS_STATE_ALL, NTF_SET, 10, RELAY_BATHROOM_AC, RELAY_STATE_ON,
+                                                               RELAY_STAIRCASE_AC, RELAY_STATE_ON,
+                                                               RELAY_BEDROOM_AC, RELAY_STATE_ON,
+                                                               RELAY_KITCHEN_AC, RELAY_STATE_ON,
+                                                               RELAY_WARDROBE_AC, RELAY_STATE_ON};
+      std::vector<uint8_t> exp = {NTF_RELAYS_STATE_ALL, NTF_SET, 1, NTF_REPLY_OK, '\n'};
       EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
-            {
-               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
-               for (uint8_t i = 0; i < size; i++)
-               {
-                  EXPECT_EQ(data[i], expected_result[i]);
-               }
-               return RETURN_OK;
-            }));
+      {
+        std::vector<uint8_t> rec(data, data + size);
+        EXPECT_THAT(rec, ContainerEq(exp));
+        return RETURN_OK;
+      }));
       EXPECT_CALL(*rel_mock, rel_set(RELAY_BATHROOM_AC, RELAY_STATE_ON)).WillOnce(Return(RETURN_OK));
       EXPECT_CALL(*rel_mock, rel_set(RELAY_STAIRCASE_AC, RELAY_STATE_ON)).WillOnce(Return(RETURN_OK));
       EXPECT_CALL(*rel_mock, rel_set(RELAY_BEDROOM_AC, RELAY_STATE_ON)).WillOnce(Return(RETURN_OK));
@@ -360,17 +328,14 @@ TEST_F(ntfmgrFixture, relays_module_commands)
     * ************************************************
     */
    {
-      uint8_t command [] =         {NTF_GROUP_RELAYS, NTF_RELAYS_STATE, NTF_GET, NTF_REPLY_UNKNOWN, 1, RELAY_SOCKETS};
-      uint8_t expected_result [] = {NTF_GROUP_RELAYS, NTF_RELAYS_STATE, NTF_GET, NTF_REPLY_OK, 1, RELAY_STATE_ON, '\n'};
+      uint8_t command [] =         {NTF_RELAYS_STATE, NTF_GET, 1, RELAY_SOCKETS};
+      std::vector<uint8_t> exp =   {NTF_RELAYS_STATE, NTF_GET, 2, NTF_REPLY_OK, RELAY_STATE_ON, '\n'};
       EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
-            {
-               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
-               for (uint8_t i = 0; i < size; i++)
-               {
-                  EXPECT_EQ(data[i], expected_result[i]);
-               }
-               return RETURN_OK;
-            }));
+      {
+        std::vector<uint8_t> rec(data, data + size);
+        EXPECT_THAT(rec, ContainerEq(exp));
+        return RETURN_OK;
+      }));
       EXPECT_CALL(*rel_mock, rel_get(RELAY_SOCKETS)).WillOnce(Return(RELAY_STATE_ON));
       ntfmgr_parse_request(1, (char*) command);
    }
@@ -381,21 +346,18 @@ TEST_F(ntfmgrFixture, relays_module_commands)
     * ************************************************
     */
    {
-      uint8_t command [] =         {NTF_GROUP_RELAYS, NTF_RELAYS_STATE_ALL, NTF_GET, NTF_REPLY_UNKNOWN, 0};
-      uint8_t expected_result [] = {NTF_GROUP_RELAYS, NTF_RELAYS_STATE_ALL, NTF_GET, NTF_REPLY_OK, 10, RELAY_BATHROOM_AC, RELAY_STATE_ON,
+      uint8_t command [] =         {NTF_RELAYS_STATE_ALL, NTF_GET, 0};
+      std::vector<uint8_t> exp = {NTF_RELAYS_STATE_ALL, NTF_GET, 11, NTF_REPLY_OK, RELAY_BATHROOM_AC, RELAY_STATE_ON,
                                                                                                        RELAY_STAIRCASE_AC, RELAY_STATE_ON,
                                                                                                        RELAY_BEDROOM_AC, RELAY_STATE_ON,
                                                                                                        RELAY_KITCHEN_AC, RELAY_STATE_ON,
                                                                                                        RELAY_WARDROBE_AC, RELAY_STATE_ON, '\n'};
       EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
-            {
-               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
-               for (uint8_t i = 0; i < size; i++)
-               {
-                  EXPECT_EQ(data[i], expected_result[i]);
-               }
-               return RETURN_OK;
-            }));
+      {
+        std::vector<uint8_t> rec(data, data + size);
+        EXPECT_THAT(rec, ContainerEq(exp));
+        return RETURN_OK;
+      }));
       EXPECT_CALL(*rel_mock, rel_get_all(_)).WillOnce(Invoke([&](RELAY_STATUS* status)
             {
                   status[0].id = RELAY_BATHROOM_AC; status[0].state = RELAY_STATE_ON;
@@ -431,17 +393,14 @@ TEST_F(ntfmgrFixture, inputs_module_commands)
     * ************************************************
     */
    {
-      uint8_t command [] =         {NTF_GROUP_INPUTS, NTF_INPUTS_STATE, NTF_GET, NTF_REPLY_UNKNOWN, 1, INPUT_BEDROOM_AC};
-      uint8_t expected_result [] = {NTF_GROUP_INPUTS, NTF_INPUTS_STATE, NTF_GET, NTF_REPLY_OK, 1, INPUT_STATE_ACTIVE, '\n'};
+      uint8_t command [] =         {NTF_INPUTS_STATE, NTF_GET, 1, INPUT_BEDROOM_AC};
+      std::vector<uint8_t> exp = {NTF_INPUTS_STATE, NTF_GET, 2, NTF_REPLY_OK, INPUT_STATE_ACTIVE, '\n'};
       EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
-            {
-               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
-               for (uint8_t i = 0; i < size; i++)
-               {
-                  EXPECT_EQ(data[i], expected_result[i]);
-               }
-               return RETURN_OK;
-            }));
+      {
+         std::vector<uint8_t> rec(data, data + size);
+         EXPECT_THAT(rec, ContainerEq(exp));
+         return RETURN_OK;
+      }));
       EXPECT_CALL(*inp_mock, inp_get(INPUT_BEDROOM_AC)).WillOnce(Return(INPUT_STATE_ACTIVE));
       ntfmgr_parse_request(1, (char*) command);
 
@@ -453,41 +412,38 @@ TEST_F(ntfmgrFixture, inputs_module_commands)
     * ************************************************
     */
    {
-      uint8_t command [] =         {NTF_GROUP_INPUTS, NTF_INPUTS_STATE_ALL, NTF_GET, NTF_REPLY_UNKNOWN, 0};
-      uint8_t expected_result [] = {NTF_GROUP_INPUTS, NTF_INPUTS_STATE_ALL, NTF_GET, NTF_REPLY_OK, 10, INPUT_BATHROOM_AC, INPUT_STATE_ACTIVE,
-                                                                                                       INPUT_STAIRS_AC, INPUT_STATE_ACTIVE,
-                                                                                                       INPUT_BEDROOM_AC, INPUT_STATE_ACTIVE,
-                                                                                                       INPUT_KITCHEN_AC, INPUT_STATE_ACTIVE,
-                                                                                                       INPUT_WARDROBE_AC, INPUT_STATE_ACTIVE, '\n'};
+      uint8_t command [] =         {NTF_INPUTS_STATE_ALL, NTF_GET, 0};
+      std::vector<uint8_t> exp =   {NTF_INPUTS_STATE_ALL, NTF_GET, 11, NTF_REPLY_OK, INPUT_BATHROOM_AC, INPUT_STATE_ACTIVE,
+                                                                                     INPUT_STAIRS_AC,   INPUT_STATE_ACTIVE,
+                                                                                     INPUT_BEDROOM_AC,  INPUT_STATE_ACTIVE,
+                                                                                     INPUT_KITCHEN_AC,  INPUT_STATE_ACTIVE,
+                                                                                     INPUT_WARDROBE_AC, INPUT_STATE_ACTIVE, '\n'};
       EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
-            {
-               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
-               for (uint8_t i = 0; i < size; i++)
-               {
-                  EXPECT_EQ(data[i], expected_result[i]);
-               }
-               return RETURN_OK;
-            }));
+      {
+         std::vector<uint8_t> rec(data, data + size);
+         EXPECT_THAT(rec, ContainerEq(exp));
+         return RETURN_OK;
+      }));
       EXPECT_CALL(*inp_mock, inp_get_all(_)).WillOnce(Invoke([&](INPUT_STATUS* status)
-            {
-                  status[0].id = INPUT_BATHROOM_AC; status[0].state = INPUT_STATE_ACTIVE;
-                  status[1].id = INPUT_STAIRS_AC; status[1].state = INPUT_STATE_ACTIVE;
-                  status[2].id = INPUT_ENUM_COUNT; status[2].state = INPUT_STATE_ACTIVE;
-                  status[3].id = INPUT_BEDROOM_AC; status[3].state = INPUT_STATE_ACTIVE;
-                  status[4].id = INPUT_KITCHEN_AC; status[4].state = INPUT_STATE_ACTIVE;
-                  status[5].id = INPUT_WARDROBE_AC; status[5].state = INPUT_STATE_ACTIVE;
-                  status[6].id = INPUT_ENUM_COUNT; status[6].state = INPUT_STATE_ACTIVE;
-                  status[7].id = INPUT_ENUM_COUNT; status[7].state = INPUT_STATE_ACTIVE;
-                  status[8].id = INPUT_ENUM_COUNT; status[8].state = INPUT_STATE_ACTIVE;
-                  status[9].id = INPUT_ENUM_COUNT; status[9].state = INPUT_STATE_ACTIVE;
-                  status[10].id = INPUT_ENUM_COUNT; status[10].state = INPUT_STATE_ACTIVE;
-                  status[11].id = INPUT_ENUM_COUNT; status[11].state = INPUT_STATE_ACTIVE;
-                  status[12].id = INPUT_ENUM_COUNT; status[12].state = INPUT_STATE_ACTIVE;
-                  status[13].id = INPUT_ENUM_COUNT; status[13].state = INPUT_STATE_ACTIVE;
-                  status[14].id = INPUT_ENUM_COUNT; status[14].state = INPUT_STATE_ACTIVE;
-                  status[15].id = INPUT_ENUM_COUNT; status[15].state = INPUT_STATE_ACTIVE;
-                  return RETURN_OK;
-            }));
+      {
+            status[0].id = INPUT_BATHROOM_AC; status[0].state = INPUT_STATE_ACTIVE;
+            status[1].id = INPUT_STAIRS_AC; status[1].state = INPUT_STATE_ACTIVE;
+            status[2].id = INPUT_ENUM_COUNT; status[2].state = INPUT_STATE_ACTIVE;
+            status[3].id = INPUT_BEDROOM_AC; status[3].state = INPUT_STATE_ACTIVE;
+            status[4].id = INPUT_KITCHEN_AC; status[4].state = INPUT_STATE_ACTIVE;
+            status[5].id = INPUT_WARDROBE_AC; status[5].state = INPUT_STATE_ACTIVE;
+            status[6].id = INPUT_ENUM_COUNT; status[6].state = INPUT_STATE_ACTIVE;
+            status[7].id = INPUT_ENUM_COUNT; status[7].state = INPUT_STATE_ACTIVE;
+            status[8].id = INPUT_ENUM_COUNT; status[8].state = INPUT_STATE_ACTIVE;
+            status[9].id = INPUT_ENUM_COUNT; status[9].state = INPUT_STATE_ACTIVE;
+            status[10].id = INPUT_ENUM_COUNT; status[10].state = INPUT_STATE_ACTIVE;
+            status[11].id = INPUT_ENUM_COUNT; status[11].state = INPUT_STATE_ACTIVE;
+            status[12].id = INPUT_ENUM_COUNT; status[12].state = INPUT_STATE_ACTIVE;
+            status[13].id = INPUT_ENUM_COUNT; status[13].state = INPUT_STATE_ACTIVE;
+            status[14].id = INPUT_ENUM_COUNT; status[14].state = INPUT_STATE_ACTIVE;
+            status[15].id = INPUT_ENUM_COUNT; status[15].state = INPUT_STATE_ACTIVE;
+            return RETURN_OK;
+      }));
       ntfmgr_parse_request(1, (char*) command);
    }
 
@@ -505,17 +461,14 @@ TEST_F(ntfmgrFixture, fan_module_commands)
     * ************************************************
     */
    {
-      uint8_t command [] =         {NTF_GROUP_FAN, NTF_FAN_STATE, NTF_GET, NTF_REPLY_UNKNOWN, 0};
-      uint8_t expected_result [] = {NTF_GROUP_FAN, NTF_FAN_STATE, NTF_GET, NTF_REPLY_OK, 1, FAN_STATE_ON, '\n'};
+      uint8_t command [] =       {NTF_FAN_STATE, NTF_GET, 0};
+      std::vector<uint8_t> exp = {NTF_FAN_STATE, NTF_GET, 2, NTF_REPLY_OK, FAN_STATE_ON, '\n'};
       EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
-            {
-               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
-               for (uint8_t i = 0; i < size; i++)
-               {
-                  EXPECT_EQ(data[i], expected_result[i]);
-               }
-               return RETURN_OK;
-            }));
+      {
+         std::vector<uint8_t> rec(data, data + size);
+         EXPECT_THAT(rec, ContainerEq(exp));
+         return RETURN_OK;
+      }));
       EXPECT_CALL(*fan_mock, fan_get_state()).WillOnce(Return(FAN_STATE_ON));
       ntfmgr_parse_request(1, (char*) command);
 
@@ -527,33 +480,27 @@ TEST_F(ntfmgrFixture, fan_module_commands)
     * ************************************************
     */
    {
-      uint8_t command [] =         {NTF_GROUP_FAN, NTF_FAN_STATE, NTF_SET, NTF_REPLY_UNKNOWN, 1, FAN_STATE_ON};
-      uint8_t expected_result [] = {NTF_GROUP_FAN, NTF_FAN_STATE, NTF_SET, NTF_REPLY_NOK, 0, '\n'};
+      uint8_t command [] =       {NTF_FAN_STATE, NTF_SET, 1, FAN_STATE_ON};
+      std::vector<uint8_t> exp = {NTF_FAN_STATE, NTF_SET, 1, NTF_REPLY_NOK, '\n'};
       EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
-            {
-               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
-               for (uint8_t i = 0; i < size; i++)
-               {
-                  EXPECT_EQ(data[i], expected_result[i]);
-               }
-               return RETURN_OK;
-            }));
+      {
+         std::vector<uint8_t> rec(data, data + size);
+         EXPECT_THAT(rec, ContainerEq(exp));
+         return RETURN_OK;
+      }));
       EXPECT_CALL(*fan_mock, fan_start()).WillOnce(Return(RETURN_NOK));
       ntfmgr_parse_request(1, (char*) command);
    }
 
    {
-      uint8_t command [] =         {NTF_GROUP_FAN, NTF_FAN_STATE, NTF_SET, NTF_REPLY_UNKNOWN, 1, FAN_STATE_OFF};
-      uint8_t expected_result [] = {NTF_GROUP_FAN, NTF_FAN_STATE, NTF_SET, NTF_REPLY_NOK, 0, '\n'};
+      uint8_t command [] =       {NTF_FAN_STATE, NTF_SET, 1, FAN_STATE_OFF};
+      std::vector<uint8_t> exp = {NTF_FAN_STATE, NTF_SET, 1, NTF_REPLY_NOK, '\n'};
       EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
-            {
-               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
-               for (uint8_t i = 0; i < size; i++)
-               {
-                  EXPECT_EQ(data[i], expected_result[i]);
-               }
-               return RETURN_OK;
-            }));
+      {
+         std::vector<uint8_t> rec(data, data + size);
+         EXPECT_THAT(rec, ContainerEq(exp));
+         return RETURN_OK;
+      }));
       EXPECT_CALL(*fan_mock, fan_stop()).WillOnce(Return(RETURN_NOK));
       ntfmgr_parse_request(1, (char*) command);
    }
@@ -571,17 +518,14 @@ TEST_F(ntfmgrFixture, slm_module_commands)
     * ************************************************
     */
    {
-      uint8_t command [] =         {NTF_GROUP_SLM, NTF_SLM_STATE, NTF_GET, NTF_REPLY_UNKNOWN, 0};
-      uint8_t expected_result [] = {NTF_GROUP_SLM, NTF_SLM_STATE, NTF_GET, NTF_REPLY_OK, 1, SLM_STATE_ONGOING_OFF, '\n'};
+      uint8_t command [] =       {NTF_SLM_STATE, NTF_GET, 0};
+      std::vector<uint8_t> exp = {NTF_SLM_STATE, NTF_GET, 2, NTF_REPLY_OK, SLM_STATE_ONGOING_OFF, '\n'};
       EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
-            {
-               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
-               for (uint8_t i = 0; i < size; i++)
-               {
-                  EXPECT_EQ(data[i], expected_result[i]);
-               }
-               return RETURN_OK;
-            }));
+      {
+         std::vector<uint8_t> rec(data, data + size);
+         EXPECT_THAT(rec, ContainerEq(exp));
+         return RETURN_OK;
+      }));
       EXPECT_CALL(*slm_mock, slm_get_state()).WillOnce(Return(SLM_STATE_ONGOING_OFF));
       ntfmgr_parse_request(1, (char*) command);
 
@@ -593,17 +537,14 @@ TEST_F(ntfmgrFixture, slm_module_commands)
     * ************************************************
     */
    {
-      uint8_t command [] =         {NTF_GROUP_SLM, NTF_SLM_PROGRAM_ID, NTF_GET, NTF_REPLY_UNKNOWN, 0};
-      uint8_t expected_result [] = {NTF_GROUP_SLM, NTF_SLM_PROGRAM_ID, NTF_GET, NTF_REPLY_OK, 1, SLM_PROGRAM3, '\n'};
+      uint8_t command [] =       {NTF_SLM_PROGRAM_ID, NTF_GET, 0};
+      std::vector<uint8_t> exp = {NTF_SLM_PROGRAM_ID, NTF_GET, 2, NTF_REPLY_OK, SLM_PROGRAM3, '\n'};
       EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
-            {
-               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
-               for (uint8_t i = 0; i < size; i++)
-               {
-                  EXPECT_EQ(data[i], expected_result[i]);
-               }
-               return RETURN_OK;
-            }));
+      {
+         std::vector<uint8_t> rec(data, data + size);
+         EXPECT_THAT(rec, ContainerEq(exp));
+         return RETURN_OK;
+      }));
       EXPECT_CALL(*slm_mock, slm_get_current_program_id()).WillOnce(Return(SLM_PROGRAM3));
       ntfmgr_parse_request(1, (char*) command);
 
@@ -615,17 +556,14 @@ TEST_F(ntfmgrFixture, slm_module_commands)
     * ************************************************
     */
    {
-      uint8_t command [] = {NTF_GROUP_SLM, NTF_SLM_STATE, NTF_SET, NTF_REPLY_UNKNOWN, 1, SLM_STATE_ON};
-      uint8_t expected_result [] = {NTF_GROUP_SLM, NTF_SLM_STATE, NTF_SET, NTF_REPLY_OK, 0, '\n'};
+      uint8_t command [] =       {NTF_SLM_STATE, NTF_SET, 1, SLM_STATE_ON};
+      std::vector<uint8_t> exp = {NTF_SLM_STATE, NTF_SET, 1, NTF_REPLY_OK, '\n'};
       EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
-            {
-               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
-               for (uint8_t i = 0; i < size; i++)
-               {
-                  EXPECT_EQ(data[i], expected_result[i]);
-               }
-               return RETURN_OK;
-            }));
+      {
+         std::vector<uint8_t> rec(data, data + size);
+         EXPECT_THAT(rec, ContainerEq(exp));
+         return RETURN_OK;
+      }));
       EXPECT_CALL(*slm_mock, slm_start_program()).WillOnce(Return(RETURN_OK));
       ntfmgr_parse_request(1, (char*) command);
    }
@@ -636,17 +574,14 @@ TEST_F(ntfmgrFixture, slm_module_commands)
     * ************************************************
     */
    {
-      uint8_t command [] = {NTF_GROUP_SLM, NTF_SLM_PROGRAM_ID, NTF_SET, NTF_REPLY_UNKNOWN, 1, SLM_PROGRAM2};
-      uint8_t expected_result [] = {NTF_GROUP_SLM, NTF_SLM_PROGRAM_ID, NTF_SET, NTF_REPLY_OK, 0, '\n'};
+      uint8_t command [] =       {NTF_SLM_PROGRAM_ID, NTF_SET, 1, SLM_PROGRAM2};
+      std::vector<uint8_t> exp = {NTF_SLM_PROGRAM_ID, NTF_SET, 1, NTF_REPLY_OK, '\n'};
       EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
-            {
-               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
-               for (uint8_t i = 0; i < size; i++)
-               {
-                  EXPECT_EQ(data[i], expected_result[i]);
-               }
-               return RETURN_OK;
-            }));
+      {
+         std::vector<uint8_t> rec(data, data + size);
+         EXPECT_THAT(rec, ContainerEq(exp));
+         return RETURN_OK;
+      }));
       EXPECT_CALL(*slm_mock, slm_set_current_program_id(SLM_PROGRAM2)).WillOnce(Return(RETURN_OK));
       ntfmgr_parse_request(1, (char*) command);
    }
@@ -663,26 +598,23 @@ TEST_F(ntfmgrFixture, env_module_commands)
     * ************************************************
     */
    {
-      uint8_t command [] =         {NTF_GROUP_ENV, NTF_ENV_SENSOR_DATA, NTF_GET, NTF_REPLY_UNKNOWN, 1, ENV_OUTSIDE};
-      uint8_t expected_result [] = {NTF_GROUP_ENV, NTF_ENV_SENSOR_DATA, NTF_GET, NTF_REPLY_OK, 5, DHT_TYPE_DHT22, 10, 20, 30, 40, '\n'};
+      uint8_t command [] =       {NTF_ENV_SENSOR_DATA, NTF_GET, 1, ENV_OUTSIDE};
+      std::vector<uint8_t> exp = {NTF_ENV_SENSOR_DATA, NTF_GET, 6, NTF_REPLY_OK, DHT_TYPE_DHT22, 10, 20, 30, 40, '\n'};
       EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
-            {
-               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
-               for (uint8_t i = 0; i < size; i++)
-               {
-                  EXPECT_EQ(data[i], expected_result[i]);
-               }
-               return RETURN_OK;
-            }));
+      {
+         std::vector<uint8_t> rec(data, data + size);
+         EXPECT_THAT(rec, ContainerEq(exp));
+         return RETURN_OK;
+      }));
       EXPECT_CALL(*env_mock, env_get_sensor_data(ENV_OUTSIDE, _)).WillOnce(Invoke([&](ENV_ITEM_ID id, DHT_SENSOR* buffer) -> RET_CODE
-            {
-               buffer->type = DHT_TYPE_DHT22;
-               buffer->data.hum_h = 10;
-               buffer->data.hum_l = 20;
-               buffer->data.temp_h = 30;
-               buffer->data.temp_l = 40;
-               return RETURN_OK;
-            }));
+      {
+         buffer->type = DHT_TYPE_DHT22;
+         buffer->data.hum_h = 10;
+         buffer->data.hum_l = 20;
+         buffer->data.temp_h = 30;
+         buffer->data.temp_l = 40;
+         return RETURN_OK;
+      }));
       ntfmgr_parse_request(1, (char*) command);
    }
 
@@ -692,17 +624,14 @@ TEST_F(ntfmgrFixture, env_module_commands)
     * ************************************************
     */
    {
-      uint8_t command [] =         {NTF_GROUP_ENV, NTF_ENV_SENSOR_ERROR, NTF_GET, NTF_REPLY_UNKNOWN, 1, ENV_OUTSIDE};
-      uint8_t expected_result [] = {NTF_GROUP_ENV, NTF_ENV_SENSOR_ERROR, NTF_GET, NTF_REPLY_OK, 2, 20, 30, '\n'};
+      uint8_t command [] =       {NTF_ENV_SENSOR_ERROR, NTF_GET, 1, ENV_OUTSIDE};
+      std::vector<uint8_t> exp = {NTF_ENV_SENSOR_ERROR, NTF_GET, 3, NTF_REPLY_OK, 20, 30, '\n'};
       EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
-            {
-               EXPECT_EQ(size, (sizeof(expected_result)/sizeof(expected_result[0])));
-               for (uint8_t i = 0; i < size; i++)
-               {
-                  EXPECT_EQ(data[i], expected_result[i]);
-               }
-               return RETURN_OK;
-            }));
+      {
+         std::vector<uint8_t> rec(data, data + size);
+         EXPECT_THAT(rec, ContainerEq(exp));
+         return RETURN_OK;
+      }));
       ENV_ERROR_RATE sensor_error = {30, 20};
       EXPECT_CALL(*env_mock, env_get_error_stats(ENV_OUTSIDE)).WillOnce(Return(sensor_error));
       ntfmgr_parse_request(1, (char*) command);

@@ -58,11 +58,6 @@
 #define SH_USE_SLM
 #define SH_USE_CMD_PARSER
 
-void dummy_task()
-{
-   logger_send(LOG_ERROR, "", "S T R I N G S T R I N G S T R I N G S T R I N G S T R I N G");
-}
-
 void sm_setup_int_priorities()
 {
    NVIC_SetPriorityGrouping(0x05);
@@ -91,7 +86,6 @@ int main(void)
    ts_init();
 	time_init();
 	sch_initialize();
-//	sch_subscribe_and_set(&dummy_task, TASKPRIO_LOW, 10, TASKSTATE_RUNNING, TASKTYPE_PERIODIC);
 
 	/* BTengine is module shared between logger and command parser, therefore is always initialized */
 	BT_Config config = {UART_COMMON_BAUD_RATE, UART_COMMON_BUFFER_SIZE, UART_COMMON_STRING_SIZE};
