@@ -1,4 +1,4 @@
-if (NOT UNIT_TESTS)
+if (STM)
 
 add_library(command_parser STATIC
 		source/command_parser.c
@@ -13,9 +13,9 @@ target_link_libraries(command_parser PUBLIC
 		stairs_led_module
 		bathroom_fan
 )
+endif()
 
-
-else()
+if (UNIT_TESTS)
   
 add_subdirectory(test)
   

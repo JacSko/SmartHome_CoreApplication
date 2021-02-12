@@ -1,4 +1,4 @@
-if (NOT UNIT_TESTS)
+if (STM)
 
 add_library(logger STATIC
         source/Logger.c
@@ -13,8 +13,9 @@ target_link_libraries(logger PUBLIC
         bt_engine
         time_counter
 )
+endif()
 
-else ()
+if (UNIT_TESTS)
 
     add_subdirectory(test)
 

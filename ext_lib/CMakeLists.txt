@@ -1,4 +1,4 @@
-if (NOT UNIT_TESTS)
+if (STM)
 
 add_library(STM_HEADERS INTERFACE)
 target_include_directories(STM_HEADERS INTERFACE
@@ -6,8 +6,9 @@ target_include_directories(STM_HEADERS INTERFACE
 							CMSIS/core
 							StdPeriph_Driver/inc
 )
+endif()
 
-else()
+if(UNIT_TESTS)
 
 add_library(STM_HEADERS STATIC
             CMSIS/stubs/device/stm32f4xx.c
@@ -19,5 +20,4 @@ target_include_directories(STM_HEADERS INTERFACE
 )
 
 add_subdirectory(googletest)
-
 endif()

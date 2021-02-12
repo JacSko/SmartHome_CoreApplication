@@ -1,4 +1,4 @@
-if (NOT UNIT_TESTS)
+if (STM)
 
 add_library(stairs_led_module STATIC
         source/stairs_led_module.c
@@ -15,8 +15,9 @@ target_link_libraries(stairs_led_module PUBLIC
         inputs_board
         SmartHomeTypes
 )
+endif()
 
-else ()
+if (UNIT_TESTS)
 
     add_subdirectory(test)
 

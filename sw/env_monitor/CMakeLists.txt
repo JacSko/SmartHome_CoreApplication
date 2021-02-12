@@ -1,4 +1,4 @@
-if (NOT UNIT_TESTS)
+if (STM)
 
 add_library(env_monitor STATIC
         source/env_monitor.c
@@ -33,8 +33,9 @@ target_link_libraries(bathroom_fan PUBLIC
 )
 
 ###############################################
+endif()
 
-else ()
+if (UNIT_TESTS)
 
     add_subdirectory(test)
 

@@ -1,4 +1,4 @@
-if (NOT UNIT_TESTS)
+if (STM)
 
 ###############################
 # 	  STM targets here
@@ -36,9 +36,9 @@ target_link_libraries(relays_board PUBLIC
 		i2c_driver
 		SmartHomeTypes
 )
+endif()
 
-
-else()
+if (UNIT_TESTS)
 
 	add_subdirectory(test)
 

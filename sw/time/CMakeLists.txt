@@ -1,4 +1,4 @@
-if (NOT UNIT_TESTS)
+if (STM)
 
 add_library(time_counter STATIC
         source/time_counter.c
@@ -26,8 +26,9 @@ target_link_libraries(system_timestamp PUBLIC
         STM_HEADERS
         gpio_config
 )
+endif()
 
-else ()
+if (UNIT_TESTS)
 
     add_subdirectory(test)
     

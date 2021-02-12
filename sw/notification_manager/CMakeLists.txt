@@ -1,4 +1,4 @@
-if (NOT UNIT_TESTS)
+if (STM)
 
 add_library(notification_manager STATIC
         source/notification_manager.c
@@ -16,8 +16,9 @@ target_link_libraries(notification_manager PUBLIC
 		stairs_led_module
 		time_counter
 )
+endif()
 
-else ()
+if (UNIT_TESTS)
 
     add_subdirectory(test)
 

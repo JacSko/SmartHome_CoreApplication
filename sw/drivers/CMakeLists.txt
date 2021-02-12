@@ -1,4 +1,4 @@
-if (NOT UNIT_TESTS)
+if (STM)
 
 ###############################
 # 	  STM targets here
@@ -107,10 +107,9 @@ target_link_libraries(i2c_driver PUBLIC
 		logger
 		task_scheduler
 )
+endif()
 
-
-
-else()
+if (UNIT_TESTS)
 
 	add_subdirectory(test)
 
