@@ -15,7 +15,7 @@ The main responsibility of this part of project is to ensure informations about 
 
 ## Details
 This module is not able to present gathered data.
-There is another project (LINK DO RASPI PORJEKTU) responsible for presenting received data.
+There is another project [SmartHome_RPi](https://github.com/JacSko/SmartHome_RPi) responsible for presenting received data.
 The communication with CoreApplication can be done in two ways:
 - **Over WiFi** - ESP01 module is onboard, on startup it creates TCP server, where the RaspberryPi can connects and gets the data. Messages are send in raw bytes mode (for protocol specification see notification_manager.h)
 - **Over Bluetooth** - this channel is desgined mainly to provide debug traces, but there are several commands that can be issued in string-based, human readable form (see doc/ dirextory for documntation details)
