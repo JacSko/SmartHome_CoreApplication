@@ -5,7 +5,7 @@ The idea of the project is to gain simple control over home appliance (like ligh
 Main board was desgined to use STM32F411CEU MCU. It communicates with other boards (list below) using different interfaces (I2C, OneWire, USART).
 The main responsibility of this part of project is to ensure informations about current temperature and humidity and appliance state.
 
-***(put 3d model here)
+![github_core_diagram](https://user-images.githubusercontent.com/47041583/107790916-a00f4300-6d53-11eb-9905-4ffcf12df80a.png)
 
 **Main board is connected with:**
 - **Relays board** - equipped with 16 relays, supports either 12VDC and 230VAC switching. Board allows to e.g control light state in all rooms. Connection over I2C bus.
@@ -23,6 +23,8 @@ The communication with CoreApplication can be done in two ways:
 Project build is managed by CMake.
 Core application was prepared using CMSIS bare-metal library without dependencies to external libraries (only appropriate header files are required, but those are part of repository).
 Project contains also unit tests, where the original MCU header files has been stubbed to allow compilation.
+
+![github_core_sw_diagram](https://user-images.githubusercontent.com/47041583/107791094-ce8d1e00-6d53-11eb-9a1d-f7ec65025457.png)
 
 ## Building
 ### Building for target
@@ -62,3 +64,7 @@ HTML report will be opened automatically in Firefox, but it can be also found:
 build_ut/html/coverage.html
 ```
 ## TODO
+- [ ] EEPROM handling
+- [ ] Settings rework to allow read/write settings from EEPROM
+- [ ] ADC driver (power supply voltage, light intensity)
+- [ ] Flashing over UART (from RaspberryPi module)
