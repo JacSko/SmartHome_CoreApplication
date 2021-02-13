@@ -46,10 +46,10 @@
 
 //#define SH_LOGS_OVER_WIFI
 #define SH_USE_RELAYS
-#define SH_USE_INPUTS
+//#define SH_USE_INPUTS
 #define SH_USE_ENV
 #define SH_USE_FAN
-#define SH_USE_SLM
+//#define SH_USE_SLM
 #define SH_USE_CMD_PARSER
 
 void sm_setup_int_priorities()
@@ -115,6 +115,7 @@ int main(void)
    logger_set_group_state(LOG_RELAYS, LOGGER_RELAYS_GROUP_STATE);
    logger_set_group_state(LOG_ENV, LOGGER_ENV_GROUP_STATE);
    logger_set_group_state(LOG_SLM, LOGGER_SLM_GROUP_STATE);
+   logger_set_group_state(LOG_FAN, LOGGER_SLM_GROUP_STATE);
    if (logger_register_sender(&btengine_send_string) != RETURN_OK)
    {
       logger_send(LOG_ERROR, __func__, "Cannot register BT sender!");
@@ -201,9 +202,9 @@ int main(void)
    env_cfg.measure_running = ENV_LOOP_MEASURE_RUNNING;
    env_cfg.max_cs_rate = ENV_MAX_CHECKSUM_RATE;
    env_cfg.max_nr_rate = ENV_MAX_NORESPONSE_RATE;
-   for (uint8_t i = 1; i < (sizeof(ENV_MATCH_CONFIG)/sizeof(ENV_MATCH_CONFIG[0])); i++)
+   for (uint8_t i = 0; i < (sizeof(ENV_MATCH_CONFIG)/sizeof(ENV_MATCH_CONFIG[0])); i++)
    {
-      env_cfg.items[0].env_id = ENV_MATCH_CONFIG[i].env_id; env_cfg.items[0].dht_id = ENV_MATCH_CONFIG[i].dht_id;
+      env_cfg.items[i].env_id = ENV_MATCH_CONFIG[i].env_id; env_cfg.items[i].dht_id = ENV_MATCH_CONFIG[i].dht_id;
    }
    if (env_initialize(&env_cfg) != RETURN_OK)
    {
@@ -230,15 +231,16 @@ int main(void)
    slm_cfg.address = SLM_I2C_ADDRESS;
    slm_cfg.off_effect_mode = SLM_OFF_EFFECT;
    slm_cfg.program_id = SLM_DEFAULT_PROGRAM_ID;
-
-   slm_initialize(&slm_cfg);
+   if(slm_initialize(&slm_cfg) != RETURN_OK)
+   {
+      logger_send(LOG_ERROR, __func__, "Cannot initialize SLM module");
+   }
 #endif
 
 
 #ifdef SH_USE_NTF
    ntfmgr_init();
 #endif
-
 
    logger_send(LOG_ERROR, __func__, "Booting completed!");
 

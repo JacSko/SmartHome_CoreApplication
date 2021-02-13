@@ -1,7 +1,15 @@
 #ifndef SYSTEM_CONFIG_VALLUES_H_
 #define SYSTEM_CONFIG_VALLUES_H_
 #include "stdint.h"
-#include "relays_board.h"
+#include "relays_types.h"
+#include "inputs_types.h"
+#include "stairs_led_types.h"
+
+#define RELAYS_RELAY_COUNT 16
+#define INPUTS_INPUT_COUNT 16
+#define ENV_DEFAULT_SENSORS_COUNT 6
+
+
 
 /* UART settings */
 static uint16_t UART_COMMON_BUFFER_SIZE = 2048;
@@ -71,15 +79,16 @@ struct ENV_MATCH
    DHT_SENSOR_ID dht_id;
    ENV_ITEM_ID env_id;
 };
+
 static uint8_t ENV_LOOP_MEASURE_RUNNING = 1;
 static uint8_t ENV_MAX_CHECKSUM_RATE = 99;
 static uint8_t ENV_MAX_NORESPONSE_RATE = 99;
-static struct ENV_MATCH ENV_MATCH_CONFIG [] = {{DHT_SENSOR1, ENV_OUTSIDE},
-                                               {DHT_SENSOR2, ENV_WARDROBE},
-                                               {DHT_SENSOR3, ENV_BEDROOM},
-                                               {DHT_SENSOR4, ENV_BATHROOM},
-                                               {DHT_SENSOR5, ENV_KITCHEN},
-                                               {DHT_SENSOR6, ENV_STAIRS}};
+static struct ENV_MATCH ENV_MATCH_CONFIG [] = {{DHT_SENSOR1, ENV_BEDROOM},
+                                               {DHT_SENSOR2, ENV_BATHROOM},
+                                               {DHT_SENSOR3, ENV_OUTSIDE},
+                                               {DHT_SENSOR4, ENV_WARDROBE},
+                                               {DHT_SENSOR5, ENV_STAIRS},
+                                               {DHT_SENSOR6, ENV_KITCHEN}};
 
 /* FAN settings*/
 static uint8_t FAN_HUMIDITY_THRESHOLD = 70;
