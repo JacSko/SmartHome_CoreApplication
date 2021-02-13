@@ -82,7 +82,9 @@ if (STM)
 		ext_lib/system_stm32f4xx.c
 		ext_lib/syscalls.c
 		)
-	
+	target_include_directories(${PROJECT_NAME}.elf PUBLIC
+		sw/config
+	)
 	target_link_libraries(${PROJECT_NAME}.elf PUBLIC
 		STM_HEADERS
 		uart_engine

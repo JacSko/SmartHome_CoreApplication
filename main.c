@@ -15,6 +15,7 @@
 #include "bathroom_fan.h"
 #include "system_timestamp.h"
 #include "notification_manager.h"
+#include "system_config_values.h"
 /**
  * 	System config:
  * 	HSI - 16MHz
@@ -36,13 +37,6 @@
  *
  */
 
-#define UART_COMMON_BUFFER_SIZE 2048
-#define UART_COMMON_STRING_SIZE 1024
-#define UART_COMMON_BAUD_RATE 115200
-#define INPUTS_I2C_ADDRESS 0x48
-#define RELAYS_I2C_ADDRESS 0x48
-#define ENV_MEASUREMENT_RUNNING 0x01
-
 /* global settings */
 #define SH_USE_WIFI
 #define SH_USE_NTF
@@ -51,8 +45,8 @@
 #define SH_USE_LOGGER
 
 //#define SH_LOGS_OVER_WIFI
-//#define SH_USE_RELAYS
-//#define SH_USE_INPUTS
+#define SH_USE_RELAYS
+#define SH_USE_INPUTS
 #define SH_USE_ENV
 #define SH_USE_FAN
 #define SH_USE_SLM
@@ -100,6 +94,11 @@ int main(void)
       logger_send(LOG_ERROR, __func__, "Cannot initialize DHT driver");
    }
 
+   /* set timeouts for I2C and DHT */
+   i2c_set_timeout(I2C_TRANSACTION_TIMEOUT_MS);
+   dht_set_timeout(DHT_TRANSACTION_TIMEOUT_MS);
+
+
 #ifdef SH_USE_LOGGER
    if (logger_initialize(UART_COMMON_STRING_SIZE) != RETURN_OK)
    {
@@ -107,14 +106,15 @@ int main(void)
    }
    logger_enable();
    logger_send(LOG_DEBUG, __func__, "Booting up!");
-   logger_set_group_state(LOG_DHT_DRV, LOGGER_GROUP_ENABLE);
-   logger_set_group_state(LOG_WIFI_MANAGER, LOGGER_GROUP_ENABLE);
-   logger_set_group_state(LOG_WIFI_DRIVER, LOGGER_GROUP_ENABLE);
-   logger_set_group_state(LOG_I2C_DRV, LOGGER_GROUP_ENABLE);
-   logger_set_group_state(LOG_INPUTS, LOGGER_GROUP_ENABLE);
-   logger_set_group_state(LOG_RELAYS, LOGGER_GROUP_ENABLE);
-   logger_set_group_state(LOG_ENV, LOGGER_GROUP_ENABLE);
-   logger_set_group_state(LOG_SLM, LOGGER_GROUP_ENABLE);
+   logger_set_group_state(LOG_DEBUG, LOGGER_DEBUG_GROUP_STATE);
+   logger_set_group_state(LOG_DHT_DRV, LOGGER_DHTDRV_GROUP_STATE);
+   logger_set_group_state(LOG_WIFI_MANAGER, LOGGER_WIFIMGR_GROUP_STATE);
+   logger_set_group_state(LOG_WIFI_DRIVER, LOGGER_WIFIDRV_GROUP_STATE);
+   logger_set_group_state(LOG_I2C_DRV, LOGGER_I2CDRV_GROUP_STATE);
+   logger_set_group_state(LOG_INPUTS, LOGGER_INPUTS_GROUP_STATE);
+   logger_set_group_state(LOG_RELAYS, LOGGER_RELAYS_GROUP_STATE);
+   logger_set_group_state(LOG_ENV, LOGGER_ENV_GROUP_STATE);
+   logger_set_group_state(LOG_SLM, LOGGER_SLM_GROUP_STATE);
    if (logger_register_sender(&btengine_send_string) != RETURN_OK)
    {
       logger_send(LOG_ERROR, __func__, "Cannot register BT sender!");
@@ -127,6 +127,8 @@ int main(void)
 #endif
 #endif
    logger_send(LOG_ERROR, __func__, "Booting started!");
+
+
 #ifdef SH_USE_WIFI
    WIFI_UART_Config wifi_cfg = {UART_COMMON_BAUD_RATE, UART_COMMON_BUFFER_SIZE, UART_COMMON_STRING_SIZE};
    if (wifimgr_initialize(&wifi_cfg) != RETURN_OK)
@@ -134,6 +136,7 @@ int main(void)
       logger_send(LOG_ERROR, __func__, "Cannot initiailize wifi manager!");
    }
 #endif
+
 
 #ifdef SH_USE_CMD_PARSER
    cmd_register_sender(&btengine_send_string);
@@ -144,6 +147,7 @@ int main(void)
 	}
 #endif
 
+
 #ifdef SH_USE_INPUTS
 	INPUTS_CONFIG inp_cfg;
 	for (uint8_t i = 0; i < INPUTS_MAX_INPUT_LINES; i++)
@@ -152,21 +156,21 @@ int main(void)
 	   inp_cfg.items[i].input_no = 0;
 	}
 	inp_cfg.address = INPUTS_I2C_ADDRESS;
-	inp_cfg.items[0].item = INPUT_WARDROBE_LED; inp_cfg.items[0].input_no = 1;
-	inp_cfg.items[1].item = INPUT_BATHROOM_LED; inp_cfg.items[1].input_no = 2;
-	inp_cfg.items[2].item = INPUT_SOCKETS; inp_cfg.items[2].input_no = 9;
-	inp_cfg.items[3].item = INPUT_BEDROOM_AC; inp_cfg.items[3].input_no = 10;
-   inp_cfg.items[4].item = INPUT_WARDROBE_AC; inp_cfg.items[4].input_no = 11;
-   inp_cfg.items[5].item = INPUT_KITCHEN_AC; inp_cfg.items[5].input_no = 12;
-   inp_cfg.items[6].item = INPUT_BATHROOM_AC; inp_cfg.items[6].input_no = 13;
-   inp_cfg.items[7].item = INPUT_STAIRS_AC; inp_cfg.items[7].input_no = 14;
-   inp_cfg.items[8].item = INPUT_STAIRS_SENSOR; inp_cfg.items[8].input_no = 15;
-   inp_cfg.items[9].item = INPUT_KITCHEN_WALL; inp_cfg.items[9].input_no = 16;
+   uint8_t inp_arr_idx = 0;
+   for (uint8_t i = 1; i < (sizeof(INPUTS_MATCH_CONFIG)/sizeof(INPUTS_MATCH_CONFIG[0])); i++)
+   {
+      if (INPUTS_MATCH_CONFIG[i] != INPUT_ENUM_COUNT)
+      {
+         inp_cfg.items[inp_arr_idx].item = INPUTS_MATCH_CONFIG[i]; inp_cfg.items[inp_arr_idx].input_no = i;
+         inp_arr_idx++;
+      }
+   }
    if (inp_initialize(&inp_cfg) != RETURN_OK)
    {
       logger_send(LOG_ERROR, __func__, "Cannot initialize Inputs board");
    }
 #endif
+
 
 #ifdef SH_USE_RELAYS
    RELAYS_CONFIG rel_cfg;
@@ -176,65 +180,66 @@ int main(void)
       rel_cfg.items[i].relay_no = 0;
    }
    rel_cfg.address = RELAYS_I2C_ADDRESS;
-   rel_cfg.items[0].id = RELAY_WARDROBE_LED; rel_cfg.items[0].relay_no = 1;
-   rel_cfg.items[1].id = RELAY_BATHROOM_LED; rel_cfg.items[1].relay_no = 2;
-   rel_cfg.items[2].id = RELAY_STAIRCASE_LED; rel_cfg.items[2].relay_no = 8;
-   rel_cfg.items[3].id = RELAY_SOCKETS; rel_cfg.items[3].relay_no = 9;
-   rel_cfg.items[4].id = RELAY_BATHROOM_FAN; rel_cfg.items[4].relay_no = 10;
-   rel_cfg.items[5].id = RELAY_KITCHEN_WALL; rel_cfg.items[5].relay_no = 11;
-   rel_cfg.items[6].id = RELAY_STAIRCASE_AC; rel_cfg.items[6].relay_no = 12;
-   rel_cfg.items[7].id = RELAY_BATHROOM_AC; rel_cfg.items[7].relay_no = 13;
-   rel_cfg.items[8].id = RELAY_KITCHEN_AC; rel_cfg.items[8].relay_no = 14;
-   rel_cfg.items[9].id = RELAY_BEDROOM_AC; rel_cfg.items[9].relay_no = 15;
-   rel_cfg.items[10].id = RELAY_WARDROBE_AC; rel_cfg.items[10].relay_no = 16;
+   uint8_t rel_arr_idx = 0;
+   for (uint8_t i = 1; i < (sizeof(RELAYS_MATCH_CONFIG)/sizeof(RELAYS_MATCH_CONFIG[0])); i++)
+   {
+      if (RELAYS_MATCH_CONFIG[i] != RELAY_ID_ENUM_MAX)
+      {
+         rel_cfg.items[rel_arr_idx].id = RELAYS_MATCH_CONFIG[i]; rel_cfg.items[rel_arr_idx].relay_no = i;
+         rel_arr_idx++;
+      }
+   }
    if (rel_initialize(&rel_cfg) != RETURN_OK)
    {
       logger_send(LOG_ERROR, __func__, "Cannot initialize Relays board");
    }
-
 #endif
+
 
 #ifdef SH_USE_ENV
    ENV_CONFIG env_cfg;
-   env_cfg.measure_running = ENV_MEASUREMENT_RUNNING;
-   env_cfg.max_cs_rate = 90;
-   env_cfg.max_nr_rate = 90;
-   env_cfg.items[0].env_id = ENV_OUTSIDE; env_cfg.items[0].dht_id = DHT_SENSOR1;
-   env_cfg.items[1].env_id = ENV_WARDROBE; env_cfg.items[1].dht_id = DHT_SENSOR2;
-   env_cfg.items[2].env_id = ENV_BEDROOM; env_cfg.items[2].dht_id = DHT_SENSOR3;
-   env_cfg.items[3].env_id = ENV_BATHROOM; env_cfg.items[3].dht_id = DHT_SENSOR4;
-   env_cfg.items[4].env_id = ENV_KITCHEN; env_cfg.items[4].dht_id = DHT_SENSOR5;
-   env_cfg.items[5].env_id = ENV_STAIRS; env_cfg.items[5].dht_id = DHT_SENSOR6;
+   env_cfg.measure_running = ENV_LOOP_MEASURE_RUNNING;
+   env_cfg.max_cs_rate = ENV_MAX_CHECKSUM_RATE;
+   env_cfg.max_nr_rate = ENV_MAX_NORESPONSE_RATE;
+   for (uint8_t i = 1; i < (sizeof(ENV_MATCH_CONFIG)/sizeof(ENV_MATCH_CONFIG[0])); i++)
+   {
+      env_cfg.items[0].env_id = ENV_MATCH_CONFIG[i].env_id; env_cfg.items[0].dht_id = ENV_MATCH_CONFIG[i].dht_id;
+   }
    if (env_initialize(&env_cfg) != RETURN_OK)
    {
       logger_send(LOG_ERROR, __func__, "Cannot initialize ENV module");
    }
 #endif
 
+
 #ifdef SH_USE_FAN
    FAN_CONFIG fan_cfg;
-   fan_cfg.fan_humidity_threshold = 70;
-   fan_cfg.fan_threshold_hysteresis = 5;
-   fan_cfg.max_working_time_s = 7200;
-   fan_cfg.min_working_time_s = 600;
+   fan_cfg.fan_humidity_threshold = FAN_HUMIDITY_THRESHOLD;
+   fan_cfg.fan_threshold_hysteresis = FAN_THRESHOLD_HYSTERESIS;
+   fan_cfg.max_working_time_s = FAN_MAX_WORKING_TIME_S;
+   fan_cfg.min_working_time_s = FAN_MIN_WORKING_TIME_S;
    if (fan_initialize(&fan_cfg) != RETURN_OK)
    {
       logger_send(LOG_ERROR, __func__, "Cannot initialize FAN module");
    }
 #endif
 
+
 #ifdef SH_USE_SLM
    SLM_CONFIG slm_cfg;
-   slm_cfg.address = 0x48;
-   slm_cfg.off_effect_mode = SLM_OFF_EFFECT_ENABLED;
-   slm_cfg.program_id = SLM_PROGRAM1;
+   slm_cfg.address = SLM_I2C_ADDRESS;
+   slm_cfg.off_effect_mode = SLM_OFF_EFFECT;
+   slm_cfg.program_id = SLM_DEFAULT_PROGRAM_ID;
 
    slm_initialize(&slm_cfg);
 #endif
 
+
 #ifdef SH_USE_NTF
    ntfmgr_init();
 #endif
+
+
    logger_send(LOG_ERROR, __func__, "Booting completed!");
 
 	while (1)
