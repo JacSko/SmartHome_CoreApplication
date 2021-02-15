@@ -110,6 +110,16 @@ void env_deinitialize()
    env_module.selected_sensor = NULL;
 
 }
+RET_CODE env_get_config(ENV_CONFIG* buffer)
+{
+   RET_CODE result = RETURN_NOK;
+   if (buffer)
+   {
+      *buffer = env_module.cfg;
+      result = RETURN_OK;
+   }
+   return result;
+}
 void env_on_timeout()
 {
    logger_send(LOG_ENV, __func__, "ENV timeout");

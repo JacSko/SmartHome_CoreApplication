@@ -131,6 +131,26 @@ TEST(envInitialization, env_initialization_tests)
    EXPECT_CALL(*sch_mock, sch_subscribe_and_set(_, _, _, _, _)).WillOnce(Return(RETURN_OK));
    EXPECT_EQ(RETURN_OK, env_initialize(&cfg));
 
+   /**
+    * <b>scenario</b>: Get config when no buffer provided.<br>
+    * <b>expected</b>: RETURN_NOK returned.<br>
+    * ************************************************
+    */
+   EXPECT_EQ(RETURN_NOK, env_get_config(nullptr));
+
+   /**
+    * <b>scenario</b>: Get ENV config.<br>
+    * <b>expected</b>: RETURN_OK returned.<br>
+    * ************************************************
+    */
+   ENV_CONFIG result = {};
+   EXPECT_EQ(RETURN_OK, env_get_config(&result));
+
+   EXPECT_EQ(result.measure_running, 0x01);
+   EXPECT_EQ(result.max_cs_rate, 99);
+   EXPECT_EQ(result.max_nr_rate, 99);
+
+
    mock_sch_deinit();
    mock_logger_deinit();
    mock_dht_deinit();

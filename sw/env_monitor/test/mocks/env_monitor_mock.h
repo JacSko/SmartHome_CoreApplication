@@ -7,6 +7,7 @@
 struct envMonitorMock
 {
 	MOCK_METHOD1(env_initialize, RET_CODE(const ENV_CONFIG*));
+	MOCK_METHOD1(env_get_config, RET_CODE(ENV_CONFIG*));
 	MOCK_METHOD0(env_deinitialize, void());
 	MOCK_METHOD2(env_read_sensor, RET_CODE(ENV_ITEM_ID, DHT_SENSOR*));
 	MOCK_METHOD2(env_get_sensor_data, RET_CODE(ENV_ITEM_ID, DHT_SENSOR*));
@@ -37,6 +38,10 @@ RET_CODE env_initialize(const ENV_CONFIG* cfg)
 void env_deinitialize()
 {
    env_mock->env_deinitialize();
+}
+RET_CODE env_get_config(ENV_CONFIG* cfg)
+{
+   return env_mock->env_get_config(cfg);
 }
 RET_CODE env_read_sensor(ENV_ITEM_ID id, DHT_SENSOR* buffer)
 {

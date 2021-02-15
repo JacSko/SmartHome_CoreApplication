@@ -71,6 +71,12 @@ RET_CODE env_initialize(const ENV_CONFIG* cfg);
  */
 void env_deinitialize();
 /**
+ * @brief Get ENV module config.
+ * @param[out] buffer - Place where the config will be written
+ * @return See RETURN_CODES.
+ */
+RET_CODE env_get_config(ENV_CONFIG* buffer);
+/**
  * @brief Read data from defined sensor.
  * @param[in] id - the id of the sensor to be read
  * @param[out] buffer - place, where data will be written
