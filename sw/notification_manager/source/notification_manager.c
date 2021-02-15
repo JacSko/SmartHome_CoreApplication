@@ -38,6 +38,7 @@ typedef struct
  * =============================*/
 RET_CODE ntfmgr_handle_get_system_time_cmd(const NTF_MESSAGE* msg);
 RET_CODE ntfmgr_handle_set_system_time_cmd(const NTF_MESSAGE* msg);
+RET_CODE ntfmgr_handle_get_system_status_cmd(const NTF_MESSAGE* msg);
 RET_CODE ntfmgr_handle_get_inputs_state_cmd(const NTF_MESSAGE* msg);
 RET_CODE ntfmgr_handle_get_all_inputs_state_cmd(const NTF_MESSAGE* msg);
 RET_CODE ntfmgr_handle_get_relays_state_cmd(const NTF_MESSAGE* msg);
@@ -53,6 +54,7 @@ RET_CODE ntfmgr_handle_set_slm_program_id_cmd(const NTF_MESSAGE* msg);
 RET_CODE ntfmgr_handle_get_env_sensor_data_cmd(const NTF_MESSAGE* msg);
 RET_CODE ntfmgr_handle_get_env_sensor_rate_cmd(const NTF_MESSAGE* msg);
 
+
 void ntfmgr_prepare_header(NTF_CMD_ID id, NTF_REQ_TYPE req_type, uint8_t data_size);
 void ntfmgr_set_message_size(uint8_t size);
 void ntfmgr_send_data(uint8_t clientID);
@@ -67,6 +69,7 @@ void ntfmgr_on_slm_change(SLM_STATE state);
 
 NTF_HANDLE_ITEM m_handlers[] = {{NTF_SYSTEM_TIME,      NTF_GET, &ntfmgr_handle_get_system_time_cmd},
                                 {NTF_SYSTEM_TIME,      NTF_SET, &ntfmgr_handle_set_system_time_cmd},
+                                {NTF_SYSTEM_STATUS,    NTF_GET, &ntfmgr_handle_get_system_status_cmd},
                                 {NTF_INPUTS_STATE,     NTF_GET, &ntfmgr_handle_get_inputs_state_cmd},
                                 {NTF_INPUTS_STATE_ALL, NTF_GET, &ntfmgr_handle_get_all_inputs_state_cmd},
                                 {NTF_RELAYS_STATE,     NTF_GET, &ntfmgr_handle_get_relays_state_cmd},
@@ -246,6 +249,76 @@ RET_CODE ntfmgr_handle_set_system_time_cmd(const NTF_MESSAGE* msg)
       result = time_set_utc(&item);
       ntfmgr_prepare_header(NTF_SYSTEM_TIME, NTF_SET, 1);
       m_buffer[m_bytes_count++] = NTF_REPLY_OK;
+   }
+   return result;
+}
+RET_CODE ntfmgr_handle_get_system_status_cmd(const NTF_MESSAGE* msg)
+{
+   RET_CODE result = RETURN_NOK;
+   if (msg->data_size == 0)
+   {
+      //inputs, relays, temperatures
+      INPUT_STATUS inp_status [INPUTS_MAX_INPUT_LINES];
+      RELAY_STATUS rel_status [RELAYS_BOARD_COUNT];
+      result = inp_get_all(inp_status);
+      if (result == RETURN_OK)
+      {
+         result = rel_get_all(rel_status);
+         if (result == RETURN_OK)
+         {
+            ENV_CONFIG env_cfg = {};
+            result = env_get_config(&env_cfg);
+            if (result == RETURN_OK)
+            {
+               uint8_t inputs_found = 0;
+               uint8_t relays_found = 0;
+               ntfmgr_prepare_header(NTF_SYSTEM_STATUS, NTF_GET, 0);
+               m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
+               m_bytes_count++; /* skip one bytes to write count of inputs bytes at the beginning - it is not known yet */
+               for (uint8_t i = 0; i < INPUTS_MAX_INPUT_LINES; i++)
+               {
+                  if (inp_status[i].id != INPUT_ENUM_COUNT)
+                  {
+                     m_buffer[m_bytes_count++] = (uint8_t) inp_status[i].id;
+                     m_buffer[m_bytes_count++] = (uint8_t) inp_status[i].state;
+                     inputs_found++;
+                  }
+               }
+               m_buffer[NTF_HEADER_SIZE + 1] = inputs_found * 2; /* two bytes per one input */
+               m_bytes_count++; /* skip one byte for relays bytes count */
+
+               for (uint8_t i = 0; i < RELAYS_BOARD_COUNT; i++)
+               {
+                  if (rel_status[i].id != RELAY_ID_ENUM_MAX)
+                  {
+                     m_buffer[m_bytes_count++] = (uint8_t) rel_status[i].id;
+                     m_buffer[m_bytes_count++] = (uint8_t) rel_status[i].state;
+                     relays_found++;
+                  }
+               }
+               m_buffer[NTF_HEADER_SIZE + 1 + 1 + (inputs_found * 2)] = relays_found * 2; /* two bytes per one input */
+
+               uint8_t env_sensors_count = sizeof(env_cfg.items)/sizeof(env_cfg.items[0]);
+               DHT_SENSOR env_results [ENV_SENSORS_COUNT] = {};
+               for (uint8_t i = 0; i < ENV_SENSORS_COUNT; i++)
+               {
+                  env_get_sensor_data(env_cfg.items[i].env_id, &env_results[i]);
+               }
+               m_buffer[m_bytes_count++] = (uint8_t) ENV_SENSORS_COUNT * 5;
+               for (uint8_t i = 0; i < ENV_SENSORS_COUNT; i++)
+               {
+                  m_buffer[m_bytes_count++] = (uint8_t)env_cfg.items[i].env_id;
+                  m_buffer[m_bytes_count++] = env_results[i].data.hum_h;
+                  m_buffer[m_bytes_count++] = env_results[i].data.hum_l;
+                  m_buffer[m_bytes_count++] = env_results[i].data.temp_h;
+                  m_buffer[m_bytes_count++] = env_results[i].data.temp_l;
+               }
+
+               ntfmgr_set_message_size(((inputs_found + relays_found)*2) + (ENV_SENSORS_COUNT * 5) + 3 + 1);
+            }
+
+         }
+      }
    }
    return result;
 }
