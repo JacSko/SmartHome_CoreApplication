@@ -135,7 +135,7 @@ RET_CODE wifimgr_initialize(const WIFI_UART_Config* config)
 
 		for (uint8_t i = 0; i < WIFIMGR_MAX_CLIENTS; i++)
 		{
-		   wifi_mgr.clients[0].connected = 0;
+		   wifi_mgr.clients[i].connected = 0;
 		}
 
 	}
@@ -180,8 +180,7 @@ void wifimgr_on_client_event(ClientEvent ev, ServerClientID id, const char* data
 			{
 				if (wifimgr_data_callback)
 				{
-					strcpy(wifi_mgr.rx_buffer, data);
-					wifimgr_data_callback(id, wifi_mgr.rx_buffer);
+					wifimgr_data_callback(id, data);
 				}
 			}
 			else

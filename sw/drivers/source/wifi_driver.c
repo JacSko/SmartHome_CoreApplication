@@ -15,9 +15,9 @@
  * =============================*/
 #define TX_BUF_SIZE sizeof(TX_BUFFER)/sizeof(TX_BUFFER[0])
 const uint16_t DEFAULT_REPLY_TIMEOUT_MS = 1000;
-const uint16_t WIFI_CONNECT_TIMEOUT = 5000;
-const uint16_t DHCP_IP_GET_TIMEOUT_MS = 10000;
-const uint16_t SERVER_CONN_TIMEOUT_MS = 10000;
+const uint16_t WIFI_CONNECT_TIMEOUT = 20000;
+const uint16_t DHCP_IP_GET_TIMEOUT_MS = 30000;
+const uint16_t SERVER_CONN_TIMEOUT_MS = 30000;
 /* =============================
  *   Internal module functions
  * =============================*/
@@ -132,11 +132,11 @@ void wifi_on_uart_data(const char* data)
         const char* command = strtok((char*)data, delims);
         const char* client = strtok(NULL, delims);
         const char* size = strtok(NULL, delims);
-        const char* data = strtok(NULL, delims);
+        const char* payload = strtok(NULL, delims);
 
         (void) command;
         (void) size;
-        wifi_call_client_callback(CLIENT_DATA, (ServerClientID)atoi(client), data);
+        wifi_call_client_callback(CLIENT_DATA, (ServerClientID)atoi(client), payload);
 	}
 
 }
