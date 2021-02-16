@@ -347,11 +347,22 @@ TEST_F(ntfmgrFixture, relays_module_commands)
     */
    {
       uint8_t command [] =         {NTF_RELAYS_STATE_ALL, NTF_GET, 0};
-      std::vector<uint8_t> exp = {NTF_RELAYS_STATE_ALL, NTF_GET, 11, NTF_REPLY_OK, RELAY_BATHROOM_AC, RELAY_STATE_ON,
-                                                                                                       RELAY_STAIRCASE_AC, RELAY_STATE_ON,
-                                                                                                       RELAY_BEDROOM_AC, RELAY_STATE_ON,
-                                                                                                       RELAY_KITCHEN_AC, RELAY_STATE_ON,
-                                                                                                       RELAY_WARDROBE_AC, RELAY_STATE_ON, NTF_MESSAGE_DELIMITER};
+      std::vector<uint8_t> exp = {NTF_RELAYS_STATE_ALL, NTF_GET, 33, NTF_REPLY_OK, RELAY_BATHROOM_AC, RELAY_STATE_ON,
+                                                                                   RELAY_STAIRCASE_AC, RELAY_STATE_ON,
+                                                                                   RELAY_ID_ENUM_MAX, RELAY_STATE_ON,
+                                                                                   RELAY_BEDROOM_AC, RELAY_STATE_ON,
+                                                                                   RELAY_KITCHEN_AC, RELAY_STATE_ON,
+                                                                                   RELAY_WARDROBE_AC, RELAY_STATE_ON,
+                                                                                   RELAY_ID_ENUM_MAX, RELAY_STATE_ON,
+                                                                                   RELAY_ID_ENUM_MAX, RELAY_STATE_ON,
+                                                                                   RELAY_ID_ENUM_MAX, RELAY_STATE_ON,
+                                                                                   RELAY_ID_ENUM_MAX, RELAY_STATE_ON,
+                                                                                   RELAY_ID_ENUM_MAX, RELAY_STATE_ON,
+                                                                                   RELAY_ID_ENUM_MAX, RELAY_STATE_ON,
+                                                                                   RELAY_ID_ENUM_MAX, RELAY_STATE_ON,
+                                                                                   RELAY_ID_ENUM_MAX, RELAY_STATE_ON,
+                                                                                   RELAY_ID_ENUM_MAX, RELAY_STATE_ON,
+                                                                                   RELAY_ID_ENUM_MAX, RELAY_STATE_ON,NTF_MESSAGE_DELIMITER};
       EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
       {
         std::vector<uint8_t> rec(data, data + size);
@@ -413,11 +424,22 @@ TEST_F(ntfmgrFixture, inputs_module_commands)
     */
    {
       uint8_t command [] =         {NTF_INPUTS_STATE_ALL, NTF_GET, 0};
-      std::vector<uint8_t> exp =   {NTF_INPUTS_STATE_ALL, NTF_GET, 11, NTF_REPLY_OK, INPUT_BATHROOM_AC, INPUT_STATE_ACTIVE,
+      std::vector<uint8_t> exp =   {NTF_INPUTS_STATE_ALL, NTF_GET, 33, NTF_REPLY_OK, INPUT_BATHROOM_AC, INPUT_STATE_ACTIVE,
                                                                                      INPUT_STAIRS_AC,   INPUT_STATE_ACTIVE,
+                                                                                     INPUT_ENUM_COUNT, INPUT_STATE_ACTIVE,
                                                                                      INPUT_BEDROOM_AC,  INPUT_STATE_ACTIVE,
                                                                                      INPUT_KITCHEN_AC,  INPUT_STATE_ACTIVE,
-                                                                                     INPUT_WARDROBE_AC, INPUT_STATE_ACTIVE, NTF_MESSAGE_DELIMITER};
+                                                                                     INPUT_WARDROBE_AC, INPUT_STATE_ACTIVE,
+                                                                                     INPUT_ENUM_COUNT, INPUT_STATE_ACTIVE,
+                                                                                     INPUT_ENUM_COUNT, INPUT_STATE_ACTIVE,
+                                                                                     INPUT_ENUM_COUNT, INPUT_STATE_ACTIVE,
+                                                                                     INPUT_ENUM_COUNT, INPUT_STATE_ACTIVE,
+                                                                                     INPUT_ENUM_COUNT, INPUT_STATE_ACTIVE,
+                                                                                     INPUT_ENUM_COUNT, INPUT_STATE_ACTIVE,
+                                                                                     INPUT_ENUM_COUNT, INPUT_STATE_ACTIVE,
+                                                                                     INPUT_ENUM_COUNT, INPUT_STATE_ACTIVE,
+                                                                                     INPUT_ENUM_COUNT, INPUT_STATE_ACTIVE,
+                                                                                     INPUT_ENUM_COUNT, INPUT_STATE_ACTIVE,NTF_MESSAGE_DELIMITER};
       EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
       {
          std::vector<uint8_t> rec(data, data + size);
@@ -650,13 +672,38 @@ TEST_F(ntfmgrFixture, system_status_commands)
     */
    {
       uint8_t command [] =       {NTF_SYSTEM_STATUS, NTF_GET, 0};
-      std::vector<uint8_t> exp = {NTF_SYSTEM_STATUS, NTF_GET, 50, NTF_REPLY_OK, 8, INPUT_BEDROOM_AC, INPUT_STATE_ACTIVE,
+      std::vector<uint8_t> exp = {NTF_SYSTEM_STATUS, NTF_GET, 100, NTF_REPLY_OK, 32,INPUT_BEDROOM_AC, INPUT_STATE_ACTIVE,
                                                                                    INPUT_STAIRS_AC, INPUT_STATE_ACTIVE,
+                                                                                   INPUT_ENUM_COUNT, INPUT_STATE_ACTIVE,
                                                                                    INPUT_BATHROOM_AC, INPUT_STATE_ACTIVE,
                                                                                    INPUT_KITCHEN_AC, INPUT_STATE_ACTIVE,
-                                                                                6, RELAY_BATHROOM_AC, RELAY_STATE_ON,
+                                                                                   INPUT_ENUM_COUNT, INPUT_STATE_ACTIVE,
+                                                                                   INPUT_ENUM_COUNT, INPUT_STATE_ACTIVE,
+                                                                                   INPUT_ENUM_COUNT, INPUT_STATE_ACTIVE,
+                                                                                   INPUT_ENUM_COUNT, INPUT_STATE_ACTIVE,
+                                                                                   INPUT_ENUM_COUNT, INPUT_STATE_ACTIVE,
+                                                                                   INPUT_ENUM_COUNT, INPUT_STATE_ACTIVE,
+                                                                                   INPUT_ENUM_COUNT, INPUT_STATE_ACTIVE,
+                                                                                   INPUT_ENUM_COUNT, INPUT_STATE_ACTIVE,
+                                                                                   INPUT_ENUM_COUNT, INPUT_STATE_ACTIVE,
+                                                                                   INPUT_ENUM_COUNT, INPUT_STATE_ACTIVE,
+                                                                                   INPUT_ENUM_COUNT, INPUT_STATE_ACTIVE,
+                                                                                32,RELAY_BATHROOM_AC, RELAY_STATE_ON,
                                                                                    RELAY_STAIRCASE_AC, RELAY_STATE_ON,
+                                                                                   RELAY_ID_ENUM_MAX, RELAY_STATE_ON,
                                                                                    RELAY_BEDROOM_AC, RELAY_STATE_ON,
+                                                                                   RELAY_ID_ENUM_MAX, RELAY_STATE_ON,
+                                                                                   RELAY_ID_ENUM_MAX, RELAY_STATE_ON,
+                                                                                   RELAY_ID_ENUM_MAX, RELAY_STATE_ON,
+                                                                                   RELAY_ID_ENUM_MAX, RELAY_STATE_ON,
+                                                                                   RELAY_ID_ENUM_MAX, RELAY_STATE_ON,
+                                                                                   RELAY_ID_ENUM_MAX, RELAY_STATE_ON,
+                                                                                   RELAY_ID_ENUM_MAX, RELAY_STATE_ON,
+                                                                                   RELAY_ID_ENUM_MAX, RELAY_STATE_ON,
+                                                                                   RELAY_ID_ENUM_MAX, RELAY_STATE_ON,
+                                                                                   RELAY_ID_ENUM_MAX, RELAY_STATE_ON,
+                                                                                   RELAY_ID_ENUM_MAX, RELAY_STATE_ON,
+                                                                                   RELAY_ID_ENUM_MAX, RELAY_STATE_ON,
                                                                                 30,ENV_BATHROOM, 1, 2, 3, 4,
                                                                                    ENV_KITCHEN, 5, 6, 7, 8,
                                                                                    ENV_BEDROOM, 9, 10, 11, 12,

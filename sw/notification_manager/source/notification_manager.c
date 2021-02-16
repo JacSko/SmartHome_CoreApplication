@@ -54,6 +54,10 @@ RET_CODE ntfmgr_handle_set_slm_program_id_cmd(const NTF_MESSAGE* msg);
 RET_CODE ntfmgr_handle_get_env_sensor_data_cmd(const NTF_MESSAGE* msg);
 RET_CODE ntfmgr_handle_get_env_sensor_rate_cmd(const NTF_MESSAGE* msg);
 
+void ntfmgr_write_to_buffer(uint8_t byte);
+void ntfmgr_write_inputs_to_buffer(const INPUT_STATUS* inputs, uint8_t size);
+void ntfmgr_write_relays_to_buffer(const RELAY_STATUS* relays, uint8_t relays_no);
+void ntfmgr_write_env_to_buffer(ENV_ITEM_ID id, const DHT_SENSOR_DATA* sensor);
 
 void ntfmgr_prepare_header(NTF_CMD_ID id, NTF_REQ_TYPE req_type, uint8_t data_size);
 void ntfmgr_set_message_size(uint8_t size);
@@ -170,47 +174,75 @@ void ntfmgr_set_message_size(uint8_t size)
 {
    m_buffer[NTF_BYTES_COUNT_OFFSET] = size;
 }
+void ntfmgr_write_to_buffer(uint8_t byte)
+{
+   m_buffer[m_bytes_count++] = byte;
+}
+void ntfmgr_write_inputs_to_buffer(const INPUT_STATUS* inputs, uint8_t input_no)
+{
+   for (uint8_t i = 0; i < input_no; i++)
+   {
+      ntfmgr_write_to_buffer((uint8_t) inputs[i].id);
+      ntfmgr_write_to_buffer((uint8_t) inputs[i].state);
+   }
+}
+void ntfmgr_write_relays_to_buffer(const RELAY_STATUS* relays, uint8_t relays_no)
+{
+   for (uint8_t i = 0; i < relays_no; i++)
+   {
+      ntfmgr_write_to_buffer((uint8_t) relays[i].id);
+      ntfmgr_write_to_buffer((uint8_t) relays[i].state);
+   }
+}
+void ntfmgr_write_env_to_buffer(ENV_ITEM_ID id, const DHT_SENSOR_DATA* sensor)
+{
+   ntfmgr_write_to_buffer((uint8_t)id);
+   ntfmgr_write_to_buffer(sensor->hum_h);
+   ntfmgr_write_to_buffer(sensor->hum_l);
+   ntfmgr_write_to_buffer(sensor->temp_h);
+   ntfmgr_write_to_buffer(sensor->temp_l);
+}
 
 void ntfmgr_on_inputs_change(INPUT_STATUS status)
 {
    ntfmgr_prepare_header(NTF_INPUTS_STATE, NTF_NTF, 2);
-   m_buffer[m_bytes_count++] = status.id;
-   m_buffer[m_bytes_count++] = status.state;
-   m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
+   ntfmgr_write_to_buffer(status.id);
+   ntfmgr_write_to_buffer(status.state);
+   ntfmgr_write_to_buffer(NTF_MESSAGE_DELIMITER);
    ntfmgr_send_data(WIFI_BROADCAST_ID);
 }
 void ntfmgr_on_relays_change(const RELAY_STATUS* status)
 {
    ntfmgr_prepare_header(NTF_RELAYS_STATE, NTF_NTF, 2);
-   m_buffer[m_bytes_count++] = status->id;
-   m_buffer[m_bytes_count++] = status->state;
-   m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
+   ntfmgr_write_to_buffer(status->id);
+   ntfmgr_write_to_buffer(status->state);
+   ntfmgr_write_to_buffer(NTF_MESSAGE_DELIMITER);
    ntfmgr_send_data(WIFI_BROADCAST_ID);
 }
 void ntfmgr_on_env_change(ENV_EVENT event, ENV_ITEM_ID id,  const DHT_SENSOR* sensor)
 {
    ntfmgr_prepare_header(event == ENV_EV_ERROR? NTF_ENV_SENSOR_ERROR : NTF_ENV_SENSOR_DATA, NTF_NTF, 6);
-   m_buffer[m_bytes_count++] = (uint8_t)id;
-   m_buffer[m_bytes_count++] = (uint8_t)sensor->type;
-   m_buffer[m_bytes_count++] = (uint8_t)sensor->data.hum_h;
-   m_buffer[m_bytes_count++] = (uint8_t)sensor->data.hum_l;
-   m_buffer[m_bytes_count++] = (uint8_t)sensor->data.temp_h;
-   m_buffer[m_bytes_count++] = (uint8_t)sensor->data.temp_l;
-   m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
+   ntfmgr_write_to_buffer((uint8_t)id);
+   ntfmgr_write_to_buffer((uint8_t)sensor->type);
+   ntfmgr_write_to_buffer((uint8_t)sensor->data.hum_h);
+   ntfmgr_write_to_buffer((uint8_t)sensor->data.hum_l);
+   ntfmgr_write_to_buffer((uint8_t)sensor->data.temp_h);
+   ntfmgr_write_to_buffer((uint8_t)sensor->data.temp_l);
+   ntfmgr_write_to_buffer(NTF_MESSAGE_DELIMITER);
    ntfmgr_send_data(WIFI_BROADCAST_ID);
 }
 void ntfmgr_on_fan_change(FAN_STATE state)
 {
    ntfmgr_prepare_header(NTF_FAN_STATE, NTF_NTF, 1);
-   m_buffer[m_bytes_count++] = (uint8_t) state;
-   m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
+   ntfmgr_write_to_buffer((uint8_t) state);
+   ntfmgr_write_to_buffer(NTF_MESSAGE_DELIMITER);
    ntfmgr_send_data(WIFI_BROADCAST_ID);
 }
 void ntfmgr_on_slm_change(SLM_STATE state)
 {
    ntfmgr_prepare_header(NTF_SLM_STATE, NTF_NTF, 1);
-   m_buffer[m_bytes_count++] = (uint8_t) state;
-   m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
+   ntfmgr_write_to_buffer((uint8_t) state);
+   ntfmgr_write_to_buffer(NTF_MESSAGE_DELIMITER);
    ntfmgr_send_data(WIFI_BROADCAST_ID);
 }
 
@@ -221,14 +253,14 @@ RET_CODE ntfmgr_handle_get_system_time_cmd(const NTF_MESSAGE* msg)
    if (item)
    {
       ntfmgr_prepare_header(NTF_SYSTEM_TIME, NTF_GET, 8);
-      m_buffer[m_bytes_count++] = (uint8_t) NTF_REPLY_OK;
-      m_buffer[m_bytes_count++] = item->day;
-      m_buffer[m_bytes_count++] = item->month;
-      m_buffer[m_bytes_count++] = ((item->year) >> 8) & 0xFF;
-      m_buffer[m_bytes_count++] = (item->year) & 0xFF;
-      m_buffer[m_bytes_count++] = item->hour;
-      m_buffer[m_bytes_count++] = item->minute;
-      m_buffer[m_bytes_count++] = item->second;
+      ntfmgr_write_to_buffer((uint8_t) NTF_REPLY_OK);
+      ntfmgr_write_to_buffer(item->day);
+      ntfmgr_write_to_buffer(item->month);
+      ntfmgr_write_to_buffer(((item->year) >> 8) & 0xFF);
+      ntfmgr_write_to_buffer((item->year) & 0xFF);
+      ntfmgr_write_to_buffer(item->hour);
+      ntfmgr_write_to_buffer(item->minute);
+      ntfmgr_write_to_buffer(item->second);
       result = RETURN_OK;
    }
    return result;
@@ -248,7 +280,7 @@ RET_CODE ntfmgr_handle_set_system_time_cmd(const NTF_MESSAGE* msg)
       item.second = msg->data[6];
       result = time_set_utc(&item);
       ntfmgr_prepare_header(NTF_SYSTEM_TIME, NTF_SET, 1);
-      m_buffer[m_bytes_count++] = NTF_REPLY_OK;
+      ntfmgr_write_to_buffer(NTF_REPLY_OK);
    }
    return result;
 }
@@ -257,64 +289,35 @@ RET_CODE ntfmgr_handle_get_system_status_cmd(const NTF_MESSAGE* msg)
    RET_CODE result = RETURN_NOK;
    if (msg->data_size == 0)
    {
-      //inputs, relays, temperatures
       INPUT_STATUS inp_status [INPUTS_MAX_INPUT_LINES];
       RELAY_STATUS rel_status [RELAYS_BOARD_COUNT];
+      ENV_CONFIG env_cfg = {};
       result = inp_get_all(inp_status);
       if (result == RETURN_OK)
       {
          result = rel_get_all(rel_status);
          if (result == RETURN_OK)
          {
-            ENV_CONFIG env_cfg = {};
             result = env_get_config(&env_cfg);
             if (result == RETURN_OK)
             {
-               uint8_t inputs_found = 0;
-               uint8_t relays_found = 0;
                ntfmgr_prepare_header(NTF_SYSTEM_STATUS, NTF_GET, 0);
-               m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
-               m_bytes_count++; /* skip one bytes to write count of inputs bytes at the beginning - it is not known yet */
-               for (uint8_t i = 0; i < INPUTS_MAX_INPUT_LINES; i++)
-               {
-                  if (inp_status[i].id != INPUT_ENUM_COUNT)
-                  {
-                     m_buffer[m_bytes_count++] = (uint8_t) inp_status[i].id;
-                     m_buffer[m_bytes_count++] = (uint8_t) inp_status[i].state;
-                     inputs_found++;
-                  }
-               }
-               m_buffer[NTF_HEADER_SIZE + 1] = inputs_found * 2; /* two bytes per one input */
-               m_bytes_count++; /* skip one byte for relays bytes count */
+               ntfmgr_write_to_buffer((uint8_t)NTF_REPLY_OK);
+               ntfmgr_write_to_buffer(INPUTS_MAX_INPUT_LINES * 2);
+               ntfmgr_write_inputs_to_buffer(inp_status, INPUTS_MAX_INPUT_LINES);
+               ntfmgr_write_to_buffer(RELAYS_BOARD_COUNT * 2);
+               ntfmgr_write_relays_to_buffer(rel_status, RELAYS_BOARD_COUNT);
 
-               for (uint8_t i = 0; i < RELAYS_BOARD_COUNT; i++)
-               {
-                  if (rel_status[i].id != RELAY_ID_ENUM_MAX)
-                  {
-                     m_buffer[m_bytes_count++] = (uint8_t) rel_status[i].id;
-                     m_buffer[m_bytes_count++] = (uint8_t) rel_status[i].state;
-                     relays_found++;
-                  }
-               }
-               m_buffer[NTF_HEADER_SIZE + 1 + 1 + (inputs_found * 2)] = relays_found * 2; /* two bytes per one input */
-
-               DHT_SENSOR env_results [ENV_SENSORS_COUNT] = {};
+               DHT_SENSOR env_data;
+               ntfmgr_write_to_buffer(ENV_SENSORS_COUNT * 5);
                for (uint8_t i = 0; i < ENV_SENSORS_COUNT; i++)
                {
-                  env_get_sensor_data(env_cfg.items[i].env_id, &env_results[i]);
+                  env_get_sensor_data(env_cfg.items[i].env_id, &env_data);
+                  ntfmgr_write_env_to_buffer(env_cfg.items[i].env_id, &env_data.data);
                }
-               m_buffer[m_bytes_count++] = (uint8_t) ENV_SENSORS_COUNT * 5;
-               for (uint8_t i = 0; i < ENV_SENSORS_COUNT; i++)
-               {
-                  m_buffer[m_bytes_count++] = (uint8_t)env_cfg.items[i].env_id;
-                  m_buffer[m_bytes_count++] = env_results[i].data.hum_h;
-                  m_buffer[m_bytes_count++] = env_results[i].data.hum_l;
-                  m_buffer[m_bytes_count++] = env_results[i].data.temp_h;
-                  m_buffer[m_bytes_count++] = env_results[i].data.temp_l;
-               }
-               m_buffer[m_bytes_count++] = 0x01; /* FAN status bytes count */
-               m_buffer[m_bytes_count++] = (uint8_t) fan_get_state();
-               ntfmgr_set_message_size(((inputs_found + relays_found)*2) + (ENV_SENSORS_COUNT * 5) + 3 + 1 + 2);
+               ntfmgr_write_to_buffer(0x01); /* FAN status bytes count */
+               ntfmgr_write_to_buffer((uint8_t) fan_get_state());
+               ntfmgr_set_message_size(1 + 1 + (INPUTS_MAX_INPUT_LINES * 2) + 1 + (RELAYS_BOARD_COUNT * 2) + 1 + (ENV_SENSORS_COUNT * 5) + 1 + 1);
             }
 
          }
@@ -329,8 +332,8 @@ RET_CODE ntfmgr_handle_get_inputs_state_cmd(const NTF_MESSAGE* msg)
    {
       INPUT_STATE state = inp_get((INPUT_ID)msg->data[0]);
       ntfmgr_prepare_header(NTF_INPUTS_STATE, NTF_GET, 2);
-      m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
-      m_buffer[m_bytes_count++] = (uint8_t)state;
+      ntfmgr_write_to_buffer((uint8_t)NTF_REPLY_OK);
+      ntfmgr_write_to_buffer((uint8_t)state);
       result = RETURN_OK;
    }
    return result;
@@ -339,21 +342,12 @@ RET_CODE ntfmgr_handle_get_all_inputs_state_cmd(const NTF_MESSAGE* msg)
 {
    INPUT_STATUS inp_status [INPUTS_MAX_INPUT_LINES];
    RET_CODE result = inp_get_all(inp_status);
-   uint8_t inputs_found = 0;
    if (result == RETURN_OK)
    {
       ntfmgr_prepare_header(NTF_INPUTS_STATE_ALL, NTF_GET, 0);
-      m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
-      for (uint8_t i = 0; i < INPUTS_MAX_INPUT_LINES; i++)
-      {
-         if (inp_status[i].id != INPUT_ENUM_COUNT)
-         {
-            m_buffer[m_bytes_count++] = (uint8_t) inp_status[i].id;
-            m_buffer[m_bytes_count++] = (uint8_t) inp_status[i].state;
-            inputs_found++;
-         }
-      }
-      ntfmgr_set_message_size(1 + (inputs_found * 2));
+      ntfmgr_write_to_buffer((uint8_t)NTF_REPLY_OK);
+      ntfmgr_write_inputs_to_buffer(inp_status, INPUTS_MAX_INPUT_LINES);
+      ntfmgr_set_message_size(1 + (INPUTS_MAX_INPUT_LINES * 2));
    }
    return result;
 }
@@ -367,8 +361,8 @@ RET_CODE ntfmgr_handle_get_relays_state_cmd(const NTF_MESSAGE* msg)
       if (status != RELAY_STATE_ENUM_MAX)
       {
          ntfmgr_prepare_header(NTF_RELAYS_STATE, NTF_GET, 2);
-         m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
-         m_buffer[m_bytes_count++] = (uint8_t)status;
+         ntfmgr_write_to_buffer((uint8_t)NTF_REPLY_OK);
+         ntfmgr_write_to_buffer((uint8_t)status);
          result = RETURN_OK;
       }
    }
@@ -378,21 +372,12 @@ RET_CODE ntfmgr_handle_get_all_relays_state_cmd(const NTF_MESSAGE* msg)
 {
    RELAY_STATUS rel_status [RELAYS_BOARD_COUNT];
    RET_CODE result = rel_get_all(rel_status);
-   uint8_t relays_found = 0;
    if (result == RETURN_OK)
    {
       ntfmgr_prepare_header(NTF_RELAYS_STATE_ALL, NTF_GET, 0);
-      m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
-      for (uint8_t i = 0; i < RELAYS_BOARD_COUNT; i++)
-      {
-         if (rel_status[i].id != RELAY_ID_ENUM_MAX)
-         {
-            m_buffer[m_bytes_count++] = (uint8_t) rel_status[i].id;
-            m_buffer[m_bytes_count++] = (uint8_t) rel_status[i].state;
-            relays_found++;
-         }
-      }
-      ntfmgr_set_message_size(1 + (relays_found * 2));
+      ntfmgr_write_to_buffer((uint8_t)NTF_REPLY_OK);
+      ntfmgr_write_relays_to_buffer(rel_status, RELAYS_BOARD_COUNT);
+      ntfmgr_set_message_size(1 + (RELAYS_BOARD_COUNT * 2));
    }
    return result;
 }
@@ -403,7 +388,7 @@ RET_CODE ntfmgr_handle_set_relays_state_cmd(const NTF_MESSAGE* msg)
    {
       result = rel_set((RELAY_ID)msg->data[0], (RELAY_STATE)msg->data[1]);
       ntfmgr_prepare_header(NTF_RELAYS_STATE, NTF_SET, 1);
-      m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
+      ntfmgr_write_to_buffer((uint8_t)NTF_REPLY_OK);
    }
    return result;
 }
@@ -425,7 +410,7 @@ RET_CODE ntfmgr_handle_set_all_relays_state_cmd(const NTF_MESSAGE* msg)
       if (result == RETURN_OK)
       {
          ntfmgr_prepare_header(NTF_RELAYS_STATE_ALL, NTF_SET, 1);
-         m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
+         ntfmgr_write_to_buffer((uint8_t)NTF_REPLY_OK);
       }
    }
    return result;
@@ -448,7 +433,7 @@ RET_CODE ntfmgr_handle_set_fan_state_cmd(const NTF_MESSAGE* msg)
       if (result == RETURN_OK)
       {
          ntfmgr_prepare_header(NTF_FAN_STATE, NTF_SET, 1);
-         m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
+         ntfmgr_write_to_buffer((uint8_t)NTF_REPLY_OK);
       }
    }
    return result;
@@ -460,8 +445,8 @@ RET_CODE ntfmgr_handle_get_fan_state_cmd(const NTF_MESSAGE* msg)
    if (state != FAN_STATE_UNKNOWN)
    {
       ntfmgr_prepare_header(NTF_FAN_STATE, NTF_GET, 2);
-      m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
-      m_buffer[m_bytes_count++] = (uint8_t)state;
+      ntfmgr_write_to_buffer((uint8_t)NTF_REPLY_OK);
+      ntfmgr_write_to_buffer((uint8_t)state);
       result = RETURN_OK;
    }
    return result;
@@ -470,16 +455,16 @@ RET_CODE ntfmgr_handle_get_slm_state_cmd(const NTF_MESSAGE* msg)
 {
    SLM_STATE state = slm_get_state();
    ntfmgr_prepare_header(NTF_SLM_STATE, NTF_GET, 2);
-   m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
-   m_buffer[m_bytes_count++] = (uint8_t)state;
+   ntfmgr_write_to_buffer((uint8_t)NTF_REPLY_OK);
+   ntfmgr_write_to_buffer((uint8_t)state);
    return RETURN_OK;
 }
 RET_CODE ntfmgr_handle_get_slm_program_id_cmd(const NTF_MESSAGE* msg)
 {
    SLM_PROGRAM_ID id = slm_get_current_program_id();
    ntfmgr_prepare_header(NTF_SLM_PROGRAM_ID, NTF_GET, 2);
-   m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
-   m_buffer[m_bytes_count++] = (uint8_t)id;
+   ntfmgr_write_to_buffer((uint8_t)NTF_REPLY_OK);
+   ntfmgr_write_to_buffer((uint8_t)id);
    return RETURN_OK;
 }
 RET_CODE ntfmgr_handle_set_slm_state_cmd(const NTF_MESSAGE* msg)
@@ -500,7 +485,7 @@ RET_CODE ntfmgr_handle_set_slm_state_cmd(const NTF_MESSAGE* msg)
       if (result == RETURN_OK)
       {
          ntfmgr_prepare_header(NTF_SLM_STATE, NTF_SET, 1);
-         m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
+         ntfmgr_write_to_buffer((uint8_t)NTF_REPLY_OK);
       }
    }
    return result;
@@ -515,7 +500,7 @@ RET_CODE ntfmgr_handle_set_slm_program_id_cmd(const NTF_MESSAGE* msg)
       if (result == RETURN_OK)
       {
          ntfmgr_prepare_header(NTF_SLM_PROGRAM_ID, NTF_SET, 1);
-         m_buffer[m_bytes_count++] = (uint8_t)NTF_REPLY_OK;
+         ntfmgr_write_to_buffer((uint8_t)NTF_REPLY_OK);
       }
    }
    return result;
@@ -531,12 +516,12 @@ RET_CODE ntfmgr_handle_get_env_sensor_data_cmd(const NTF_MESSAGE* msg)
       ntfmgr_prepare_header(NTF_ENV_SENSOR_DATA, NTF_GET, 6);
       if (result == RETURN_OK)
       {
-         m_buffer[m_bytes_count++] = (uint8_t) NTF_REPLY_OK;
-         m_buffer[m_bytes_count++] = (uint8_t) sensor.type;
-         m_buffer[m_bytes_count++] = (uint8_t) sensor.data.hum_h;
-         m_buffer[m_bytes_count++] = (uint8_t) sensor.data.hum_l;
-         m_buffer[m_bytes_count++] = (uint8_t) sensor.data.temp_h;
-         m_buffer[m_bytes_count++] = (uint8_t) sensor.data.temp_l;
+         ntfmgr_write_to_buffer((uint8_t) NTF_REPLY_OK);
+         ntfmgr_write_to_buffer((uint8_t) sensor.type);
+         ntfmgr_write_to_buffer((uint8_t) sensor.data.hum_h);
+         ntfmgr_write_to_buffer((uint8_t) sensor.data.hum_l);
+         ntfmgr_write_to_buffer((uint8_t) sensor.data.temp_h);
+         ntfmgr_write_to_buffer((uint8_t) sensor.data.temp_l);
       }
    }
    return result;
@@ -548,9 +533,9 @@ RET_CODE ntfmgr_handle_get_env_sensor_rate_cmd(const NTF_MESSAGE* msg)
    {
       ENV_ERROR_RATE rate = env_get_error_stats((ENV_ITEM_ID)msg->data[0]);
       ntfmgr_prepare_header(NTF_ENV_SENSOR_ERROR, NTF_GET, 3);
-      m_buffer[m_bytes_count++] = (uint8_t) NTF_REPLY_OK;
-      m_buffer[m_bytes_count++] = (uint8_t) rate.cs_err_rate;
-      m_buffer[m_bytes_count++] = (uint8_t) rate.nr_err_rate;
+      ntfmgr_write_to_buffer((uint8_t) NTF_REPLY_OK);
+      ntfmgr_write_to_buffer((uint8_t) rate.cs_err_rate);
+      ntfmgr_write_to_buffer((uint8_t) rate.nr_err_rate);
       result = RETURN_OK;
    }
    return result;
