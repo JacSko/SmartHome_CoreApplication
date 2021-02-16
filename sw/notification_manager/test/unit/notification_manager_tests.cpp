@@ -650,7 +650,7 @@ TEST_F(ntfmgrFixture, system_status_commands)
     */
    {
       uint8_t command [] =       {NTF_SYSTEM_STATUS, NTF_GET, 0};
-      std::vector<uint8_t> exp = {NTF_SYSTEM_STATUS, NTF_GET, 48, NTF_REPLY_OK, 8, INPUT_BEDROOM_AC, INPUT_STATE_ACTIVE,
+      std::vector<uint8_t> exp = {NTF_SYSTEM_STATUS, NTF_GET, 50, NTF_REPLY_OK, 8, INPUT_BEDROOM_AC, INPUT_STATE_ACTIVE,
                                                                                    INPUT_STAIRS_AC, INPUT_STATE_ACTIVE,
                                                                                    INPUT_BATHROOM_AC, INPUT_STATE_ACTIVE,
                                                                                    INPUT_KITCHEN_AC, INPUT_STATE_ACTIVE,
@@ -663,6 +663,7 @@ TEST_F(ntfmgrFixture, system_status_commands)
                                                                                    ENV_STAIRS, 13, 14, 15, 16,
                                                                                    ENV_WARDROBE, 17, 18, 19, 20,
                                                                                    ENV_OUTSIDE, 21, 22, 23, 24,
+                                                                                1, FAN_STATE_SUSPEND,
                                                                                    NTF_MESSAGE_DELIMITER};
       EXPECT_CALL(*wifimgr_mock, wifimgr_send_bytes(1, _,_)).WillOnce(Invoke([&](ServerClientID, const uint8_t* data, uint16_t size) -> RET_CODE
       {
@@ -670,6 +671,7 @@ TEST_F(ntfmgrFixture, system_status_commands)
          EXPECT_THAT(rec, ContainerEq(exp));
          return RETURN_OK;
       }));
+      EXPECT_CALL(*fan_mock, fan_get_state()).WillOnce(Return(FAN_STATE_SUSPEND));
       EXPECT_CALL(*inp_mock, inp_get_all(_)).WillOnce(Invoke([&](INPUT_STATUS* status)
       {
             status[0].id = INPUT_BEDROOM_AC; status[0].state = INPUT_STATE_ACTIVE;

@@ -298,7 +298,6 @@ RET_CODE ntfmgr_handle_get_system_status_cmd(const NTF_MESSAGE* msg)
                }
                m_buffer[NTF_HEADER_SIZE + 1 + 1 + (inputs_found * 2)] = relays_found * 2; /* two bytes per one input */
 
-               uint8_t env_sensors_count = sizeof(env_cfg.items)/sizeof(env_cfg.items[0]);
                DHT_SENSOR env_results [ENV_SENSORS_COUNT] = {};
                for (uint8_t i = 0; i < ENV_SENSORS_COUNT; i++)
                {
@@ -313,8 +312,9 @@ RET_CODE ntfmgr_handle_get_system_status_cmd(const NTF_MESSAGE* msg)
                   m_buffer[m_bytes_count++] = env_results[i].data.temp_h;
                   m_buffer[m_bytes_count++] = env_results[i].data.temp_l;
                }
-
-               ntfmgr_set_message_size(((inputs_found + relays_found)*2) + (ENV_SENSORS_COUNT * 5) + 3 + 1);
+               m_buffer[m_bytes_count++] = 0x01; /* FAN status bytes count */
+               m_buffer[m_bytes_count++] = (uint8_t) fan_get_state();
+               ntfmgr_set_message_size(((inputs_found + relays_found)*2) + (ENV_SENSORS_COUNT * 5) + 3 + 1 + 2);
             }
 
          }
