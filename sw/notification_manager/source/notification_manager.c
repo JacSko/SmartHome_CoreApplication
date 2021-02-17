@@ -62,6 +62,7 @@ void ntfmgr_write_env_to_buffer(ENV_ITEM_ID id, const DHT_SENSOR_DATA* sensor);
 
 void ntfmgr_prepare_header(NTF_CMD_ID id, NTF_REQ_TYPE req_type, uint8_t data_size);
 void ntfmgr_send_data(uint8_t clientID);
+uint16_t ntfmgr_convert_request_to_bytes(const char* data, uint8_t* buf);
 
 void ntfmgr_on_inputs_change(INPUT_STATUS status);
 void ntfmgr_on_relays_change(const RELAY_STATUS* status);
@@ -131,15 +132,19 @@ RET_CODE ntfmgr_init()
 void ntfmgr_parse_request(ServerClientID id, const char* data)
 {
    m_bytes_count = 0;
-   NTF_CMD_ID cmd_id = (NTF_CMD_ID) data[0];
-   NTF_REQ_TYPE cmd_type = (NTF_REQ_TYPE) data[1];
-   uint8_t data_size = data[2];
 
+   //convert string to bytes
+   uint8_t buf [NTF_MAX_MESSAGE_SIZE];
+   ntfmgr_convert_request_to_bytes(data, buf);
+
+   NTF_CMD_ID cmd_id = (NTF_CMD_ID) buf[0];
+   NTF_REQ_TYPE cmd_type = (NTF_REQ_TYPE) buf[1];
+   uint8_t data_size = buf[2];
    for (uint8_t i = 0; i < m_handlers_size; i++)
    {
       if (m_handlers[i].id == cmd_id && m_handlers[i].type == cmd_type && m_handlers[i].process)
       {
-         NTF_MESSAGE msg = {data_size, (uint8_t*)data + NTF_HEADER_SIZE};
+         NTF_MESSAGE msg = {data_size, (uint8_t*)buf + NTF_HEADER_SIZE};
          if (m_handlers[i].process(&msg) != RETURN_OK)
          {
             ntfmgr_prepare_header(cmd_id, cmd_type, 1);
@@ -148,6 +153,31 @@ void ntfmgr_parse_request(ServerClientID id, const char* data)
          ntfmgr_send_data(id);
       }
    }
+}
+uint16_t ntfmgr_convert_request_to_bytes(const char* data, uint8_t* buf)
+{
+   uint16_t str_len = strlen(data);
+
+   char local_buf [4] = {}; /* max byte as string is 255 - 3 chars + NULL */
+   uint8_t local_buf_idx = 0;
+   uint16_t ext_buf_idx = 0;
+
+   for (uint16_t i = 0; i < str_len + 1; i++)
+   {
+      if (data[i] == ' ' || !data[i])
+      {
+         local_buf[local_buf_idx] = 0x00;
+         buf[ext_buf_idx] = atoi(local_buf);
+         ext_buf_idx++;
+         local_buf_idx = 0;
+      }
+      else
+      {
+         local_buf[local_buf_idx] = data[i];
+         local_buf_idx++;
+      }
+   }
+   return ext_buf_idx;
 }
 void ntfmgr_send_data(uint8_t clientID)
 {
