@@ -143,9 +143,9 @@ void ntfmgr_parse_request(ServerClientID id, const char* data)
          if (m_handlers[i].process(&msg) != RETURN_OK)
          {
             ntfmgr_prepare_header(cmd_id, cmd_type, 1);
-            m_buffer[m_bytes_count++] = (uint8_t) NTF_REPLY_NOK;
+            ntfmgr_write_to_buffer((uint8_t) NTF_REPLY_NOK);
          }
-         m_buffer[m_bytes_count++] = NTF_MESSAGE_DELIMITER;
+         ntfmgr_write_to_buffer(NTF_MESSAGE_DELIMITER);
          ntfmgr_send_data(id);
       }
    }
