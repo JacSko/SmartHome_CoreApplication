@@ -15,6 +15,7 @@ target_link_libraries(notification_manager PUBLIC
 		logger
 		stairs_led_module
 		time_counter
+		string_formatter
 )
 endif()
 

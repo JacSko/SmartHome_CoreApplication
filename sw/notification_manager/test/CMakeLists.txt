@@ -8,6 +8,7 @@ target_include_directories(notification_manager_tests PUBLIC
 target_link_libraries(notification_manager_tests PUBLIC
         gtest_main
         gmock_main
+        string_formatter
         wifimanager_mock
 		time_counterMock
 		SmartHomeTypes

@@ -15,6 +15,7 @@
 #include "stairs_led_module.h"
 #include "Logger.h"
 #include "time_counter.h"
+#include "string_formatter.h"
 /* =============================
  *          Defines
  * =============================*/
@@ -60,7 +61,6 @@ void ntfmgr_write_relays_to_buffer(const RELAY_STATUS* relays, uint8_t relays_no
 void ntfmgr_write_env_to_buffer(ENV_ITEM_ID id, const DHT_SENSOR_DATA* sensor);
 
 void ntfmgr_prepare_header(NTF_CMD_ID id, NTF_REQ_TYPE req_type, uint8_t data_size);
-void ntfmgr_set_message_size(uint8_t size);
 void ntfmgr_send_data(uint8_t clientID);
 
 void ntfmgr_on_inputs_change(INPUT_STATUS status);
@@ -99,7 +99,7 @@ uint16_t m_bytes_count;
 RET_CODE ntfmgr_init()
 {
    RET_CODE result = RETURN_NOK;
-   for (uint8_t i = 0; i < NTF_MAX_MESSAGE_SIZE; i++)
+   for (uint16_t i = 0; i < NTF_MAX_MESSAGE_SIZE; i++)
    {
       m_buffer[i] = 0;
    }
@@ -145,13 +145,14 @@ void ntfmgr_parse_request(ServerClientID id, const char* data)
             ntfmgr_prepare_header(cmd_id, cmd_type, 1);
             ntfmgr_write_to_buffer((uint8_t) NTF_REPLY_NOK);
          }
-         ntfmgr_write_to_buffer(NTF_MESSAGE_DELIMITER);
          ntfmgr_send_data(id);
       }
    }
 }
 void ntfmgr_send_data(uint8_t clientID)
 {
+   m_buffer[m_bytes_count - 1] = NTF_MESSAGE_DELIMITER;
+   m_buffer[m_bytes_count] = 0x00;
    if (clientID == WIFI_BROADCAST_ID)
    {
       wifimgr_broadcast_bytes(m_buffer, m_bytes_count);
@@ -165,18 +166,12 @@ void ntfmgr_send_data(uint8_t clientID)
 
 void ntfmgr_prepare_header(NTF_CMD_ID id, NTF_REQ_TYPE req_type, uint8_t data_size)
 {
-   m_buffer[NTF_ID_OFFSET] = id;
-   m_buffer[NTF_REQ_TYPE_OFFSET] = req_type;
-   ntfmgr_set_message_size(data_size);
-   m_bytes_count = NTF_HEADER_SIZE;
-}
-void ntfmgr_set_message_size(uint8_t size)
-{
-   m_buffer[NTF_BYTES_COUNT_OFFSET] = size;
+   m_bytes_count = 0;
+   m_bytes_count += string_format((char*)(m_buffer + m_bytes_count), "%.2u %.2u %.2u ", id, req_type, data_size);
 }
 void ntfmgr_write_to_buffer(uint8_t byte)
 {
-   m_buffer[m_bytes_count++] = byte;
+   m_bytes_count += string_format((char*)(m_buffer + m_bytes_count), "%.2u ", byte);
 }
 void ntfmgr_write_inputs_to_buffer(const INPUT_STATUS* inputs, uint8_t input_no)
 {
@@ -208,7 +203,6 @@ void ntfmgr_on_inputs_change(INPUT_STATUS status)
    ntfmgr_prepare_header(NTF_INPUTS_STATE, NTF_NTF, 2);
    ntfmgr_write_to_buffer(status.id);
    ntfmgr_write_to_buffer(status.state);
-   ntfmgr_write_to_buffer(NTF_MESSAGE_DELIMITER);
    ntfmgr_send_data(WIFI_BROADCAST_ID);
 }
 void ntfmgr_on_relays_change(const RELAY_STATUS* status)
@@ -216,7 +210,6 @@ void ntfmgr_on_relays_change(const RELAY_STATUS* status)
    ntfmgr_prepare_header(NTF_RELAYS_STATE, NTF_NTF, 2);
    ntfmgr_write_to_buffer(status->id);
    ntfmgr_write_to_buffer(status->state);
-   ntfmgr_write_to_buffer(NTF_MESSAGE_DELIMITER);
    ntfmgr_send_data(WIFI_BROADCAST_ID);
 }
 void ntfmgr_on_env_change(ENV_EVENT event, ENV_ITEM_ID id,  const DHT_SENSOR* sensor)
@@ -228,21 +221,18 @@ void ntfmgr_on_env_change(ENV_EVENT event, ENV_ITEM_ID id,  const DHT_SENSOR* se
    ntfmgr_write_to_buffer((uint8_t)sensor->data.hum_l);
    ntfmgr_write_to_buffer((uint8_t)sensor->data.temp_h);
    ntfmgr_write_to_buffer((uint8_t)sensor->data.temp_l);
-   ntfmgr_write_to_buffer(NTF_MESSAGE_DELIMITER);
    ntfmgr_send_data(WIFI_BROADCAST_ID);
 }
 void ntfmgr_on_fan_change(FAN_STATE state)
 {
    ntfmgr_prepare_header(NTF_FAN_STATE, NTF_NTF, 1);
    ntfmgr_write_to_buffer((uint8_t) state);
-   ntfmgr_write_to_buffer(NTF_MESSAGE_DELIMITER);
    ntfmgr_send_data(WIFI_BROADCAST_ID);
 }
 void ntfmgr_on_slm_change(SLM_STATE state)
 {
    ntfmgr_prepare_header(NTF_SLM_STATE, NTF_NTF, 1);
    ntfmgr_write_to_buffer((uint8_t) state);
-   ntfmgr_write_to_buffer(NTF_MESSAGE_DELIMITER);
    ntfmgr_send_data(WIFI_BROADCAST_ID);
 }
 
@@ -301,7 +291,8 @@ RET_CODE ntfmgr_handle_get_system_status_cmd(const NTF_MESSAGE* msg)
             result = env_get_config(&env_cfg);
             if (result == RETURN_OK)
             {
-               ntfmgr_prepare_header(NTF_SYSTEM_STATUS, NTF_GET, 0);
+               uint8_t bytes_count = 1 + 1 + (INPUTS_MAX_INPUT_LINES * 2) + 1 + (RELAYS_BOARD_COUNT * 2) + 1 + (ENV_SENSORS_COUNT * 5) + 2;
+               ntfmgr_prepare_header(NTF_SYSTEM_STATUS, NTF_GET, bytes_count);
                ntfmgr_write_to_buffer((uint8_t)NTF_REPLY_OK);
                ntfmgr_write_to_buffer(INPUTS_MAX_INPUT_LINES * 2);
                ntfmgr_write_inputs_to_buffer(inp_status, INPUTS_MAX_INPUT_LINES);
@@ -317,7 +308,6 @@ RET_CODE ntfmgr_handle_get_system_status_cmd(const NTF_MESSAGE* msg)
                }
                ntfmgr_write_to_buffer(0x01); /* FAN status bytes count */
                ntfmgr_write_to_buffer((uint8_t) fan_get_state());
-               ntfmgr_set_message_size(1 + 1 + (INPUTS_MAX_INPUT_LINES * 2) + 1 + (RELAYS_BOARD_COUNT * 2) + 1 + (ENV_SENSORS_COUNT * 5) + 1 + 1);
             }
 
          }
@@ -344,10 +334,10 @@ RET_CODE ntfmgr_handle_get_all_inputs_state_cmd(const NTF_MESSAGE* msg)
    RET_CODE result = inp_get_all(inp_status);
    if (result == RETURN_OK)
    {
-      ntfmgr_prepare_header(NTF_INPUTS_STATE_ALL, NTF_GET, 0);
+      uint8_t bytes_count = 1 + (INPUTS_MAX_INPUT_LINES * 2);
+      ntfmgr_prepare_header(NTF_INPUTS_STATE_ALL, NTF_GET, bytes_count);
       ntfmgr_write_to_buffer((uint8_t)NTF_REPLY_OK);
       ntfmgr_write_inputs_to_buffer(inp_status, INPUTS_MAX_INPUT_LINES);
-      ntfmgr_set_message_size(1 + (INPUTS_MAX_INPUT_LINES * 2));
    }
    return result;
 }
@@ -374,10 +364,10 @@ RET_CODE ntfmgr_handle_get_all_relays_state_cmd(const NTF_MESSAGE* msg)
    RET_CODE result = rel_get_all(rel_status);
    if (result == RETURN_OK)
    {
-      ntfmgr_prepare_header(NTF_RELAYS_STATE_ALL, NTF_GET, 0);
+      uint8_t bytes_count = 1 + (RELAYS_BOARD_COUNT * 2);
+      ntfmgr_prepare_header(NTF_RELAYS_STATE_ALL, NTF_GET, bytes_count);
       ntfmgr_write_to_buffer((uint8_t)NTF_REPLY_OK);
       ntfmgr_write_relays_to_buffer(rel_status, RELAYS_BOARD_COUNT);
-      ntfmgr_set_message_size(1 + (RELAYS_BOARD_COUNT * 2));
    }
    return result;
 }
