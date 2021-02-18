@@ -2,6 +2,7 @@
  *   Includes of common headers
  * =============================*/
 #include "stdlib.h"
+#include "string.h"
 /* =============================
  *  Includes of project headers
  * =============================*/
