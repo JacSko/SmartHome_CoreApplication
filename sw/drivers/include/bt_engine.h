@@ -25,7 +25,7 @@
  *  Includes of project headers
  * =============================*/
 #include "return_codes.h"
-
+#include <stdint.h>
 /* =============================
  *       Data structures
  * =============================*/

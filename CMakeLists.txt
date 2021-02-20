@@ -173,5 +173,6 @@ if(SIMULATION)
 				logger
 				task_scheduler
 				system_timestamp
+				bt_engine
 				)
 endif()

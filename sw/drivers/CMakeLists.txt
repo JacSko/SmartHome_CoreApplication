@@ -15,6 +15,8 @@ target_link_libraries(gpio_config PUBLIC
         STM_HEADERS
 )
 
+############################
+
 add_library(uart_engine STATIC
         source/uart_engine.c
 )
@@ -109,8 +111,14 @@ target_link_libraries(i2c_driver PUBLIC
 )
 endif()
 
+
 if (UNIT_TESTS)
 
 	add_subdirectory(test)
 
 endif()
+
+add_library(driversIf INTERFACE)
+target_include_directories(driversIf INTERFACE
+		include/
+)

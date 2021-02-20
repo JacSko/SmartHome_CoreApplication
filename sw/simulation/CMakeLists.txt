@@ -39,3 +39,16 @@ target_include_directories(system_timestamp PUBLIC
 target_link_libraries(system_timestamp PUBLIC
 	timeIf
 )
+
+# BLUETOOTH
+add_library(bt_engine STATIC
+        source/bt_engine_sim.c
+)
+
+target_include_directories(bt_engine PUBLIC
+        include
+)
+
+target_link_libraries(bt_engine PUBLIC
+	driversIf
+)
