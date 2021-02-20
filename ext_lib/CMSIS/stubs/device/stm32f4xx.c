@@ -66,6 +66,14 @@ void NVIC_SystemReset()
 {
 
 }
+void NVIC_SetPriorityGrouping(uint32_t PriorityGroup)
+{
+
+}
+uint32_t NVIC_EncodePriority (uint32_t PriorityGroup, uint32_t PreemptPriority, uint32_t SubPriority)
+{
+   return 0;
+}
 
 uint8_t stm_stub_check_irq(IRQn_Type IRQn, uint8_t active)
 {

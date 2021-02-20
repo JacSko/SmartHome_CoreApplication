@@ -15,13 +15,6 @@ add_definitions(
 	        )
 
 
-if(SIMULATION)
-	#
-	#	Build target with replace hardware implementation to enable testing
-	#
-	message("Build target: Simulation")
-endif()
-
 if (UNIT_TESTS)
 	#
 	#	Build Unit tests
@@ -163,3 +156,22 @@ endif()
 	add_subdirectory(sw/notification_manager)
 	add_subdirectory(sw/SmartHomeTypes)
 	
+if(SIMULATION)
+	#
+	#	Build target with replace hardware implementation to enable testing
+	#
+	message("Build target: Simulation")
+	add_subdirectory(sw/simulation)
+	
+	
+	add_executable(simulation_test
+				sw/simulation/temp_main.c
+				)
+	target_link_libraries(simulation_test PUBLIC
+				time_counter
+				pthread
+				logger
+				task_scheduler
+				system_timestamp
+				)
+endif()

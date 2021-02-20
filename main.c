@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include "stm32f4xx.h"
 #include "time_counter.h"
 #include "wifi_manager.h"
 #include "uart_engine.h"
@@ -48,7 +47,7 @@
 #define SH_USE_RELAYS
 //#define SH_USE_INPUTS
 #define SH_USE_ENV
-#define SH_USE_FAN
+#define SH_USE_FAN/
 //#define SH_USE_SLM
 #define SH_USE_CMD_PARSER
 

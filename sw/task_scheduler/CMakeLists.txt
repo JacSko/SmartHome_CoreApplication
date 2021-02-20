@@ -1,4 +1,4 @@
-if (STM)
+if (STM OR SIMULATION)
 
 add_library(task_scheduler STATIC
         source/task_scheduler.c

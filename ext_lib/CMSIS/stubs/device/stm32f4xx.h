@@ -767,6 +767,10 @@ void stm_stub_deinit();
 void NVIC_EnableIRQ(IRQn_Type IRQn);
 void NVIC_DisableIRQ(IRQn_Type IRQn);
 void NVIC_SystemReset();
+void NVIC_SetPriorityGrouping(uint32_t PriorityGroup);
+uint32_t NVIC_EncodePriority (uint32_t PriorityGroup, uint32_t PreemptPriority, uint32_t SubPriority);
+
+
 void SysTick_Config(uint32_t ticks);
 uint8_t stm_stub_check_irq(IRQn_Type IRQn, uint8_t active);
 void __DSB(void);

@@ -5,7 +5,6 @@
 /* =============================
  *  Includes of project headers
  * =============================*/
-#include "stm32f4xx.h"
 #include "task_scheduler.h"
 #include "time_counter.h"
 #include "Logger.h"
