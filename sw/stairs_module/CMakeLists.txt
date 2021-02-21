@@ -13,6 +13,7 @@ target_link_libraries(stairs_led_module PUBLIC
         logger
         task_scheduler
         inputs_board
+        relays_board
         SmartHomeTypes
 )
 endif()

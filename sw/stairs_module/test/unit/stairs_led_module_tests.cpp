@@ -12,7 +12,7 @@ extern "C" {
 #include "inputs_board_mock.h"
 #include "task_scheduler_mock.h"
 #include "logger_mock.h"
-
+#include "relays_board_mock.h"
 /* ============================= */
 /**
  * @file stairs_led_module_tests.cpp
@@ -66,6 +66,7 @@ struct ledFixture : public ::testing::Test
 	   mock_sch_init();
 	   mock_i2c_init();
 	   mock_inp_init();
+	   mock_rel_init();
 	   callMock = new callbackMock();
 	   SLM_CONFIG config = {};
 	   config.address = 0x11;
@@ -86,6 +87,7 @@ struct ledFixture : public ::testing::Test
 	   mock_sch_deinit();
 	   mock_i2c_deinit();
 	   mock_inp_deinit();
+	   mock_rel_deinit();
 	   delete callMock;
 	}
 };
@@ -98,6 +100,7 @@ struct ledFixtureNoEffect : public ::testing::Test
       mock_sch_init();
       mock_i2c_init();
       mock_inp_init();
+      mock_rel_init();
       callMock = new callbackMock();
       SLM_CONFIG config = {};
       config.address = 0x11;
@@ -117,6 +120,7 @@ struct ledFixtureNoEffect : public ::testing::Test
       mock_sch_deinit();
       mock_i2c_deinit();
       mock_inp_deinit();
+      mock_rel_deinit();
       delete callMock;
    }
 
@@ -207,6 +211,7 @@ TEST_F(ledFixture, start_led_program)
     * <b>expected</b>: Correct I2C data sequence.<br>
     * ************************************************
     */
+   EXPECT_CALL(*rel_mock, rel_set(RELAY_STAIRCASE_LED, RELAY_STATE_ON));
    EXPECT_STEP_SEND(0x01, PROGRAM1_STEP_PERIOD);
    EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_ON));
    EXPECT_EQ(RETURN_OK, slm_start_program());
@@ -316,6 +321,7 @@ TEST_F(ledFixture, start_led_program)
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
+   EXPECT_CALL(*rel_mock, rel_set(RELAY_STAIRCASE_LED, RELAY_STATE_OFF));
    EXPECT_STEP_SEND(0x00,0);
    EXPECT_CALL(*callMock, callback(SLM_STATE_OFF));
    slm_on_timeout();
@@ -339,6 +345,7 @@ TEST_F(ledFixture, start_led_program_sensor_acitvated_during_off_effect)
     * <b>expected</b>: All leds enabled again, than disabled after timoeut.<br>
     * ************************************************
     */
+   EXPECT_CALL(*rel_mock, rel_set(RELAY_STAIRCASE_LED, RELAY_STATE_ON));
    EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
    EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_ON));
    EXPECT_EQ(RETURN_OK, slm_start_program());
@@ -469,6 +476,7 @@ TEST_F(ledFixture, start_led_program_sensor_acitvated_during_off_effect)
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
+   EXPECT_CALL(*rel_mock, rel_set(RELAY_STAIRCASE_LED, RELAY_STATE_OFF));
    EXPECT_STEP_SEND(0x00,0);
    EXPECT_CALL(*callMock, callback(SLM_STATE_OFF));
    slm_on_timeout();
@@ -492,6 +500,7 @@ TEST_F(ledFixtureNoEffect, start_led_program)
     * <b>expected</b>: Correct I2C data sequence.<br>
     * ************************************************
     */
+   EXPECT_CALL(*rel_mock, rel_set(RELAY_STAIRCASE_LED, RELAY_STATE_ON));
    EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
    EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_ON));
    EXPECT_EQ(RETURN_OK, slm_start_program());
@@ -557,6 +566,7 @@ TEST_F(ledFixtureNoEffect, start_led_program)
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
+   EXPECT_CALL(*rel_mock, rel_set(RELAY_STAIRCASE_LED, RELAY_STATE_OFF));
    EXPECT_STEP_SEND(0x00,0);
    EXPECT_CALL(*callMock, callback(SLM_STATE_OFF));
    slm_on_timeout();
@@ -580,6 +590,7 @@ TEST_F(ledFixtureNoEffect, start_led_program_sensor_acitve_on_timeout)
     * <b>expected</b>: Timeout counter should be restarted.<br>
     * ************************************************
     */
+   EXPECT_CALL(*rel_mock, rel_set(RELAY_STAIRCASE_LED, RELAY_STATE_ON));
    EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
    EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_ON));
    EXPECT_EQ(RETURN_OK, slm_start_program());
@@ -649,6 +660,7 @@ TEST_F(ledFixtureNoEffect, start_led_program_sensor_acitve_on_timeout)
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
+   EXPECT_CALL(*rel_mock, rel_set(RELAY_STAIRCASE_LED, RELAY_STATE_OFF));
    EXPECT_STEP_SEND(0x00,0);
    EXPECT_CALL(*callMock, callback(SLM_STATE_OFF));
    slm_on_timeout();
@@ -673,6 +685,7 @@ TEST_F(ledFixtureNoEffect, start_led_alw_on)
     * <b>expected</b>: Correct I2C data sequence.<br>
     * ************************************************
     */
+   EXPECT_CALL(*rel_mock, rel_set(RELAY_STAIRCASE_LED, RELAY_STATE_ON));
    EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
    EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_ON));
    EXPECT_EQ(RETURN_OK, slm_start_program_alw_on());
@@ -743,6 +756,7 @@ TEST_F(ledFixtureNoEffect, start_led_alw_on)
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
+   EXPECT_CALL(*rel_mock, rel_set(RELAY_STAIRCASE_LED, RELAY_STATE_OFF));
    EXPECT_STEP_SEND(0x00,0);
    EXPECT_CALL(*callMock, callback(SLM_STATE_OFF));
    slm_on_timeout();
@@ -768,6 +782,7 @@ TEST_F(ledFixture, start_led_alw_on_with_effect)
     * <b>expected</b>: Correct I2C data sequence.<br>
     * ************************************************
     */
+   EXPECT_CALL(*rel_mock, rel_set(RELAY_STAIRCASE_LED, RELAY_STATE_ON));
    EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
    EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_ON));
    EXPECT_EQ(RETURN_OK, slm_start_program_alw_on());
@@ -882,6 +897,7 @@ TEST_F(ledFixture, start_led_alw_on_with_effect)
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
+   EXPECT_CALL(*rel_mock, rel_set(RELAY_STAIRCASE_LED, RELAY_STATE_OFF));
    EXPECT_STEP_SEND(0x00,0);
    EXPECT_CALL(*callMock, callback(SLM_STATE_OFF));
    slm_on_timeout();
@@ -909,6 +925,7 @@ TEST_F(ledFixtureNoEffect, led_on_sensor_change)
     * <b>expected</b>: LED module program started.<br>
     * ************************************************
     */
+   EXPECT_CALL(*rel_mock, rel_set(RELAY_STAIRCASE_LED, RELAY_STATE_ON));
    EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
    EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_ON));
    slm_on_sensor_state_change(inp_status);
@@ -973,6 +990,7 @@ TEST_F(ledFixtureNoEffect, led_on_sensor_change)
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
+   EXPECT_CALL(*rel_mock, rel_set(RELAY_STAIRCASE_LED, RELAY_STATE_OFF));
    EXPECT_STEP_SEND(0x00,0);
    EXPECT_CALL(*callMock, callback(SLM_STATE_OFF));
    slm_on_timeout();
@@ -1001,6 +1019,7 @@ TEST_F(ledFixtureNoEffect, led_sensor_active_during_shutdown)
    * <b>expected</b>: LEDs enabled again.<br>
    * ************************************************
    */
+   EXPECT_CALL(*rel_mock, rel_set(RELAY_STAIRCASE_LED, RELAY_STATE_ON));
    EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
    EXPECT_CALL(*callMock, callback(SLM_STATE_ONGOING_ON));
    slm_on_sensor_state_change(inp_status);
@@ -1107,6 +1126,7 @@ TEST_F(ledFixtureNoEffect, led_sensor_active_during_shutdown)
    slm_on_timeout();
    EXPECT_EQ(SLM_STATE_ONGOING_OFF, slm_get_state());
 
+   EXPECT_CALL(*rel_mock, rel_set(RELAY_STAIRCASE_LED, RELAY_STATE_OFF));
    EXPECT_STEP_SEND(0x00,0);
    EXPECT_CALL(*callMock, callback(SLM_STATE_OFF));
    slm_on_timeout();
@@ -1130,6 +1150,7 @@ TEST_F(ledFixtureNoEffect, led_start_when_incorrect_state)
    inp_status.id = INPUT_STAIRS_SENSOR;
    inp_status.state = INPUT_STATE_ACTIVE;
 
+   EXPECT_CALL(*rel_mock, rel_set(RELAY_STAIRCASE_LED, RELAY_STATE_ON));
    EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
    slm_on_sensor_state_change(inp_status);
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
@@ -1220,6 +1241,7 @@ TEST_F(ledFixtureNoEffect, led_replace_program)
    */
    uint8_t PROGRAM1_STEP_PERIOD = 20;
 
+   EXPECT_CALL(*rel_mock, rel_set(RELAY_STAIRCASE_LED, RELAY_STATE_ON));
    EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
    slm_start_program();
    EXPECT_EQ(SLM_STATE_ONGOING_ON, slm_get_state());
@@ -1254,6 +1276,7 @@ TEST_F(ledFixtureNoEffect, led_change_current_program)
    */
    uint8_t PROGRAM1_STEP_PERIOD = 20;
 
+   EXPECT_CALL(*rel_mock, rel_set(RELAY_STAIRCASE_LED, RELAY_STATE_ON));
    EXPECT_CALL(*i2c_mock, i2c_write(_,_,_));
    EXPECT_CALL(*sch_mock, sch_trigger_task(_));
    EXPECT_CALL(*sch_mock, sch_set_task_period(_, PROGRAM1_STEP_PERIOD));

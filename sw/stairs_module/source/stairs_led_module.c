@@ -10,6 +10,7 @@
 #include "i2c_driver.h"
 #include "Logger.h"
 #include "inputs_board.h"
+#include "relays_board.h"
 /* =============================
  *          Defines
  * =============================*/
@@ -129,6 +130,7 @@ void slm_on_timeout()
       led_module.step_id--;
       if (led_module.step_id == 0)
       {
+         rel_set(RELAY_STAIRCASE_LED, RELAY_STATE_OFF);
          slm_set_state(SLM_STATE_OFF);
       }
       led_module.step = &(led_module.program->program_steps[led_module.step_id]);
@@ -344,6 +346,7 @@ void slm_run_program(SLM_REQ_TYPE type)
    logger_send(LOG_SLM, __func__,"");
    led_module.type = type;
    slm_set_state(SLM_STATE_ONGOING_ON);
+   rel_set(RELAY_STAIRCASE_LED, RELAY_STATE_ON);
    led_module.program = &LED_PROGRAMS[led_module.cfg.program_id];
    led_module.step_id = 1;
    led_module.step = &(led_module.program->program_steps[led_module.step_id]);
