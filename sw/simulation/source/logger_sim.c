@@ -76,12 +76,31 @@ RET_CODE logger_initialize(uint16_t buffer_size)
 
 RET_CODE logger_register_sender(RET_CODE(*send_fnc)(const char*))
 {
-   return RETURN_NOK;
+   RET_CODE result = RETURN_NOK;
+   for (uint8_t i=0; i < LOGGER_MAX_SENDERS; i++)
+   {
+      if (LOGGER_SENDERS[i] == NULL)
+      {
+         LOGGER_SENDERS[i] = send_fnc;
+         result = RETURN_OK;
+         break;
+      }
+   }
+   return result;
 }
 
 RET_CODE logger_unregister_sender(RET_CODE(*send_fnc)(const char*))
 {
-   return RETURN_NOK;
+   RET_CODE result = RETURN_NOK;
+   for (uint8_t i=0; i < LOGGER_MAX_SENDERS; i++)
+   {
+      if (LOGGER_SENDERS[i] == send_fnc)
+      {
+         LOGGER_SENDERS[i] = NULL;
+         result = RETURN_OK;
+      }
+   }
+   return result;
 }
 
 void logger_deinitialize()
@@ -160,6 +179,13 @@ void logger_send(LogGroup group, const char* prefix, const char* fmt, ...)
 
 void logger_notify_data(const char* data)
 {
+   for (uint8_t i = 0; i < LOGGER_MAX_SENDERS; i++)
+   {
+      if (LOGGER_SENDERS[i] != NULL)
+      {
+         LOGGER_SENDERS[i](data);
+      }
+   }
    printf("Sending log: %s", data);
 }
 

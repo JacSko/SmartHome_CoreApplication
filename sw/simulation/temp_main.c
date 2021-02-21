@@ -21,6 +21,7 @@ int main()
    ts_init();
    logger_initialize(2048);
    logger_enable();
+   logger_register_sender(&btengine_send_string);
    sch_subscribe_and_set(&test_task, TASKPRIO_HIGH, 1000, TASKSTATE_RUNNING, TASKTYPE_PERIODIC);
 
    BT_Config cfg = {115200, 2048, 1024};
