@@ -187,6 +187,7 @@ TEST(relaysBoardTests, initialization)
 TEST_F(relaysBoardFixture, relay_set_unset_tests)
 {
    EXPECT_EQ(RETURN_OK, rel_add_listener(&fake_callback));
+
    /**
     * <b>scenario</b>: Set relay - incorrect ID the relay <br>
     * <b>expected</b>: I2C message not send <br>
@@ -211,6 +212,22 @@ TEST_F(relaysBoardFixture, relay_set_unset_tests)
    EXPECT_EQ(RETURN_NOK, rel_set(RELAY_BATHROOM_AC, RELAY_STATE_ON));
 
    /**
+    * <b>scenario</b>: Set relay state to OFF when it is already OFF <br>
+    * <b>expected</b>: Correct I2C message sent <br>
+    * ************************************************
+    */
+   ASSERT_EQ(rel_get(RELAY_BATHROOM_FAN), RELAY_STATE_OFF);
+   EXPECT_CALL(*i2c_mock, i2c_write(_,_,_)).WillOnce(Invoke(
+         [&](I2C_ADDRESS addr, const uint8_t* data, uint8_t size) -> I2C_STATUS
+         {
+            EXPECT_EQ(addr, 0x10);
+            EXPECT_EQ(0xFFFF, *((uint16_t*)data));
+            EXPECT_EQ(size, 2U);
+            return I2C_STATUS_OK;
+         }));
+   EXPECT_EQ(RETURN_OK, rel_set(RELAY_BATHROOM_FAN, RELAY_STATE_OFF));
+
+   /**
     * <b>scenario</b>: Set relay - setting RELAY_BATHROOM_AC to ON <br>
     * <b>expected</b>: Relay 13 set to ON <br>
     * ************************************************
@@ -227,6 +244,24 @@ TEST_F(relaysBoardFixture, relay_set_unset_tests)
    EXPECT_EQ(RETURN_OK, rel_set(RELAY_BATHROOM_AC, RELAY_STATE_ON));
    EXPECT_EQ(RELAY_STATE_ON, rel_get(RELAY_BATHROOM_AC));
    EXPECT_EQ(RELAY_STATE_OFF, rel_get(RELAY_BATHROOM_LED));
+
+   /**
+    * <b>scenario</b>: Set relay - setting Active relay to ON again<br>
+    * <b>expected</b>: Correct message sent <br>
+    * ************************************************
+    */
+   EXPECT_CALL(*i2c_mock, i2c_write(_,_,_)).WillOnce(Invoke(
+         [&](I2C_ADDRESS addr, const uint8_t* data, uint8_t size) -> I2C_STATUS
+         {
+            EXPECT_EQ(addr, 0x10);
+            EXPECT_EQ(0xEFFF, *((uint16_t*)data));
+            EXPECT_EQ(size, 2U);
+            return I2C_STATUS_OK;
+         }));
+   EXPECT_EQ(RETURN_OK, rel_set(RELAY_BATHROOM_AC, RELAY_STATE_ON));
+   EXPECT_EQ(RELAY_STATE_ON, rel_get(RELAY_BATHROOM_AC));
+   EXPECT_EQ(RELAY_STATE_OFF, rel_get(RELAY_BATHROOM_LED));
+
    /**
     * <b>scenario</b>: Set relay - setting RELAY_BATHROOM_LED to ON <br>
     * <b>expected</b>: Relay 2 set to ON, previous relay unchanged <br>

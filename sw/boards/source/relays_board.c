@@ -104,7 +104,15 @@ RET_CODE rel_set(RELAY_ID id, RELAY_STATE state)
    RET_CODE result = RETURN_NOK;
    if (id < RELAY_ID_ENUM_MAX && state < RELAY_STATE_ENUM_MAX)
    {
-      uint16_t new_relays = (uint16_t) ~(rel_module.current_relays ^ rel_id_to_mask(id));
+      uint16_t new_relays = ~rel_module.current_relays;
+      if (state == RELAY_STATE_ON)
+      {
+         new_relays &= ~(rel_id_to_mask(id));
+      }
+      else
+      {
+         new_relays |= rel_id_to_mask(id);
+      }
       I2C_STATUS ret = i2c_write(rel_module.cfg.address, (uint8_t*)&new_relays, 2);
       if (ret == I2C_STATUS_OK)
       {
