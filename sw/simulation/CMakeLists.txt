@@ -51,4 +51,5 @@ target_include_directories(bt_engine PUBLIC
 
 target_link_libraries(bt_engine PUBLIC
 	driversIf
+	logger
 )

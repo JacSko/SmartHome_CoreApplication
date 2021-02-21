@@ -9,6 +9,11 @@ void test_task()
    logger_send(LOG_ERROR, __func__, "task");
 }
 
+void callback(const char * data)
+{
+   logger_send(LOG_ERROR, __func__, "data: %s", data);
+}
+
 int main()
 {
    time_init();
@@ -20,9 +25,13 @@ int main()
 
    BT_Config cfg = {115200, 2048, 1024};
    btengine_initialize(&cfg);
+   btengine_register_callback(&callback);
 
-   sleep(30);
+   while(1)
+   {
+      btengine_string_watcher();
+   }
+   btengine_deinitialize();
    time_deinit();
 
-   printf("");
 }
