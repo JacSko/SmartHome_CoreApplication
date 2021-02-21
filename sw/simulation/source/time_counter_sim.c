@@ -19,11 +19,12 @@
  * =============================*/
 RET_CODE time_is_time_ok(TimeItem* item);
 RET_CODE time_is_leap_year();
-void time_increment_time();
+void time_increment_time(unsigned int value);
 void time_call_low_prio_callbacks();
 void time_call_high_prio_callbacks();
 void *time_thread_execute();
-void SysTick_Handler(void);
+unsigned int get_timediff_ms(struct timespec* start, struct timespec* end);
+void SysTick_Handler(unsigned int value);
 /* =============================
  *       Internal types
  * =============================*/
@@ -56,24 +57,33 @@ void time_init()
 
    struct sched_param param;
    param.sched_priority = 99;
-   pthread_setschedparam(m_thread, SCHED_FIFO, &param);
+   pthread_setschedparam(m_thread, SCHED_RR, &param);
 
    pthread_mutex_init(&m_mutex, NULL);
    m_thread_running = 1;
    pthread_create(&m_thread, NULL, time_thread_execute, &m_thread_running);
 
 }
-
+unsigned int get_timediff_ms(struct timespec* start, struct timespec* end)
+{
+   unsigned long result = 0;
+   if ((end->tv_nsec-start->tv_nsec)<0) {
+      result = 1000000000+end->tv_nsec-start->tv_nsec;
+   } else {
+      result = end->tv_nsec-start->tv_nsec;
+   }
+   return result / 1000000;
+}
 void *time_thread_execute(uint8_t* m_thread_running)
 {
    uint8_t running_flag = *m_thread_running;
-   struct timespec tim, tim2;
-   tim.tv_sec = 0;
-   tim.tv_nsec = TIME_BASETIME_MS * 1000000;
+   struct timespec tim_before, tim_after, tim_diff;
    while (running_flag)
    {
-      SysTick_Handler();
-      nanosleep(&tim, &tim2);
+      clock_gettime(CLOCK_MONOTONIC, &tim_before);
+      usleep(TIME_BASETIME_MS * 1000);
+      clock_gettime(CLOCK_MONOTONIC, &tim_after);
+      SysTick_Handler(get_timediff_ms(&tim_before, &tim_after));
       pthread_mutex_lock(&m_mutex);
       running_flag = *m_thread_running;
       pthread_mutex_unlock(&m_mutex);
@@ -193,9 +203,9 @@ RET_CODE time_is_leap_year()
    return (timestamp.year % 4) == 0? RETURN_OK : RETURN_NOK;
 }
 
-void time_increment_time()
+void time_increment_time(unsigned int value)
 {
-   timestamp.msecond += TIME_BASETIME_MS;
+   timestamp.msecond += value;
    if (timestamp.msecond >= 1000)
    {
       timestamp.second++;
@@ -266,12 +276,9 @@ uint16_t time_get_basetime()
    return TIME_BASETIME_MS;
 }
 
-void SysTick_Handler(void)
+void SysTick_Handler(unsigned int value)
 {
-   struct timespec tim;
-   clock_gettime(CLOCK_MONOTONIC, &tim);
-
-   time_increment_time();
+   time_increment_time(value);
    time_call_high_prio_callbacks();
    time_time_changed++;
 }
