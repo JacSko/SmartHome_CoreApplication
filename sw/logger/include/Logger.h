@@ -52,9 +52,7 @@ typedef enum
    LOG_SLM,                   /**< Logs from StairsLedModule */
    LOG_ENV,                   /**< Logs from ENV module */
    LOG_NTF,                   /**< Log from Notification module */
-#if defined(SIMULATION) || defined(UNIT_TESTS)
    LOG_SIM,                   /**< Log from Notification module */
-#endif
    LOG_ENUM_MAX               /**< Enums count */
 } LogGroup;
 
