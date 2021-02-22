@@ -261,9 +261,10 @@ void sockdrv_close(sock_id id)
 RET_CODE sockdrv_write(sock_id id, const char* data, size_t size)
 {
    RET_CODE result = RETURN_NOK;
+   uint8_t mutex_state = -1;
    for (uint8_t i = 0; i < SOCK_DRV_MAX_CONNECTIONS; i++)
    {
-      pthread_mutex_lock(&m_sock_drv.connections[i].conn_mutex);
+      mutex_state = pthread_mutex_trylock(&m_sock_drv.connections[i].conn_mutex);
       if (m_sock_drv.connections[i].id == id && m_sock_drv.connections[i].connected)
       {
          result = RETURN_OK;
@@ -285,7 +286,11 @@ RET_CODE sockdrv_write(sock_id id, const char* data, size_t size)
             bytes_to_write -= bytes_written;
          }
       }
-      pthread_mutex_unlock(&m_sock_drv.connections[i].conn_mutex);
+
+      if (mutex_state == 0)
+      {
+         pthread_mutex_unlock(&m_sock_drv.connections[i].conn_mutex);
+      }
    }
    return result;
 }

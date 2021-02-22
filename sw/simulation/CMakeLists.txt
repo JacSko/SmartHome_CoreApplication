@@ -64,6 +64,7 @@ if (SIMULATION)
 	
 	target_link_libraries(bt_engine PUBLIC
 		driversIf
+		socket_driver
 		logger
 	)
 endif()
