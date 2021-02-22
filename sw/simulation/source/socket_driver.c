@@ -58,6 +58,8 @@ typedef struct
    sock_id id;
    SOCKET_DRV_LISTENER listener;
 } Socket_Listener;
+
+
 /* =============================
  *       Global variables
  * =============================*/
@@ -99,9 +101,10 @@ sock_id sockdrv_create(const char* ip_address, uint16_t port)
       logger_send(LOG_SIM, __func__, "starting connection: %s:%u", ip_address? ip_address : "localhost", port);
       for (uint8_t i = 0; i < SOCK_DRV_MAX_CONNECTIONS; i++)
       {
-         if (m_sock_drv.connections[i].sock_fd == -1)
+         if (m_sock_drv.connections[i].id == -1)
          {
-            result = i;
+            result = i; /* empty place found */
+            break;
          }
       }
       m_sock_drv.connections[result].id = result;
@@ -138,12 +141,10 @@ void *sockdrv_thread_execute(void* data)
    pthread_mutex_unlock(&sock_drv->conn_mutex);
    while(!exit_requested)
    {
-      usleep(900000);
-      // try to active clients connect
+      usleep(500000);
       for (uint8_t i = 0; i < SOCK_DRV_MAX_CONNECTIONS; i++)
       {
          pthread_mutex_lock(&sock_drv->connections[i].conn_mutex);
-         // if sock_id assigned, and not connected - try to connect;
          if (sock_drv->connections[i].id != -1 && !sock_drv->connections[i].connected)
          {
             logger_send(LOG_SIM, __func__, "[%d] opening socket", sock_drv->connections[i].id);
@@ -216,7 +217,6 @@ void *sockdrv_thread_execute(void* data)
             }
          }
          pthread_mutex_unlock(&sock_drv->connections[i].conn_mutex);
-         // notify about data outside of mutex
          if (send_notification == 1)
          {
             sockdrv_notify_listeners(SOCK_DRV_NEW_DATA, sock_drv->connections[i].id, sock_drv->connections[i].buffer);
@@ -238,7 +238,7 @@ void sockdrv_close(sock_id id)
       {
          m_sock_drv.connections[i].buffer_idx = 0;
          m_sock_drv.connections[i].connected = 0;
-         m_sock_drv.connections[i].id = 1;
+         m_sock_drv.connections[i].id = -1;
          close(m_sock_drv.connections[i].sock_fd);
          m_sock_drv.connections[i].sock_fd = -1;
 
