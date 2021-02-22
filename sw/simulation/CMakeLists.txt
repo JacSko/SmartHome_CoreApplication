@@ -1,55 +1,75 @@
-# TIME_COUNTER
-add_library(time_counter STATIC
-        source/time_counter_sim.c
-)
-
-target_include_directories(time_counter PUBLIC
-        include
-)
-
-target_link_libraries(time_counter PUBLIC
+if (SIMULATION)
+	# TIME_COUNTER
+	add_library(time_counter STATIC
+	        source/time_counter_sim.c
+	)
+	
+	target_include_directories(time_counter PUBLIC
+	        include
+	)
+	
+	target_link_libraries(time_counter PUBLIC
+			timeIf
+	)
+	
+	
+	# LOGGER
+	add_library(logger STATIC
+	        source/logger_sim.c
+	)
+	target_include_directories(logger PUBLIC
+	        include
+	)
+	
+	target_link_libraries(logger PUBLIC
+		loggerIf
+		time_counter
+		string_formatter
+	)
+	
+	# SYSTEM_TIMESTAMP
+	add_library(system_timestamp STATIC
+	        source/system_timestamp_sim.c
+	)
+	
+	target_include_directories(system_timestamp PUBLIC
+	        include
+	)
+	
+	target_link_libraries(system_timestamp PUBLIC
 		timeIf
-)
+	)
+	
+	# SOCKET DRIVER
+	add_library(socket_driver STATIC
+	        source/socket_driver.c
+	)
+	
+	target_include_directories(socket_driver PUBLIC
+	        include
+	)
+	
+	target_link_libraries(socket_driver PUBLIC
+			logger
+	)
+	
+	# BLUETOOTH
+	add_library(bt_engine STATIC
+	        source/bt_engine_sim.c
+	)
+	
+	target_include_directories(bt_engine PUBLIC
+	        include
+	)
+	
+	target_link_libraries(bt_engine PUBLIC
+		driversIf
+		logger
+	)
+endif()
 
+if (UNIT_TESTS)
 
-# LOGGER
-add_library(logger STATIC
-        source/logger_sim.c
-)
-
-target_include_directories(logger PUBLIC
-        include
-)
-
-target_link_libraries(logger PUBLIC
-	loggerIf
-	time_counter
-	string_formatter
-)
-
-# SYSTEM_TIMESTAMP
-add_library(system_timestamp STATIC
-        source/system_timestamp_sim.c
-)
-
-target_include_directories(system_timestamp PUBLIC
-        include
-)
-
-target_link_libraries(system_timestamp PUBLIC
-	timeIf
-)
-
-# BLUETOOTH
-add_library(bt_engine STATIC
-        source/bt_engine_sim.c
-)
-
-target_include_directories(bt_engine PUBLIC
-        include
-)
-
-target_link_libraries(bt_engine PUBLIC
-	driversIf
-	logger
-)
+	add_subdirectory(tests)
+  
+endif()

@@ -1,4 +1,9 @@
-
+#ifndef SIMULATION_SETTINGS_H_
+#define SIMULATION_SETTINGS_H_
 
 
 #define BLUETOOTH_FORWARDING_PORT 3456
+
+
+
+#endif
