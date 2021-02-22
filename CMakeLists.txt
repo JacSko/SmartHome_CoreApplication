@@ -155,14 +155,15 @@ endif()
 	add_subdirectory(sw/stairs_module)
 	add_subdirectory(sw/notification_manager)
 	add_subdirectory(sw/SmartHomeTypes)
+	add_subdirectory(sw/simulation)
 	
+
 if(SIMULATION)
 	#
 	#	Build target with replace hardware implementation to enable testing
 	#
 	message("Build target: Simulation")
-	add_subdirectory(sw/simulation)
-	
+	add_definitions(-DSIMULATION)
 	
 	add_executable(simulation_test
 				sw/simulation/temp_main.c
@@ -174,5 +175,6 @@ if(SIMULATION)
 				task_scheduler
 				system_timestamp
 				bt_engine
+				socket_driver
 				)
-endif()
+endif()	
