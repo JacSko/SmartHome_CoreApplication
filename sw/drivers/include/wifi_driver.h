@@ -18,7 +18,6 @@
  *  Includes of project headers
  * =============================*/
 #include "return_codes.h"
-#include "stm32f4xx.h"
 #include "../../time/include/time_counter.h"
 /* =============================
  *       Data structures

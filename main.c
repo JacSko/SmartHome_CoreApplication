@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "stm32f4xx.h"
 #include "time_counter.h"
 #include "wifi_manager.h"
 #include "uart_engine.h"

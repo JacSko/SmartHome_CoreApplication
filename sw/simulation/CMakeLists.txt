@@ -67,10 +67,52 @@ if (SIMULATION)
 		socket_driver
 		logger
 	)
+	# HWSTUB
+	add_library(hw_stub STATIC
+	        source/hw_stub.c
+	)
+	
+	target_include_directories(hw_stub PUBLIC
+	        include
+	)
+	
+	target_link_libraries(hw_stub PUBLIC
+		driversIf
+		socket_driver
+		logger
+	)
+	# I2C DRIVER
+	add_library(i2c_driver STATIC
+	        source/i2c_driver_sim.c
+	)
+	
+	target_include_directories(i2c_driver PUBLIC
+	        include
+	)
+	
+	target_link_libraries(i2c_driver PUBLIC
+		driversIf
+		socket_driver
+		logger
+		hw_stub
+	)
 endif()
 
 if (UNIT_TESTS)
 
 	add_subdirectory(tests)
   
+  	add_library(hw_stub STATIC
+	        source/hw_stub.c
+	)
+	
+	target_include_directories(hw_stub PUBLIC
+	        include
+	)
+	
+	target_link_libraries(hw_stub PUBLIC
+		driversIf
+		socket_driver_mock
+		loggerMock
+	)
 endif()

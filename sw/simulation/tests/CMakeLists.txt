@@ -1,20 +1,20 @@
-add_executable(hw_stub_tests
-            unit/hw_stub_tests.cpp
+add_executable(i2c_driver_sim_tests
+            unit/i2c_driver_sim_tests.cpp
 )
 
-target_include_directories(hw_stub_tests PUBLIC
+target_include_directories(i2c_driver_sim_tests PUBLIC
         ../include
 )
-target_link_libraries(hw_stub_tests PUBLIC
+target_link_libraries(i2c_driver_sim_tests PUBLIC
         gtest_main
         gmock_main
+        driversIf
         loggerMock
         socket_driver_mock
-        driversIf
-        STM_HEADERS
+        hw_stub
 )
 
-add_test(NAME hw_stub_tests COMMAND hw_stub_tests)
+add_test(NAME i2c_driver_sim_tests COMMAND i2c_driver_sim_tests)
 
 
 

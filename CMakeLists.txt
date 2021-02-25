@@ -176,5 +176,6 @@ if(SIMULATION)
 				system_timestamp
 				bt_engine
 				socket_driver
+				i2c_driver
 				)
 endif()	
