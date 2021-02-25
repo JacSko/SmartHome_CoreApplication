@@ -209,6 +209,71 @@ TEST_F(i2cdriverSimFixture, writing_data)
 }
 
 /**
+ * @test Settings of I2C board state from test framework
+ */
+TEST_F(i2cdriverSimFixture, setting_i2c_device_state_from_test_framework)
+{
+   uint8_t data_size = 2;
+   uint8_t result_buffer [data_size] = {};
+   I2C_ADDRESS correct_address = 0x40;
+
+   /**
+    * <b>scenario</b>: Incorrect event received.<br>
+    * <b>expected</b>: Board state not set.<br>
+    * ************************************************
+    */
+   const char* i2c_state_ok = "01 03 64 255 255";
+
+   hwstub_on_new_command(SOCK_DRV_DISCONNECTED, i2c_state_ok);
+   hwstub_watcher();
+   EXPECT_EQ(I2C_STATUS_OK, i2c_read(correct_address, result_buffer, data_size));
+   EXPECT_EQ(result_buffer[0], 0x00);
+   EXPECT_EQ(result_buffer[1], 0x00);
+
+   /**
+    * <b>scenario</b>: Incorrect message structure received.<br>
+    * <b>expected</b>: Board state not set.<br>
+    * ************************************************
+    */
+   i2c_state_ok = "01 02 64 255 255";
+
+   hwstub_on_new_command(SOCK_DRV_NEW_DATA, i2c_state_ok);
+   hwstub_watcher();
+   EXPECT_EQ(I2C_STATUS_OK, i2c_read(correct_address, result_buffer, data_size));
+   EXPECT_EQ(result_buffer[0], 0x00);
+   EXPECT_EQ(result_buffer[1], 0x00);
+
+   /**
+    * <b>scenario</b>: I2C command with wrong address recevied.<br>
+    * <b>expected</b>: Board state not set.<br>
+    * ************************************************
+    */
+   i2c_state_ok = "01 03 00 255 255";
+
+   hwstub_on_new_command(SOCK_DRV_NEW_DATA, i2c_state_ok);
+   hwstub_watcher();
+   EXPECT_EQ(I2C_STATUS_OK, i2c_read(correct_address, result_buffer, data_size));
+   EXPECT_EQ(result_buffer[0], 0x00);
+   EXPECT_EQ(result_buffer[1], 0x00);
+
+   /**
+    * <b>scenario</b>: Correct I2C message received.<br>
+    * <b>expected</b>: Board state set correctly.<br>
+    * ************************************************
+    */
+   i2c_state_ok = "01 03 64 255 255";
+
+   hwstub_on_new_command(SOCK_DRV_NEW_DATA, i2c_state_ok);
+   hwstub_watcher();
+   EXPECT_EQ(I2C_STATUS_OK, i2c_read(correct_address, result_buffer, data_size));
+   EXPECT_EQ(result_buffer[0], 0xFF);
+   EXPECT_EQ(result_buffer[1], 0xFF);
+
+
+
+}
+
+/**
  * @test Setting/getting i2c timeout
  */
 TEST_F(i2cdriverSimFixture, i2c_set_get_timeout_test)
