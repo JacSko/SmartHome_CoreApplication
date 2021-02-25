@@ -96,6 +96,21 @@ if (SIMULATION)
 		logger
 		hw_stub
 	)
+	# DHT DRIVER
+	add_library(dht_driver STATIC
+	        source/dht_driver_sim.c
+	)
+	
+	target_include_directories(dht_driver PUBLIC
+	        include
+	)
+	
+	target_link_libraries(dht_driver PUBLIC
+		driversIf
+		socket_driver
+		logger
+		hw_stub
+	)
 endif()
 
 if (UNIT_TESTS)
