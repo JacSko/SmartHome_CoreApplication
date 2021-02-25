@@ -72,13 +72,13 @@ RET_CODE dht_initialize()
 
 RET_CODE dht_read_async(DHT_SENSOR_ID id, DHT_CALLBACK clb)
 {
-   DHT_STATUS result = RETURN_NOK;
+   RET_CODE result = RETURN_NOK;
    if (hwstub_dht_read(id, &dht_driver.sensor) == DHT_STATUS_OK)
    {
       result = RETURN_OK;
+      dht_measurement_ready = 1;
    }
    dht_callback = clb;
-   dht_measurement_ready = 1;
    logger_send(LOG_DHT_DRV, __func__, "read sync status %d", result);
    return result;
 }
@@ -97,6 +97,7 @@ RET_CODE dht_set_timeout(uint16_t timeout)
    {
       dht_driver.timeout = timeout;
       logger_send(LOG_DHT_DRV, __func__, "new timeout %d", timeout);
+      result = RETURN_OK;
    }
    return result;
 }

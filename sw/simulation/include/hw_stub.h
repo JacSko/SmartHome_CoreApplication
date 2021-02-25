@@ -30,6 +30,7 @@
 #include "i2c_driver.h"
 #include "dht_driver.h"
 #include "wifi_driver.h"
+#include "socket_driver.h"
 
 #define HWSTUB_EVENT_OFFSET 0
 #define HWSTUB_PAYLOAD_SIZE_OFFSET 1
@@ -66,6 +67,8 @@ RET_CODE hwstub_wifi_close_server();
 RET_CODE hwstub_wifi_allow_multiple_clients(uint8_t state);
 RET_CODE hwstub_wifi_send_data(ServerClientID id, const char* data, uint16_t size);
 RET_CODE hwstub_wifi_send_bytes(ServerClientID id, const uint8_t* data, uint16_t size);
+void hwstub_on_new_command(SOCK_DRV_EV ev, const char* data);
+void hwstub_on_new_app_data(SOCK_DRV_EV ev, const char* data);
 void hwstub_wifi_set_ip_address(IPAddress* ip_address);
 void hwstub_wifi_get_ip_address(IPAddress* ip_address);
 void hwstub_wifi_get_time(const char* ntp_server, TimeItem* item);

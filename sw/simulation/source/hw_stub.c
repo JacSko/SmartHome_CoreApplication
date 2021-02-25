@@ -1,7 +1,6 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include "hw_stub.h"
-#include "socket_driver.h"
 #include "simulation_settings.h"
 #include "Logger.h"
 #include <string.h>
@@ -53,8 +52,6 @@ typedef struct
 } HWSTUB;
 
 
-void hwstub_on_new_command(SOCK_DRV_EV ev, const char* data);
-void hwstub_on_new_app_data(SOCK_DRV_EV ev, const char* data);
 void hwstub_send_i2c_change_notification(I2C_ADDRESS addr, const uint8_t* data, uint16_t size);
 void hwstub_parse_command_from_buffer();
 uint16_t hwstub_message_to_byte (uint8_t* buffer);
@@ -204,7 +201,7 @@ uint16_t hwstub_message_to_byte (uint8_t* buffer)
       if (m_hw_stub.buffer.buffer[i] == ' ' || !m_hw_stub.buffer.buffer[i])
       {
          local_buf[local_buf_idx] = 0x00;
-         m_hw_stub.buffer.buffer[ext_buf_idx] = atoi(local_buf);
+         buffer[ext_buf_idx] = atoi(local_buf);
          ext_buf_idx++;
          local_buf_idx = 0;
       }
