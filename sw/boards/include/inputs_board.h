@@ -154,6 +154,12 @@ RET_CODE inp_add_input_listener(INPUT_LISTENER callback);
  */
 void inp_remove_input_listener(INPUT_LISTENER callback);
 
+/**
+ * @brief Function to be called on new I2C interrupt.
+ * @return None.
+ */
+void inp_on_interrupt_recevied();
+
 
 
 
