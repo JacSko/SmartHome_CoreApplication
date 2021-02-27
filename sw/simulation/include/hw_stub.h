@@ -16,8 +16,7 @@
  * I2C_STATE_SET:      [HW_STUB_EVENT_ID] [PAYLOAD_SIZE] [I2C_ADDRESS] [I2C_BYTE0] [I2C_BYTE N-1]
  * I2C_STATE_NTF:      [HW_STUB_EVENT_ID] [PAYLOAD_SIZE] [I2C_ADDRESS] [I2C_BYTE0] [I2C_BYTE N-1]
  * DHT_STATE_SET:      [HW_STUB_EVENT_ID] [PAYLOAD_SIZE] [SENSOR_ID] [SENSOR_TYPE] [TEMP_H] [TEMP_L] [HUM_H] [HUM_L]
- * WIFI_CLIENT_ADD:    [HW_STUB_EVENT_ID] [PAYLOAD_SIZE] [CLIENT_ID] [IP_ADDRESS_1] [IP_ADDRESS_2] [IP_ADDRESS_3] [IP_ADDRESS_4]
- * WIFI_CLIENT_REMOVE: [HW_STUB_EVENT_ID] [PAYLOAD_SIZE] [CLIENT_ID] [IP_ADDRESS_1] [IP_ADDRESS_2] [IP_ADDRESS_3] [IP_ADDRESS_4]
+ * I2C_INT_TRIGGER:    [HW_STUB_EVENT_ID] [PAYLOAD_SIZE]
  *
  * @author Jacek Skowronek
  * @date 23/02/2021
@@ -44,6 +43,7 @@ typedef enum
    I2C_STATE_SET = 1,       /*< Sets current state of I2C board - in raw format, e.g. 0xFFFF */
    I2C_STATE_NTF = 2,       /*< Event sent to test framework to notify that new data was written to I2C device */
    DHT_STATE_SET = 3,       /*< Sets current state of DHT sensor */
+   I2C_INT_TRIGGER = 4,     /*< Event to simulate I2C interrupt */
    HW_STUB_EV_ENUM_COUNT,
 } HW_STUB_EVENT_ID;
 

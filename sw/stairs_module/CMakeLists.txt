@@ -1,4 +1,4 @@
-if (STM)
+if (STM OR SIMULATION)
 
 add_library(stairs_led_module STATIC
         source/stairs_led_module.c

@@ -79,6 +79,7 @@ if (SIMULATION)
 	target_link_libraries(hw_stub PUBLIC
 		driversIf
 		socket_driver
+		inputs_board
 		logger
 	)
 	# I2C DRIVER
@@ -129,5 +130,6 @@ if (UNIT_TESTS)
 		driversIf
 		socket_driver_mock
 		loggerMock
+		inputs_board_mock
 	)
 endif()

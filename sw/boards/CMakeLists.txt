@@ -1,4 +1,4 @@
-if (STM)
+if (STM OR SIMULATION)
 
 ###############################
 # 	  STM targets here

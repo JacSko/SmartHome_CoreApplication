@@ -22,6 +22,7 @@ struct inpMock
    MOCK_METHOD0(inp_disable_periodic_update, void());
    MOCK_METHOD1(inp_add_input_listener, RET_CODE(INPUT_LISTENER));
    MOCK_METHOD1(inp_remove_input_listener, void(INPUT_LISTENER));
+   MOCK_METHOD0(inp_on_interrupt_recevied, void());
 };
 
 inpMock* inp_mock;
@@ -98,6 +99,10 @@ RET_CODE inp_add_input_listener(INPUT_LISTENER callback)
 void inp_remove_input_listener(INPUT_LISTENER callback)
 {
    inp_mock->inp_remove_input_listener(callback);
+}
+void inp_on_interrupt_recevied()
+{
+   inp_mock->inp_on_interrupt_recevied();
 }
 
 

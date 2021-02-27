@@ -6,6 +6,7 @@
 #include "socket_driver.h"
 #include "hw_stub.h"
 #include "i2c_driver.h"
+#include "dht_driver.h"
 
 void test_task()
 {
@@ -42,24 +43,15 @@ int main()
    hwstub_init();
 
    i2c_initialize();
+   dht_initialize();
 
-   sleep(1);
-
-   uint8_t to_write [2] = {0x11, 0x12};
-   uint8_t readed [2] = {0x00, 0x00};
-
-   i2c_write(0x40, to_write, 2);
-
-   i2c_read(0x40, readed, 2);
-
-   printf("got bytes from normal read: %d, %d\n", readed[0], readed[1]);
-
-
-   printf("executing async read\n");
-   i2c_read_async(0x40, 2, &i2c_read_callback);
-
+   DHT_SENSOR sensor = {};
    while(1)
    {
+      sleep(1);
+      DHT_STATUS ret = dht_read(DHT_SENSOR2, &sensor);
+      printf("data: %d.%d %d.%d\n", sensor.data.temp_h, sensor.data.temp_l, sensor.data.hum_h, sensor.data.hum_l);
+      hwstub_watcher();
       i2c_watcher();
       btengine_string_watcher();
    };

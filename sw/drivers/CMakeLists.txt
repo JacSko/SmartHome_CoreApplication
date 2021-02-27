@@ -3,17 +3,7 @@ if (STM)
 ###############################
 # 	  STM targets here
 ###############################
-add_library(gpio_config STATIC
-        source/gpio_lib.c
-)
 
-target_include_directories(gpio_config PUBLIC
-    include
-)
-
-target_link_libraries(gpio_config PUBLIC
-        STM_HEADERS
-)
 
 ############################
 
@@ -111,6 +101,20 @@ target_link_libraries(i2c_driver PUBLIC
 )
 endif()
 
+if (STM OR SIMULATION)
+# this target can be built also for simulation - the STM_HEADERS are mocked in this config
+add_library(gpio_config STATIC
+        source/gpio_lib.c
+)
+
+target_include_directories(gpio_config PUBLIC
+    include
+)
+
+target_link_libraries(gpio_config PUBLIC
+        STM_HEADERS
+)
+endif()
 
 if (UNIT_TESTS)
 

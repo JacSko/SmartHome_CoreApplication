@@ -3,6 +3,7 @@
 #include "hw_stub.h"
 #include "simulation_settings.h"
 #include "Logger.h"
+#include "inputs_board.h"
 #include <string.h>
 
 #define I2C_BOARD_DATA_SIZE 2
@@ -177,6 +178,9 @@ void hwstub_parse_command_from_buffer()
          break;
       case DHT_STATE_SET:
          hwstub_set_dht_device_state((DHT_SENSOR_ID)buffer[HWSTUB_PAYLOAD_START_OFFSET], buffer + HWSTUB_PAYLOAD_START_OFFSET + 1);
+         break;
+      case I2C_INT_TRIGGER:
+         inp_on_interrupt_recevied();
          break;
       default:
          logger_send(LOG_ERROR, __func__, "unsupported HWSTUB_EVENT");

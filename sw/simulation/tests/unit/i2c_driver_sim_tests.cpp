@@ -5,6 +5,7 @@ extern "C" {
 #endif
 #include "../../source/i2c_driver_sim.c"
 #include "socket_driver_mock.h"
+#include "inputs_board_mock.h"
 #ifdef __cplusplus
 }
 #endif
@@ -43,6 +44,7 @@ struct i2cdriverSimFixture : public ::testing::Test
    {
       mock_logger_init();
       mock_sockdrv_init();
+      mock_inp_init();
 
       EXPECT_CALL(*sockdrv_mock, sockdrv_create(_,_)).WillOnce(Return(control_if_fd))
                                                      .WillOnce(Return(app_id_fd));
@@ -60,12 +62,13 @@ struct i2cdriverSimFixture : public ::testing::Test
       hwstub_deinit();
       mock_sockdrv_deinit();
       mock_logger_deinit();
+      mock_inp_deinit();
       delete callMock;
    }
 
+
    uint8_t control_if_fd = 1;
    uint8_t app_id_fd = 2;
-
 };
 
 /**
@@ -301,3 +304,19 @@ TEST_F(i2cdriverSimFixture, i2c_set_get_timeout_test)
    EXPECT_EQ(I2C_DEFAULT_TIMEOUT_MS+1, i2c_get_timeout());
 }
 
+/**
+ * @test Test of simulating hardware interrupt
+ */
+TEST_F(i2cdriverSimFixture, i2c_interrupt_simulation_test)
+{
+   /**
+    * <b>scenario</b>:  Interrupt trigger message received <br>
+    * <b>expected</b>:  Inputs mock called <br>
+    * ************************************************
+    */
+   const char* i2c_state_ok = "04 00";
+
+   EXPECT_CALL(*inp_mock, inp_on_interrupt_recevied());
+   hwstub_on_new_command(SOCK_DRV_NEW_DATA, i2c_state_ok);
+   hwstub_watcher();
+}

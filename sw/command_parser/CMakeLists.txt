@@ -1,4 +1,4 @@
-if (STM)
+if (STM OR SIMULATION)
 
 add_library(command_parser STATIC
 		source/command_parser.c

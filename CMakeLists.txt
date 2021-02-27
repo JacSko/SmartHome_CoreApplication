@@ -177,5 +177,6 @@ if(SIMULATION)
 				bt_engine
 				socket_driver
 				i2c_driver
+				dht_driver
 				)
 endif()	

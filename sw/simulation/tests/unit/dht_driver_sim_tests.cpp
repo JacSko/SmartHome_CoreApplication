@@ -5,6 +5,7 @@ extern "C" {
 #endif
 #include "../../source/dht_driver_sim.c"
 #include "socket_driver_mock.h"
+#include "inputs_board_mock.h"
 #ifdef __cplusplus
 }
 #endif
