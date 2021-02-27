@@ -3,6 +3,19 @@ if (STM OR SIMULATION)
 ###############################
 # 	  STM targets here
 ###############################
+add_library(inputs_interrupt_handler STATIC
+        source/inputs_interrupt_handler.c
+)
+
+target_include_directories(inputs_interrupt_handler PUBLIC
+        include
+)
+
+target_link_libraries(inputs_interrupt_handler PUBLIC
+		STM_HEADERS
+		gpio_config
+		SmartHomeTypes
+)
 
 add_library(inputs_board STATIC
         source/inputs_board.c
@@ -15,6 +28,7 @@ target_include_directories(inputs_board PUBLIC
 target_link_libraries(inputs_board PUBLIC
 		STM_HEADERS
 		logger
+		inputs_interrupt_handler
 		task_scheduler
 		i2c_driver
 		gpio_config

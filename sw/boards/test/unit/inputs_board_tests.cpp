@@ -4,8 +4,8 @@
 extern "C" {
 #endif
 #include "../../source/inputs_board.c"
+#include "../../source/inputs_interrupt_handler.c"
 #include "../../../../ext_lib/CMSIS/stubs/device/stm32f4xx.h"
-#include "inputs_interrupt_handler.h"
 #ifdef __cplusplus
 }
 #endif
