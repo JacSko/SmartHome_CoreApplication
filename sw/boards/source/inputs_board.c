@@ -5,11 +5,10 @@
 /* =============================
  *  Includes of project headers
  * =============================*/
-#include "stm32f4xx.h"
 #include "inputs_board.h"
 #include "task_scheduler.h"
 #include "Logger.h"
-#include "gpio_lib.h"
+#include "inputs_interrupt_handler.h"
 /* =============================
  *          Defines
  * =============================*/
@@ -79,18 +78,7 @@ RET_CODE inp_initialize(const INPUTS_CONFIG* config)
                   inp_module.interrupt_enabled? TASKSTATE_RUNNING : TASKSTATE_STOPPED, TASKTYPE_TRIGGER);
       }
    }
-
-   RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN;
-   RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
-   __DSB();
-   gpio_pin_cfg(GPIOB, PB4, gpio_mode_in_floating);
-   GPIOB->ODR |= GPIO_ODR_ODR_4;
-   SYSCFG->EXTICR[1] |= SYSCFG_EXTICR2_EXTI4_PB;
-   EXTI->IMR |= EXTI_IMR_MR4;
-   EXTI->RTSR &= ~EXTI_RTSR_TR4;
-   EXTI->FTSR |= EXTI_FTSR_TR4; /* interrupt active only for falling edge */
-   NVIC_EnableIRQ(EXTI4_IRQn);
-
+   int_handler_init();
    logger_send_if(result != RETURN_OK, LOG_ERROR, __func__, "error");
    return result;
 }
@@ -341,14 +329,10 @@ void inp_remove_input_listener(INPUT_LISTENER callback)
    }
 }
 
-void EXTI4_IRQHandler()
+void inp_on_interrupt_recevied()
 {
-   if ( EXTI->PR & EXTI_PR_PR4) {
-      EXTI->PR = EXTI_PR_PR4;
-      if (inp_module.interrupt_enabled)
-      {
-         sch_trigger_task(&inp_on_timeout);
-      }
-      return;
+   if (inp_module.interrupt_enabled)
+   {
+      sch_trigger_task(&inp_on_timeout);
    }
 }

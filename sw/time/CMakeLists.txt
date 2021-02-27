@@ -33,3 +33,9 @@ if (UNIT_TESTS)
     add_subdirectory(test)
     
 endif()
+
+add_library(timeIf INTERFACE
+)
+target_include_directories(timeIf INTERFACE
+		include
+)

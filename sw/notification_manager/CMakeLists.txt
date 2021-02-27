@@ -1,4 +1,4 @@
-if (STM)
+if (STM OR SIMULATION)
 
 add_library(notification_manager STATIC
         source/notification_manager.c

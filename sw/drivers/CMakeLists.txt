@@ -3,17 +3,9 @@ if (STM)
 ###############################
 # 	  STM targets here
 ###############################
-add_library(gpio_config STATIC
-        source/gpio_lib.c
-)
 
-target_include_directories(gpio_config PUBLIC
-    include
-)
 
-target_link_libraries(gpio_config PUBLIC
-        STM_HEADERS
-)
+############################
 
 add_library(uart_engine STATIC
         source/uart_engine.c
@@ -62,19 +54,7 @@ target_link_libraries(wifi_driver PUBLIC
 
 ############################
 
-add_library(wifi_manager STATIC
-        source/wifi_manager.c
-)
 
-target_include_directories(wifi_manager PUBLIC
-        include
-)
-
-target_link_libraries(wifi_manager PUBLIC
-        time_counter
-        wifi_driver
-        logger
-)
 
 ############################
 
@@ -109,8 +89,44 @@ target_link_libraries(i2c_driver PUBLIC
 )
 endif()
 
+if (STM OR SIMULATION)
+
+add_library(wifi_manager STATIC
+        source/wifi_manager.c
+)
+
+target_include_directories(wifi_manager PUBLIC
+        include
+)
+
+target_link_libraries(wifi_manager PUBLIC
+        time_counter
+        wifi_driver
+        logger
+)
+
+
+# this target can be built also for simulation - the STM_HEADERS are mocked in this config
+add_library(gpio_config STATIC
+        source/gpio_lib.c
+)
+
+target_include_directories(gpio_config PUBLIC
+    include
+)
+
+target_link_libraries(gpio_config PUBLIC
+        STM_HEADERS
+)
+endif()
+
 if (UNIT_TESTS)
 
 	add_subdirectory(test)
 
 endif()
+
+add_library(driversIf INTERFACE)
+target_include_directories(driversIf INTERFACE
+		include/
+)

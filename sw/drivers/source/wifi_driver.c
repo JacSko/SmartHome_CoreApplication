@@ -6,6 +6,7 @@
 /* =============================
  *  Includes of project headers
  * =============================*/
+#include "stm32f4xx.h"
 #include "wifi_driver.h"
 #include "uart_engine.h"
 #include "string_formatter.h"
@@ -200,7 +201,10 @@ void wifi_deinitialize()
 	wifi_status_callback = NULL;
 
 }
-
+void wifi_data_watcher()
+{
+   uartengine_string_watcher();
+}
 /*
  * 		API COMMANDS implementation
  */

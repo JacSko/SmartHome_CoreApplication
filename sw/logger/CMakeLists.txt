@@ -20,3 +20,9 @@ if (UNIT_TESTS)
     add_subdirectory(test)
 
 endif()
+
+add_library(loggerIf INTERFACE
+)
+target_include_directories(loggerIf INTERFACE
+		include
+)

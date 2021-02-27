@@ -18,11 +18,13 @@
  * @date 13/12/2020
  */
 /* ============================= */
-
+/* =============================
+ *  Includes of common headers
+ * =============================*/
+#include <stdint.h>
 /* =============================
  *  Includes of project headers
  * =============================*/
-#include "stm32f4xx.h"
 #include "return_codes.h"
 /* =============================
  *       Data structures

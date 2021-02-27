@@ -18,9 +18,9 @@
 /* ============================= */
 
 /* =============================
- *  Includes of project headers
+ *  Includes of common headers
  * =============================*/
-#include "stm32f4xx.h"
+#include <stdint.h>
 
 /**
  * @brief Initialize module.

@@ -5,6 +5,7 @@ extern "C" {
 #endif
 #include "../../source/inputs_board.c"
 #include "../../../../ext_lib/CMSIS/stubs/device/stm32f4xx.h"
+#include "inputs_interrupt_handler.h"
 #ifdef __cplusplus
 }
 #endif
@@ -242,10 +243,9 @@ TEST_F(inputsBoardFixture, inputs_read_interrupt_event)
     * <b>expected</b>: Callbacks called <br>
     * ************************************************
     */
-   EXTI->PR = EXTI_PR_PR4;
    EXPECT_CALL(*sch_mock, sch_trigger_task(_));
 
-   EXTI4_IRQHandler(); /* simulate interrupt */
+   inp_on_interrupt_recevied(); /* simulate interrupt */
 
    EXPECT_CALL(*i2c_mock, i2c_read(_,_,_)).WillOnce(Invoke([&]
                                                    (I2C_ADDRESS addr, uint8_t* buf, uint8_t size) -> I2C_STATUS
@@ -265,10 +265,9 @@ TEST_F(inputsBoardFixture, inputs_read_interrupt_event)
    * <b>expected</b>: Callbacks called <br>
    * ************************************************
    */
-  EXTI->PR = EXTI_PR_PR4;
   EXPECT_CALL(*sch_mock, sch_trigger_task(_));
 
-  EXTI4_IRQHandler(); /* simulate interrupt */
+  inp_on_interrupt_recevied(); /* simulate interrupt */
 
   EXPECT_CALL(*i2c_mock, i2c_read(_,_,_)).WillOnce(Invoke([&]
                                                   (I2C_ADDRESS addr, uint8_t* buf, uint8_t size) -> I2C_STATUS
@@ -364,7 +363,6 @@ TEST_F(inputsBoardFixture, inputs_autoupdate_on_off)
  */
 TEST_F(inputsBoardFixture, inputs_interrupt_on_off)
 {
-   EXTI->PR = EXTI_PR_PR4;
    /**
     * <b>scenario</b>: Switching interrupt handling to OFF <br>
     * <b>expected</b>: Scheduler task not started on interrupt <br>
@@ -373,7 +371,7 @@ TEST_F(inputsBoardFixture, inputs_interrupt_on_off)
    inp_disable_interrupt();
 
    EXPECT_CALL(*sch_mock, sch_trigger_task(_)).Times(0);
-   EXTI4_IRQHandler();
+   inp_on_interrupt_recevied();
 
    /**
     * <b>scenario</b>: Switching interrupt handling to ON <br>
@@ -383,7 +381,7 @@ TEST_F(inputsBoardFixture, inputs_interrupt_on_off)
    inp_enable_interrupt();
 
    EXPECT_CALL(*sch_mock, sch_trigger_task(_)).Times(1);
-   EXTI4_IRQHandler();
+   inp_on_interrupt_recevied();
 }
 
 /**

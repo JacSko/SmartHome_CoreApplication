@@ -15,13 +15,6 @@ add_definitions(
 	        )
 
 
-if(SIMULATION)
-	#
-	#	Build target with replace hardware implementation to enable testing
-	#
-	message("Build target: Simulation")
-endif()
-
 if (UNIT_TESTS)
 	#
 	#	Build Unit tests
@@ -162,4 +155,31 @@ endif()
 	add_subdirectory(sw/stairs_module)
 	add_subdirectory(sw/notification_manager)
 	add_subdirectory(sw/SmartHomeTypes)
+	add_subdirectory(sw/simulation)
 	
+
+if(SIMULATION)
+	#
+	#	Build target with replace hardware implementation to enable testing
+	#
+	message("Build target: Simulation")
+	add_definitions(-DSIMULATION)
+	
+	add_executable(smarthome_sim
+				main.c
+				)
+	target_link_libraries(smarthome_sim PUBLIC
+				time_counter
+				pthread
+				logger
+				task_scheduler
+				system_timestamp
+				bt_engine
+				socket_driver
+				i2c_driver
+				dht_driver
+				wifi_manager
+				command_parser
+				notification_manager
+				)
+endif()	

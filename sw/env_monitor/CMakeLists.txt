@@ -1,4 +1,4 @@
-if (STM)
+if (STM OR SIMULATION)
 
 add_library(env_monitor STATIC
         source/env_monitor.c
