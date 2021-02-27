@@ -69,11 +69,7 @@ RET_CODE logger_initialize(uint16_t buffer_size)
       logger.is_initialized = 1;
       result = RETURN_OK;
    }
-   for (uint8_t i = 0; i < LOG_ENUM_MAX; i++)
-   {
-      /* LOG_ERROR group always is ON */
-      LOGGER_GROUPS[i].state = (i == LOG_ERROR)? LOGGER_GROUP_ENABLE : LOGGER_GROUP_DISABLE;
-   }
+
    return result;
 }
 
