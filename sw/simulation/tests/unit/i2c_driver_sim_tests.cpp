@@ -94,8 +94,8 @@ TEST_F(i2cdriverSimFixture, reading_data)
     * ************************************************
     */
    EXPECT_EQ(I2C_STATUS_OK, i2c_read(correct_address, result_buffer, data_size));
-   EXPECT_EQ(result_buffer[0], 0x00);
-   EXPECT_EQ(result_buffer[1], 0x00);
+   EXPECT_EQ(result_buffer[0], 0xFF);
+   EXPECT_EQ(result_buffer[1], 0xFF);
 
    /**
     * <b>scenario</b>: Reading data for non existing device.<br>
@@ -129,8 +129,8 @@ TEST_F(i2cdriverSimFixture, reading_data)
    EXPECT_CALL(*callMock, callback(I2C_OP_READ, I2C_STATUS_OK, _, 2)).WillOnce(Invoke([&]
      (I2C_OP_TYPE, I2C_STATUS, const uint8_t* data, uint8_t)
      {
-         EXPECT_EQ(data[0], 0x00);
-         EXPECT_EQ(data[1], 0x00);
+         EXPECT_EQ(data[0], 0xFF);
+         EXPECT_EQ(data[1], 0xFF);
      }));
    i2c_watcher();
 
@@ -203,8 +203,8 @@ TEST_F(i2cdriverSimFixture, writing_data)
    EXPECT_CALL(*callMock, callback(I2C_OP_WRITE, I2C_STATUS_OK, _, 2)).WillOnce(Invoke([&]
    (I2C_OP_TYPE, I2C_STATUS, const uint8_t* data, uint8_t)
    {
-      EXPECT_EQ(data[0], 0x00);
-      EXPECT_EQ(data[1], 0x00);
+      EXPECT_EQ(data[0], 0xFF);
+      EXPECT_EQ(data[1], 0xFF);
    }));
 
    EXPECT_EQ(RETURN_OK, i2c_write_async(correct_address, test_buffer, data_size, &fake_callback));
@@ -230,8 +230,8 @@ TEST_F(i2cdriverSimFixture, setting_i2c_device_state_from_test_framework)
    hwstub_on_new_command(SOCK_DRV_DISCONNECTED, i2c_state_ok);
    hwstub_watcher();
    EXPECT_EQ(I2C_STATUS_OK, i2c_read(correct_address, result_buffer, data_size));
-   EXPECT_EQ(result_buffer[0], 0x00);
-   EXPECT_EQ(result_buffer[1], 0x00);
+   EXPECT_EQ(result_buffer[0], 0xFF);
+   EXPECT_EQ(result_buffer[1], 0xFF);
 
    /**
     * <b>scenario</b>: Incorrect message structure received.<br>
@@ -243,8 +243,8 @@ TEST_F(i2cdriverSimFixture, setting_i2c_device_state_from_test_framework)
    hwstub_on_new_command(SOCK_DRV_NEW_DATA, i2c_state_ok);
    hwstub_watcher();
    EXPECT_EQ(I2C_STATUS_OK, i2c_read(correct_address, result_buffer, data_size));
-   EXPECT_EQ(result_buffer[0], 0x00);
-   EXPECT_EQ(result_buffer[1], 0x00);
+   EXPECT_EQ(result_buffer[0], 0xFF);
+   EXPECT_EQ(result_buffer[1], 0xFF);
 
    /**
     * <b>scenario</b>: I2C command with wrong address recevied.<br>
@@ -256,21 +256,21 @@ TEST_F(i2cdriverSimFixture, setting_i2c_device_state_from_test_framework)
    hwstub_on_new_command(SOCK_DRV_NEW_DATA, i2c_state_ok);
    hwstub_watcher();
    EXPECT_EQ(I2C_STATUS_OK, i2c_read(correct_address, result_buffer, data_size));
-   EXPECT_EQ(result_buffer[0], 0x00);
-   EXPECT_EQ(result_buffer[1], 0x00);
+   EXPECT_EQ(result_buffer[0], 0xFF);
+   EXPECT_EQ(result_buffer[1], 0xFF);
 
    /**
     * <b>scenario</b>: Correct I2C message received.<br>
     * <b>expected</b>: Board state set correctly.<br>
     * ************************************************
     */
-   i2c_state_ok = "01 03 64 255 255";
+   i2c_state_ok = "01 03 64 0 0";
 
    hwstub_on_new_command(SOCK_DRV_NEW_DATA, i2c_state_ok);
    hwstub_watcher();
    EXPECT_EQ(I2C_STATUS_OK, i2c_read(correct_address, result_buffer, data_size));
-   EXPECT_EQ(result_buffer[0], 0xFF);
-   EXPECT_EQ(result_buffer[1], 0xFF);
+   EXPECT_EQ(result_buffer[0], 0x00);
+   EXPECT_EQ(result_buffer[1], 0x00);
 
 
 
