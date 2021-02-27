@@ -48,7 +48,7 @@
 #define SH_USE_RELAYS
 //#define SH_USE_INPUTS
 #define SH_USE_ENV
-#define SH_USE_FAN/
+#define SH_USE_FAN
 //#define SH_USE_SLM
 #define SH_USE_CMD_PARSER
 

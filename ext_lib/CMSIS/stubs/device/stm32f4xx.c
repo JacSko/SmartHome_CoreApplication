@@ -102,7 +102,10 @@ void SysTick_Config(uint32_t ticks)
 {
 
 }
+void NVIC_SetPriority(IRQn_Type IRQn, uint32_t priority)
+{
 
+}
 void __DSB(void)
 {
 

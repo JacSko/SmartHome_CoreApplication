@@ -112,6 +112,22 @@ if (SIMULATION)
 		logger
 		hw_stub
 	)
+	
+add_library(wifi_driver STATIC
+        source/wifi_driver_sim.c
+)
+
+target_include_directories(wifi_driver PUBLIC
+        include
+)
+
+target_link_libraries(wifi_driver PUBLIC
+		driversIf
+		socket_driver
+		logger
+		hw_stub
+)
+
 endif()
 
 if (UNIT_TESTS)

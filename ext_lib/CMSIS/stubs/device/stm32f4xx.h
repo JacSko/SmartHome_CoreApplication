@@ -745,6 +745,7 @@ typedef enum IRQn
 	I2C3_ER_IRQn                = 73,     /*!< I2C3 error interrupt                                              */
 	FPU_IRQn                    = 81,      /*!< FPU global interrupt                                             */
 	SPI4_IRQn                   = 84,     /*!< SPI4 global Interrupt                                             */
+	SysTick_IRQn,
 }IRQn_Type;
 
 
@@ -769,7 +770,7 @@ void NVIC_DisableIRQ(IRQn_Type IRQn);
 void NVIC_SystemReset();
 void NVIC_SetPriorityGrouping(uint32_t PriorityGroup);
 uint32_t NVIC_EncodePriority (uint32_t PriorityGroup, uint32_t PreemptPriority, uint32_t SubPriority);
-
+void NVIC_SetPriority(IRQn_Type IRQn, uint32_t priority);
 
 void SysTick_Config(uint32_t ticks);
 uint8_t stm_stub_check_irq(IRQn_Type IRQn, uint8_t active);

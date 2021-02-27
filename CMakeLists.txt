@@ -166,7 +166,7 @@ if(SIMULATION)
 	add_definitions(-DSIMULATION)
 	
 	add_executable(simulation_test
-				sw/simulation/temp_main.c
+				main.c
 				)
 	target_link_libraries(simulation_test PUBLIC
 				time_counter
@@ -178,5 +178,8 @@ if(SIMULATION)
 				socket_driver
 				i2c_driver
 				dht_driver
+				wifi_manager
+				command_parser
+				notification_manager
 				)
 endif()	
