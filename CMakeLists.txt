@@ -165,10 +165,10 @@ if(SIMULATION)
 	message("Build target: Simulation")
 	add_definitions(-DSIMULATION)
 	
-	add_executable(simulation_test
+	add_executable(smarthome_sim
 				main.c
 				)
-	target_link_libraries(simulation_test PUBLIC
+	target_link_libraries(smarthome_sim PUBLIC
 				time_counter
 				pthread
 				logger

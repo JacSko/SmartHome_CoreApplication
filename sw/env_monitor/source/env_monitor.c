@@ -86,12 +86,11 @@ RET_CODE env_initialize(const ENV_CONFIG* cfg)
          env_module.sensors[i].stats.sample_id = 0;
          env_module.sensors[i].stats.err_rates.cs_err_rate = 0;
          env_module.sensors[i].stats.err_rates.nr_err_rate = 0;
-         for (uint8_t i = 0; i < ENV_ERROR_RATE_SAMPLES; i++)
+         for (uint8_t j = 0; j < ENV_ERROR_RATE_SAMPLES; j++)
          {
-            env_module.sensors[i].stats.err_map[i] = DHT_STATUS_OK;
+            env_module.sensors[i].stats.err_map[j] = DHT_STATUS_OK;
          }
       }
-
       env_get_next_sensor();
 
       result = sch_subscribe_and_set(&env_on_timeout, TASKPRIO_LOW, env_module.measure_period,

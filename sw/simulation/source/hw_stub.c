@@ -71,11 +71,11 @@ void hwstub_init()
    m_hw_stub.app_ntf_id = -1;
   /* TODO: import below settings from global settings header */
    m_hw_stub.inputs_board.address = 0x40;
-   m_hw_stub.inputs_board.state[0] = 0x00;
-   m_hw_stub.inputs_board.state[1] = 0x00;
+   m_hw_stub.inputs_board.state[0] = 0xFF;
+   m_hw_stub.inputs_board.state[1] = 0xFF;
    m_hw_stub.relays_board.address = 0x48;
-   m_hw_stub.relays_board.state[0] = 0x00;
-   m_hw_stub.relays_board.state[1] = 0x00;
+   m_hw_stub.relays_board.state[0] = 0xFF;
+   m_hw_stub.relays_board.state[1] = 0xFF;
    m_hw_stub.led_board.address = 0x4C;
    m_hw_stub.led_board.state[0] = 0x00;
    m_hw_stub.led_board.state[1] = 0x00;
@@ -335,15 +335,15 @@ void hwstub_send_i2c_change_notification(I2C_ADDRESS addr, const uint8_t* data, 
 I2C_BOARD* hwstub_get_board_by_address(I2C_ADDRESS addr)
 {
    I2C_BOARD* result = NULL;
-   if (addr == m_hw_stub.inputs_board.address)
+   if (addr == m_hw_stub.inputs_board.address || addr == m_hw_stub.inputs_board.address + 1)
    {
       result = &m_hw_stub.inputs_board;
    }
-   else if (addr == m_hw_stub.relays_board.address)
+   else if (addr == m_hw_stub.relays_board.address || addr == m_hw_stub.relays_board.address + 1)
    {
       result = &m_hw_stub.relays_board;
    }
-   else if (addr == m_hw_stub.led_board.address)
+   else if (addr == m_hw_stub.led_board.address || addr == m_hw_stub.led_board.address + 1)
    {
       result = &m_hw_stub.led_board;
    }

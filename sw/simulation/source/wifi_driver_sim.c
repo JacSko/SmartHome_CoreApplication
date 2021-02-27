@@ -64,6 +64,10 @@ void wifi_call_client_callback(ClientEvent ev, ServerClientID id, const char* da
       wifi_status_callback(ev, id, data);
    }
 }
+void wifi_data_watcher()
+{
+
+}
 
 RET_CODE wifi_test()
 {

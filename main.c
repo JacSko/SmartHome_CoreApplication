@@ -16,6 +16,11 @@
 #include "system_timestamp.h"
 #include "notification_manager.h"
 #include "system_config_values.h"
+
+#ifdef SIMULATION
+#include "hw_stub.h"
+#endif
+
 /**
  * 	System config:
  * 	HSI - 16MHz
@@ -46,10 +51,10 @@
 
 //#define SH_LOGS_OVER_WIFI
 #define SH_USE_RELAYS
-//#define SH_USE_INPUTS
+#define SH_USE_INPUTS
 #define SH_USE_ENV
 #define SH_USE_FAN
-//#define SH_USE_SLM
+#define SH_USE_SLM
 #define SH_USE_CMD_PARSER
 
 void sm_setup_int_priorities()
@@ -84,7 +89,10 @@ int main(void)
 	/* BTengine is module shared between logger and command parser, therefore is always initialized */
 	BT_Config config = {UART_COMMON_BAUD_RATE, UART_COMMON_BUFFER_SIZE, UART_COMMON_STRING_SIZE};
 	btengine_initialize(&config);
-
+#ifdef SIMULATION
+	hwstub_init();
+	stm_stub_init();
+#endif
    if (i2c_initialize() != RETURN_OK)
    {
       logger_send(LOG_ERROR, __func__, "Cannot initialize I2C driver");
@@ -250,6 +258,9 @@ int main(void)
 	   dht_data_watcher();
 		sch_task_watcher(TASKPRIO_LOW);
 		btengine_string_watcher();
-		uartengine_string_watcher();
+		wifi_data_watcher();
+#ifdef SIMULATION
+		hwstub_watcher();
+#endif
 	}
 }

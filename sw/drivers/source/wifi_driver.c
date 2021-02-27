@@ -201,7 +201,10 @@ void wifi_deinitialize()
 	wifi_status_callback = NULL;
 
 }
-
+void wifi_data_watcher()
+{
+   uartengine_string_watcher();
+}
 /*
  * 		API COMMANDS implementation
  */

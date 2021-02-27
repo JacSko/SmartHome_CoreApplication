@@ -175,6 +175,11 @@ RET_CODE wifi_register_client_event_callback(void(*callback)(ClientEvent ev, Ser
  */
 void wifi_unregister_client_event_callback();
 /**
+ * @brief Function to be called in main thread loop.
+ * @return None.
+ */
+void wifi_data_watcher();
+/**
  * @brief Deinitialize WiFi module.
  * @return None.
  */
