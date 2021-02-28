@@ -42,20 +42,6 @@
  *
  */
 
-/* global settings */
-#define SH_USE_WIFI
-#define SH_USE_NTF
-
-#define SH_USE_BT
-#define SH_USE_LOGGER
-
-//#define SH_LOGS_OVER_WIFI
-#define SH_USE_RELAYS
-#define SH_USE_INPUTS
-#define SH_USE_ENV
-#define SH_USE_FAN
-#define SH_USE_SLM
-#define SH_USE_CMD_PARSER
 
 void sm_setup_int_priorities()
 {
@@ -128,12 +114,6 @@ int main(void)
    {
       logger_send(LOG_ERROR, __func__, "Cannot register BT sender!");
    }
-#ifdef SH_LOGS_OVER_WIFI
-   if (logger_register_sender(&wifimgr_broadcast_data) != RETURN_OK)
-   {
-      logger_send(LOG_ERROR, __func__, "Cannot register WIFI sender!");
-   }
-#endif
 #endif
    logger_send(LOG_ERROR, __func__, "Booting started!");
 
@@ -159,6 +139,7 @@ int main(void)
 
 #ifdef SH_USE_INPUTS
 	INPUTS_CONFIG inp_cfg;
+	INPUT_ID INPUTS_MATCH_CONFIG [] = INPUTS_MATCH;
 	for (uint8_t i = 0; i < INPUTS_MAX_INPUT_LINES; i++)
 	{
 	   inp_cfg.items[i].item = INPUT_ENUM_COUNT;
@@ -183,6 +164,7 @@ int main(void)
 
 #ifdef SH_USE_RELAYS
    RELAYS_CONFIG rel_cfg;
+   RELAY_ID RELAYS_MATCH_CONFIG [] = RELAYS_MATCH;
    for (uint8_t i = 0; i < RELAYS_BOARD_COUNT; i++)
    {
       rel_cfg.items[i].id = RELAY_ID_ENUM_MAX;
@@ -207,6 +189,7 @@ int main(void)
 
 #ifdef SH_USE_ENV
    ENV_CONFIG env_cfg;
+   ENV_MATCH ENV_MATCH_CONFIG [] = ENV_DHT_MATCH;
    env_cfg.measure_running = ENV_LOOP_MEASURE_RUNNING;
    env_cfg.max_cs_rate = ENV_MAX_CHECKSUM_RATE;
    env_cfg.max_nr_rate = ENV_MAX_NORESPONSE_RATE;
