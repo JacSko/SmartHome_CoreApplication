@@ -35,20 +35,10 @@
  *  Includes of project headers
  * =============================*/
 #include "return_codes.h"
+#include "env_types.h"
 /* =============================
  *       Data structures
  * =============================*/
-/** Represents HW device - DHT sensor */
-typedef enum DHT_SENSOR_ID
-{
-   DHT_SENSOR1,
-	DHT_SENSOR2,
-	DHT_SENSOR3,
-	DHT_SENSOR4,
-	DHT_SENSOR5,
-	DHT_SENSOR6,
-	DHT_ENUM_MAX
-} DHT_SENSOR_ID;
 
 /** Struct with measurement results */
 typedef struct DHT_SENSOR_DATA

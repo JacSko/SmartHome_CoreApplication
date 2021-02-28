@@ -1,9 +1,9 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include "hw_stub.h"
-#include "simulation_settings.h"
 #include "Logger.h"
 #include "inputs_board.h"
+#include "system_config_values.h"
 #include <string.h>
 
 #define I2C_BOARD_DATA_SIZE 2

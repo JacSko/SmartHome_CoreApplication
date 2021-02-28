@@ -142,7 +142,7 @@ if (STM)
 endif()
 
     include_directories(sw/utilities/include)
-   	include_directories(sw/config)
+   	include_directories(sw/SmartHomeTypes/include)
 	add_subdirectory(sw/drivers)
 	add_subdirectory(sw/logger)
 	add_subdirectory(sw/time)

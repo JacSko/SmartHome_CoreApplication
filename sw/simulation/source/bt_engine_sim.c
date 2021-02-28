@@ -14,7 +14,7 @@
  * =============================*/
 #include "bt_engine.h"
 #include "return_codes.h"
-#include "simulation_settings.h"
+#include "system_config_values.h"
 #include "Logger.h"
 #include "socket_driver.h"
 /* =============================
