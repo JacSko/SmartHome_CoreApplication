@@ -201,7 +201,7 @@ TEST(ledModuleInitialization, initialization)
  */
 TEST_F(ledFixture, start_led_program)
 {
-   uint8_t PROGRAM1_STEP_PERIOD = 20;
+   uint8_t PROGRAM1_STEP_PERIOD = 70;
    uint8_t PROGRAM1_OFF_EFFECT_PERIOD = 200;
    uint16_t PROGRAM1_LIGHT_TIME = 20000;
 
@@ -335,7 +335,7 @@ TEST_F(ledFixture, start_led_program)
  */
 TEST_F(ledFixture, start_led_program_sensor_acitvated_during_off_effect)
 {
-   uint8_t PROGRAM1_STEP_PERIOD = 20;
+   uint8_t PROGRAM1_STEP_PERIOD = 70;
    uint8_t PROGRAM1_OFF_EFFECT_PERIOD = 200;
    uint16_t PROGRAM1_LIGHT_TIME = 20000;
 
@@ -491,7 +491,7 @@ TEST_F(ledFixture, start_led_program_sensor_acitvated_during_off_effect)
  */
 TEST_F(ledFixtureNoEffect, start_led_program)
 {
-   uint8_t PROGRAM1_STEP_PERIOD = 20;
+   uint8_t PROGRAM1_STEP_PERIOD = 70;
    uint16_t PROGRAM1_LIGHT_TIME = 20000;
 
    EXPECT_EQ(RETURN_OK, slm_add_listener(&fake_callback));
@@ -581,7 +581,7 @@ TEST_F(ledFixtureNoEffect, start_led_program)
  */
 TEST_F(ledFixtureNoEffect, start_led_program_sensor_acitve_on_timeout)
 {
-   uint8_t PROGRAM1_STEP_PERIOD = 20;
+   uint8_t PROGRAM1_STEP_PERIOD = 70;
    uint16_t PROGRAM1_LIGHT_TIME = 20000;
 
    EXPECT_EQ(RETURN_OK, slm_add_listener(&fake_callback));
@@ -675,7 +675,7 @@ TEST_F(ledFixtureNoEffect, start_led_program_sensor_acitve_on_timeout)
  */
 TEST_F(ledFixtureNoEffect, start_led_alw_on)
 {
-   uint8_t PROGRAM1_STEP_PERIOD = 20;
+   uint8_t PROGRAM1_STEP_PERIOD = 70;
    uint16_t PROGRAM1_LIGHT_TIME = 20000;
 
    EXPECT_EQ(RETURN_OK, slm_add_listener(&fake_callback));
@@ -771,7 +771,7 @@ TEST_F(ledFixtureNoEffect, start_led_alw_on)
  */
 TEST_F(ledFixture, start_led_alw_on_with_effect)
 {
-   uint8_t PROGRAM1_STEP_PERIOD = 20;
+   uint8_t PROGRAM1_STEP_PERIOD = 70;
    uint8_t PROGRAM1_OFF_EFFECT_PERIOD = 200;
    uint16_t PROGRAM1_LIGHT_TIME = 20000;
 
@@ -912,7 +912,7 @@ TEST_F(ledFixture, start_led_alw_on_with_effect)
  */
 TEST_F(ledFixtureNoEffect, led_on_sensor_change)
 {
-   uint8_t PROGRAM1_STEP_PERIOD = 20;
+   uint8_t PROGRAM1_STEP_PERIOD = 70;
    uint16_t PROGRAM1_LIGHT_TIME = 20000;
    INPUT_STATUS inp_status {};
    inp_status.id = INPUT_STAIRS_SENSOR;
@@ -1005,7 +1005,7 @@ TEST_F(ledFixtureNoEffect, led_on_sensor_change)
  */
 TEST_F(ledFixtureNoEffect, led_sensor_active_during_shutdown)
 {
-   uint8_t PROGRAM1_STEP_PERIOD = 20;
+   uint8_t PROGRAM1_STEP_PERIOD = 70;
    uint16_t PROGRAM1_LIGHT_TIME = 20000;
    INPUT_STATUS inp_status {};
    inp_status.id = INPUT_STAIRS_SENSOR;
@@ -1145,7 +1145,7 @@ TEST_F(ledFixtureNoEffect, led_sensor_active_during_shutdown)
  */
 TEST_F(ledFixtureNoEffect, led_start_when_incorrect_state)
 {
-   uint8_t PROGRAM1_STEP_PERIOD = 20;
+   uint8_t PROGRAM1_STEP_PERIOD = 70;
    INPUT_STATUS inp_status {};
    inp_status.id = INPUT_STAIRS_SENSOR;
    inp_status.state = INPUT_STATE_ACTIVE;
@@ -1239,7 +1239,7 @@ TEST_F(ledFixtureNoEffect, led_replace_program)
    * <b>expected</b>: RETURN_NOK returned.<br>
    * ************************************************
    */
-   uint8_t PROGRAM1_STEP_PERIOD = 20;
+   uint8_t PROGRAM1_STEP_PERIOD = 70;
 
    EXPECT_CALL(*rel_mock, rel_set(RELAY_STAIRCASE_LED, RELAY_STATE_ON));
    EXPECT_STEP_SEND(0x01,PROGRAM1_STEP_PERIOD);
@@ -1274,7 +1274,7 @@ TEST_F(ledFixtureNoEffect, led_change_current_program)
    * <b>expected</b>: ID not changed.<br>
    * ************************************************
    */
-   uint8_t PROGRAM1_STEP_PERIOD = 20;
+   uint8_t PROGRAM1_STEP_PERIOD = 70;
 
    EXPECT_CALL(*rel_mock, rel_set(RELAY_STAIRCASE_LED, RELAY_STATE_ON));
    EXPECT_CALL(*i2c_mock, i2c_write(_,_,_));
