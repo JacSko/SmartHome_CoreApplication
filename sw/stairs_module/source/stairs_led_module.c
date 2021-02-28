@@ -192,19 +192,19 @@ void slm_prepare_default_programs()
    LED_PROGRAMS[SLM_PROGRAM1].program_steps[0].leds_state = 0b00000000;
    LED_PROGRAMS[SLM_PROGRAM1].program_steps[0].period = 0;
    LED_PROGRAMS[SLM_PROGRAM1].program_steps[1].leds_state = 0b00000001;
-   LED_PROGRAMS[SLM_PROGRAM1].program_steps[1].period = 20;
+   LED_PROGRAMS[SLM_PROGRAM1].program_steps[1].period = 70;
    LED_PROGRAMS[SLM_PROGRAM1].program_steps[2].leds_state = 0b00000011;
-   LED_PROGRAMS[SLM_PROGRAM1].program_steps[2].period = 20;
+   LED_PROGRAMS[SLM_PROGRAM1].program_steps[2].period = 70;
    LED_PROGRAMS[SLM_PROGRAM1].program_steps[3].leds_state = 0b00000111;
-   LED_PROGRAMS[SLM_PROGRAM1].program_steps[3].period = 20;
+   LED_PROGRAMS[SLM_PROGRAM1].program_steps[3].period = 70;
    LED_PROGRAMS[SLM_PROGRAM1].program_steps[4].leds_state = 0b00001111;
-   LED_PROGRAMS[SLM_PROGRAM1].program_steps[4].period = 20;
+   LED_PROGRAMS[SLM_PROGRAM1].program_steps[4].period = 70;
    LED_PROGRAMS[SLM_PROGRAM1].program_steps[5].leds_state = 0b00011111;
-   LED_PROGRAMS[SLM_PROGRAM1].program_steps[5].period = 20;
+   LED_PROGRAMS[SLM_PROGRAM1].program_steps[5].period = 70;
    LED_PROGRAMS[SLM_PROGRAM1].program_steps[6].leds_state = 0b00111111;
-   LED_PROGRAMS[SLM_PROGRAM1].program_steps[6].period = 20;
+   LED_PROGRAMS[SLM_PROGRAM1].program_steps[6].period = 70;
    LED_PROGRAMS[SLM_PROGRAM1].program_steps[7].leds_state = 0b01111111;
-   LED_PROGRAMS[SLM_PROGRAM1].program_steps[7].period = 20;
+   LED_PROGRAMS[SLM_PROGRAM1].program_steps[7].period = 70;
    LED_PROGRAMS[SLM_PROGRAM1].program_steps[8].leds_state = 0b11111111;
    LED_PROGRAMS[SLM_PROGRAM1].program_steps[8].period = 20000;
 
@@ -235,11 +235,11 @@ void slm_prepare_default_programs()
    LED_PROGRAMS[SLM_PROGRAM2].program_steps[0].leds_state = 0b00000000;
    LED_PROGRAMS[SLM_PROGRAM2].program_steps[0].period = 0;
    LED_PROGRAMS[SLM_PROGRAM2].program_steps[1].leds_state = 0b10000001;
-   LED_PROGRAMS[SLM_PROGRAM2].program_steps[1].period = 20;
+   LED_PROGRAMS[SLM_PROGRAM2].program_steps[1].period = 70;
    LED_PROGRAMS[SLM_PROGRAM2].program_steps[2].leds_state = 0b11000011;
-   LED_PROGRAMS[SLM_PROGRAM2].program_steps[2].period = 20;
+   LED_PROGRAMS[SLM_PROGRAM2].program_steps[2].period = 70;
    LED_PROGRAMS[SLM_PROGRAM2].program_steps[3].leds_state = 0b11100111;
-   LED_PROGRAMS[SLM_PROGRAM2].program_steps[3].period = 20;
+   LED_PROGRAMS[SLM_PROGRAM2].program_steps[3].period = 70;
    LED_PROGRAMS[SLM_PROGRAM2].program_steps[4].leds_state = 0b11111111;
    LED_PROGRAMS[SLM_PROGRAM2].program_steps[4].period = 20000;
 
@@ -270,11 +270,11 @@ void slm_prepare_default_programs()
    LED_PROGRAMS[SLM_PROGRAM3].program_steps[0].leds_state = 0b00000000;
    LED_PROGRAMS[SLM_PROGRAM3].program_steps[0].period = 0;
    LED_PROGRAMS[SLM_PROGRAM3].program_steps[1].leds_state = 0b00000011;
-   LED_PROGRAMS[SLM_PROGRAM3].program_steps[1].period = 20;
+   LED_PROGRAMS[SLM_PROGRAM3].program_steps[1].period = 70;
    LED_PROGRAMS[SLM_PROGRAM3].program_steps[2].leds_state = 0b00001111;
-   LED_PROGRAMS[SLM_PROGRAM3].program_steps[2].period = 20;
+   LED_PROGRAMS[SLM_PROGRAM3].program_steps[2].period = 70;
    LED_PROGRAMS[SLM_PROGRAM3].program_steps[3].leds_state = 0b00111111;
-   LED_PROGRAMS[SLM_PROGRAM3].program_steps[3].period = 20;
+   LED_PROGRAMS[SLM_PROGRAM3].program_steps[3].period = 70;
    LED_PROGRAMS[SLM_PROGRAM3].program_steps[4].leds_state = 0b11111111;
    LED_PROGRAMS[SLM_PROGRAM3].program_steps[4].period = 20000;
 
