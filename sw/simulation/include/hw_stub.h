@@ -48,16 +48,18 @@ typedef enum
 } HW_STUB_EVENT_ID;
 
 
-
 void hwstub_init();
 void hwstub_deinit();
 
 /* I2C stub */
+/* This functions are called from stubbed I2C driver */
 RET_CODE hwstub_i2c_read(I2C_ADDRESS address, uint8_t* data, uint8_t size);
 RET_CODE hwstub_i2c_write(I2C_ADDRESS address, const uint8_t* data, uint8_t size);
 /* DHT stub */
+/* This functions are called from stubbed DHT driver */
 DHT_STATUS hwstub_dht_read(DHT_SENSOR_ID id, DHT_SENSOR* sensor);
 /* WIFI stub */
+/* This functions are called from stubbed WiFi driver */
 RET_CODE hwstub_wifi_connect_to_network(const char* ssid, const char* password);
 RET_CODE hwstub_wifi_reset();
 RET_CODE hwstub_wifi_disconnect_from_network();
@@ -67,13 +69,15 @@ RET_CODE hwstub_wifi_close_server();
 RET_CODE hwstub_wifi_allow_multiple_clients(uint8_t state);
 RET_CODE hwstub_wifi_send_data(ServerClientID id, const char* data, uint16_t size);
 RET_CODE hwstub_wifi_send_bytes(ServerClientID id, const uint8_t* data, uint16_t size);
-void hwstub_on_new_command(SOCK_DRV_EV ev, const char* data);
-void hwstub_on_new_app_data(SOCK_DRV_EV ev, const char* data);
 void hwstub_wifi_set_ip_address(IPAddress* ip_address);
 void hwstub_wifi_get_ip_address(IPAddress* ip_address);
 void hwstub_wifi_get_time(const char* ntp_server, TimeItem* item);
 void hwstub_wifi_get_current_network_name(char* buffer, uint8_t size);
 void hwstub_wifi_request_client_details(ClientID* client);
+/* Feeds HW stub with data received from test framework */
+void hwstub_on_new_command(SOCK_DRV_EV ev, const char* data);
+/* Here data from RaspberryApp is arriving */
+void hwstub_on_new_app_data(SOCK_DRV_EV ev, const char* data);
 void hwstub_wifi_register_device_event_listener(void(*listener)(ClientEvent ev, ServerClientID id, const char* data));
 void hwstub_watcher();
 
