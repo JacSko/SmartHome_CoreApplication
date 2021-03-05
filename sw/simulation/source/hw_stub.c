@@ -257,7 +257,7 @@ RET_CODE hwstub_set_dht_device_state(DHT_SENSOR_ID id, const uint8_t* data)
       m_hw_stub.dht_sensors.sensors[id].data.temp_l = data[2];
       m_hw_stub.dht_sensors.sensors[id].data.hum_h = data[3];
       m_hw_stub.dht_sensors.sensors[id].data.hum_l = data[4];
-      logger_send(LOG_SIM, __func__, "Set DHT device %d: %d.%ddegC %d.%d%", id, data[1], data[2], data[3], data[4]);
+      logger_send(LOG_SIM, __func__, "Set DHT device %d: temp %d.%d hum %d.%d", id, data[1], data[2], data[3], data[4]);
       result = RETURN_OK;
    }
    else
