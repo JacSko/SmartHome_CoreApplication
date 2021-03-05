@@ -8,11 +8,14 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 /* =============================
  *  Includes of project headers
  * =============================*/
 #include "Logger.h"
 #include "socket_driver.h"
+#include "system_config_values.h"
 /* =============================
  *          Defines
  * =============================*/
@@ -39,7 +42,6 @@ typedef struct
    pthread_mutex_t conn_mutex;
    Conn_Prop conn_prop;
    char buffer[SOCK_DRV_DEF_BUFFER_SIZE];
-   uint16_t buffer_idx;
 } Conn_Item;
 
 typedef struct
@@ -72,7 +74,7 @@ sock_id sockdrv_create(const char* ip_address, uint16_t port)
 
    if (m_sock_drv.initialized == 0)
    {
-      logger_send(LOG_SIM, __func__, "initializing, starting thread");
+      logger_send(LOG_SIM, __func__, "[%d] initializing, starting thread", port);
       m_sock_drv.initialized = 1;
       m_sock_drv.conn_count = 0;
       pthread_mutex_init(&m_sock_drv.conn_mutex, NULL);
@@ -82,7 +84,6 @@ sock_id sockdrv_create(const char* ip_address, uint16_t port)
          m_sock_listeners[i].listener = NULL;
          m_sock_drv.connections[i].id = -1;
          m_sock_drv.connections[i].sock_fd = -1;
-         m_sock_drv.connections[i].buffer_idx = 0;
          pthread_mutex_init(&m_sock_drv.connections[i].conn_mutex, NULL);
       }
       pthread_mutex_lock(&m_sock_drv.conn_mutex);
@@ -98,7 +99,7 @@ sock_id sockdrv_create(const char* ip_address, uint16_t port)
 
    if (running_connections < SOCK_DRV_MAX_CONNECTIONS)
    {
-      logger_send(LOG_SIM, __func__, "starting connection: %s:%u", ip_address? ip_address : "localhost", port);
+      logger_send(LOG_SIM, __func__, "[%d] starting connection: %s:%u", port, ip_address? ip_address : "localhost", port);
       for (uint8_t i = 0; i < SOCK_DRV_MAX_CONNECTIONS; i++)
       {
          if (m_sock_drv.connections[i].id == -1)
@@ -109,7 +110,6 @@ sock_id sockdrv_create(const char* ip_address, uint16_t port)
       }
       m_sock_drv.connections[result].id = result;
       pthread_mutex_lock(&m_sock_drv.connections[result].conn_mutex);
-      m_sock_drv.connections[result].buffer_idx = 0;
       if (ip_address)
       {
          strcpy(m_sock_drv.connections[result].conn_prop.ip_address, ip_address);
@@ -123,7 +123,7 @@ sock_id sockdrv_create(const char* ip_address, uint16_t port)
    }
    else
    {
-      logger_send(LOG_SIM, __func__, "max conn limit reached");
+      logger_send(LOG_SIM, __func__, "[%d] max conn limit reached", port);
    }
 
    return result;
@@ -139,32 +139,38 @@ void *sockdrv_thread_execute(void* data)
    ssize_t bytes_read = 0;
    uint8_t send_notification = 0;
    pthread_mutex_unlock(&sock_drv->conn_mutex);
+   uint8_t sock_msg_header [SOCK_MSG_HEADER_SIZE + 1]; /* size of header + NULL char */
+
+
    while(!exit_requested)
    {
-      usleep(500000);
       for (uint8_t i = 0; i < SOCK_DRV_MAX_CONNECTIONS; i++)
       {
          pthread_mutex_lock(&sock_drv->connections[i].conn_mutex);
          if (sock_drv->connections[i].id != -1 && !sock_drv->connections[i].connected)
          {
-            logger_send(LOG_SIM, __func__, "[%d] opening socket", sock_drv->connections[i].id);
             sock_drv->connections[i].sock_fd = socket(AF_INET, SOCK_STREAM, 0);
             if (sock_drv->connections[i].sock_fd >= 0)
             {
-               logger_send(LOG_SIM, __func__, "[%d] connecting client", sock_drv->connections[i].id);
+               struct timeval tv;
+               tv.tv_sec = SOCK_RECV_TIMEOUT_S;
+               tv.tv_usec = 0;
+               if (setsockopt(sock_drv->connections[i].sock_fd, SOL_SOCKET, SO_RCVTIMEO,(struct timeval *)&tv,sizeof(struct timeval)) < 0)
+               {
+                  logger_send(LOG_ERROR, __func__, "[%d] cannot set socket timeout", sock_drv->connections[i].conn_prop.port);
+               }
                struct sockaddr_in servaddr;
                servaddr.sin_family = AF_INET;
                servaddr.sin_addr.s_addr = inet_addr(sock_drv->connections[i].conn_prop.ip_address);
                servaddr.sin_port = htons(sock_drv->connections[i].conn_prop.port);
                if (connect(sock_drv->connections[i].sock_fd, (struct sockaddr *)&servaddr, sizeof(servaddr)) == 0)
                {
-                  logger_send(LOG_SIM, __func__, "[%d] connected", sock_drv->connections[i].id);
+                  logger_send(LOG_SIM, __func__, "[%d] connected", sock_drv->connections[i].conn_prop.port);
                   sock_drv->connections[i].connected = 1;
                   send_notification = 1;
                }
                else
                {
-                  logger_send(LOG_SIM, __func__, "[%d] connecting error", sock_drv->connections[i].id);
                   close(sock_drv->connections[i].sock_fd);
                }
             }
@@ -177,7 +183,7 @@ void *sockdrv_thread_execute(void* data)
 
          if (send_notification == 1)
          {
-            sockdrv_notify_listeners(SOCK_DRV_CONNECTED, sock_drv->connections[i].id, NULL);
+            sockdrv_notify_listeners(SOCK_DRV_CONNECTED, sock_drv->connections[i].id, "");
             send_notification = 0;
          }
       }
@@ -188,28 +194,27 @@ void *sockdrv_thread_execute(void* data)
          pthread_mutex_lock(&sock_drv->connections[i].conn_mutex);
          if (sock_drv->connections[i].connected)
          {
-            bytes_read = recv(sock_drv->connections[i].sock_fd, &sock_drv->connections[i].buffer[sock_drv->connections[i].buffer_idx], SOCK_DRV_DEF_BUFFER_SIZE, MSG_DONTWAIT);
-            if (bytes_read > 0)
+            /* read header */
+            bytes_read = recv(sock_drv->connections[i].sock_fd, sock_msg_header, SOCK_MSG_HEADER_SIZE, 0);
+            if (bytes_read == SOCK_MSG_HEADER_SIZE)
             {
-               sock_drv->connections[i].buffer_idx += bytes_read;
-               for (size_t j = sock_drv->connections[i].buffer_idx - bytes_read; j < sock_drv->connections[i].buffer_idx; j++)
+               sock_msg_header[SOCK_MSG_HEADER_SIZE] = 0x00;
+               uint32_t len_to_read = atoi(sock_msg_header);
+               /* read message */
+               bytes_read = recv(sock_drv->connections[i].sock_fd, &sock_drv->connections[i].buffer, len_to_read, 0);
+               if (bytes_read > 0)
                {
-                  if (sock_drv->connections[i].buffer[j] == '\n')
-                  {
-                     sock_drv->connections[i].buffer[j] = 0x00;
-                     send_notification = 1;
-                     sock_drv->connections[i].buffer_idx = 0;
-                     break;
-                  }
+                  sock_drv->connections[i].buffer[bytes_read] = 0x00;
+                  send_notification = 1;
                }
             }
-            else if (bytes_read == 0)
+            if (bytes_read == 0)
             {
-               logger_send(LOG_SIM, __func__, "server disconnected");
-               sockdrv_notify_listeners(SOCK_DRV_DISCONNECTED, sock_drv->connections[i].id, NULL);
+               sockdrv_notify_listeners(SOCK_DRV_DISCONNECTED, sock_drv->connections[i].id, "");
                sock_drv->connections[i].connected = 0;
                close(sock_drv->connections[i].sock_fd);
                sock_drv->connections[i].sock_fd = -1;
+               logger_send(LOG_SIM, __func__, "[%d] server disconnected", sock_drv->connections[i].conn_prop.port);
             }
             else if (errno == EAGAIN || errno == EWOULDBLOCK)
             {
@@ -236,7 +241,6 @@ void sockdrv_close(sock_id id)
       pthread_mutex_lock(&m_sock_drv.connections[i].conn_mutex);
       if (m_sock_drv.connections[i].id == id && m_sock_drv.connections[i].connected)
       {
-         m_sock_drv.connections[i].buffer_idx = 0;
          m_sock_drv.connections[i].connected = 0;
          m_sock_drv.connections[i].id = -1;
          close(m_sock_drv.connections[i].sock_fd);
@@ -262,6 +266,8 @@ RET_CODE sockdrv_write(sock_id id, const char* data, size_t size)
 {
    RET_CODE result = RETURN_NOK;
    uint8_t mutex_state = -1;
+   uint8_t msg_header [SOCK_MSG_HEADER_SIZE + 1];
+
    for (uint8_t i = 0; i < SOCK_DRV_MAX_CONNECTIONS; i++)
    {
       mutex_state = pthread_mutex_trylock(&m_sock_drv.connections[i].conn_mutex);
@@ -271,6 +277,10 @@ RET_CODE sockdrv_write(sock_id id, const char* data, size_t size)
          ssize_t bytes_to_write = size;
          ssize_t bytes_written = 0;
          ssize_t current_write = 0;
+
+         snprintf(msg_header, SOCK_MSG_HEADER_SIZE + 1, "%.4ld", size);
+         send(m_sock_drv.connections[i].sock_fd, msg_header, SOCK_MSG_HEADER_SIZE, 0);
+
          while (bytes_to_write > 0)
          {
             current_write = send(m_sock_drv.connections[i].sock_fd, data + bytes_written, bytes_to_write, 0);

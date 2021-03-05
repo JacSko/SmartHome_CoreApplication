@@ -51,6 +51,7 @@ if (SIMULATION)
 	
 	target_link_libraries(socket_driver PUBLIC
 			logger
+			pthread
 	)
 	
 	# BLUETOOTH

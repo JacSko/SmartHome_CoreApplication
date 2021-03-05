@@ -163,6 +163,7 @@ if(SIMULATION)
 	#	Build target with replace hardware implementation to enable testing
 	#
 	message("Build target: Simulation")
+	set(CMAKE_C_FLAGS "-g -O0 -Wall -fno-exceptions -fprofile-arcs -ftest-coverage -fPIC")
 	add_definitions(-DSIMULATION)
 	
 	add_executable(smarthome_sim

@@ -82,7 +82,6 @@ RET_CODE btengine_initialize(BT_Config* cfg)
 
 void btengine_on_socket_data(SOCK_DRV_EV ev, const char* data)
 {
-   printf("got ev %d, data: %s\n", ev, data? data : "NULL");
    if (ev == SOCK_DRV_NEW_DATA && data)
    {
       uint8_t bytes_handled = 0;
