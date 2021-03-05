@@ -35,7 +35,7 @@
  *  Includes of project headers
  * =============================*/
 #include "return_codes.h"
-#include "env_types.h"
+#include "dht_types.h"
 /* =============================
  *       Data structures
  * =============================*/
@@ -48,12 +48,6 @@ typedef struct DHT_SENSOR_DATA
 	uint8_t hum_h; /**< Humidity - integers */
 	uint8_t hum_l; /**< Humidity - decimals*/
 } DHT_SENSOR_DATA;
-
-typedef enum DHT_SENSOR_TYPE
-{
-	DHT_TYPE_DHT11,
-	DHT_TYPE_DHT22
-} DHT_SENSOR_TYPE;
 
 /** Struct to represent one OneWire device*/
 typedef struct DHT_SENSOR
