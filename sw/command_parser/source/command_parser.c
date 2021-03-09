@@ -218,6 +218,12 @@ RET_CODE cmd_handle_inp_subcommand(const char** command, uint8_t size)
 RET_CODE cmd_handle_rel_subcommand(const char** command, uint8_t size)
 {
    RET_CODE result = RETURN_NOK;
+   if (!strcmp(command[1], "set"))
+   {
+      RELAY_ID id = (RELAY_ID)atoi(command[2]);
+      RELAY_STATE state = (RELAY_STATE)atoi(command[3]);
+      result = rel_set(id, state);
+   }
    if (!strcmp(command[1], "get_all"))
    {
       RELAY_STATUS relays_state [RELAYS_BOARD_COUNT];
