@@ -13,7 +13,7 @@
  *          Defines
  * =============================*/
 #define TIME_CNT_CALLBACK_MAX_SIZE 10
-#define TIME_BASETIME_MS 100
+#define TIME_BASETIME_MS 10
 /* =============================
  *   Internal module functions
  * =============================*/
