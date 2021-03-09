@@ -8,12 +8,12 @@
 #include "env_monitor.h"
 #include "task_scheduler.h"
 #include "Logger.h"
+#include "system_config_values.h"
 /* =============================
  *          Defines
  * =============================*/
 #define ENV_LISTENERS_MAX 20
 #define ENV_MEASURE_PERIOD_MIN_MS 1000
-#define ENV_MEASURE_PERIOD_DEF_MS 5000
 #define ENV_MEASURE_PERIOD_MAX_MS 30000
 #define ENV_ERROR_RATE_SAMPLES 100
 /* =============================
