@@ -153,8 +153,8 @@ void *sockdrv_thread_execute(void* data)
             if (sock_drv->connections[i].sock_fd >= 0)
             {
                struct timeval tv;
-               tv.tv_sec = SOCK_RECV_TIMEOUT_S;
-               tv.tv_usec = 0;
+               tv.tv_sec = 0;
+               tv.tv_usec = 100000;
                if (setsockopt(sock_drv->connections[i].sock_fd, SOL_SOCKET, SO_RCVTIMEO,(struct timeval *)&tv,sizeof(struct timeval)) < 0)
                {
                   logger_send(LOG_ERROR, __func__, "[%d] cannot set socket timeout", sock_drv->connections[i].conn_prop.port);
@@ -187,7 +187,6 @@ void *sockdrv_thread_execute(void* data)
             send_notification = 0;
          }
       }
-
       //try to read out all descriptors
       for (uint8_t i = 0; i < SOCK_DRV_MAX_CONNECTIONS; i++)
       {
