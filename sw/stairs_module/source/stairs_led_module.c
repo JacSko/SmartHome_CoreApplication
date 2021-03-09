@@ -304,7 +304,10 @@ void slm_prepare_default_programs()
 void slm_send_step(const SLM_STEP* step)
 {
    i2c_write(led_module.cfg.address, &(step->leds_state), 2);
-   sch_set_task_period(&slm_on_timeout, step->period);
+   if (sch_set_task_period(&slm_on_timeout, step->period) != RETURN_OK)
+   {
+      logger_send(LOG_ERROR, __func__, "error");
+   }
    sch_trigger_task(&slm_on_timeout);
 }
 RET_CODE slm_get_config(SLM_CONFIG* buffer)
