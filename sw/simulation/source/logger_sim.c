@@ -168,7 +168,6 @@ void logger_send(LogGroup group, const char* prefix, const char* fmt, ...)
             va_start(va, fmt);
             length = sf_format_string(logger.buffer+offset, fmt, va);
             va_end(va);
-            logger.buffer[offset + length++] = '\n';
             logger.buffer[offset + length] = 0x00;
             logger_notify_data(logger.buffer);
          }
@@ -185,7 +184,6 @@ void logger_notify_data(const char* data)
          LOGGER_SENDERS[i](data);
       }
    }
-   printf("Sending log: %s", data);
 }
 
 void logger_send_if(uint8_t cond_bool, LogGroup group, const char* prefix, const char* fmt, ...)
@@ -205,7 +203,6 @@ void logger_send_if(uint8_t cond_bool, LogGroup group, const char* prefix, const
             va_start(va, fmt);
             length = sf_format_string(logger.buffer+offset, fmt, va);
             va_end(va);
-            logger.buffer[offset + length++] = '\n';
             logger.buffer[offset + length] = 0x00;
             logger_notify_data(logger.buffer);
          }
