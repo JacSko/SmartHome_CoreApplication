@@ -43,6 +43,15 @@ After the binary can be flashed by issuing:
 ```
 make write
 ```
+### Building Simulation
+For details how to use this target, see [SmartHome_Tests](https://github.com/JacSko/SmartHome_Tests)
+```
+cd <project_dir>
+mkdir build_sim
+cd build_sim
+cmake .. -DSIMULATION=On
+make
+```
 ### Building Unit tests
 To build unit test, You have to clone googletest repo:
 ```
