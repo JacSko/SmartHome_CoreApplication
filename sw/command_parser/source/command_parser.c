@@ -17,6 +17,7 @@
 #include "env_monitor.h"
 #include "Logger.h"
 #include "stairs_led_module.h"
+#include "system_config_values.h"
 #include "stm32f4xx.h"
 /* =============================
  *          Defines
@@ -118,6 +119,12 @@ RET_CODE cmd_handle_system_subcommand(const char** command, uint8_t size)
    if (!strcmp(command[1], "reset"))
    {
       NVIC_SystemReset();
+      result = RETURN_OK;
+   }
+   if (!strcmp(command[1], "version"))
+   {
+	  string_format(CMD_REPLY_BUFFER, "VERSION: %s", SYSTEM_VERSION);
+	  cmd_send_response();
       result = RETURN_OK;
    }
    return result;

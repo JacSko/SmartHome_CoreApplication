@@ -17,6 +17,7 @@ extern "C" {
 #include "env_monitor_mock.h"
 #include "logger_mock.h"
 #include "stairs_led_module_mock.h"
+#include "system_config_values.h"
 /* ============================= */
 /**
  * @file command_parser_tests.cpp
@@ -399,7 +400,7 @@ TEST_F(cmdParserFixture, inputs_cmds_test)
          {
             EXPECT_STREQ(data, "OK\n");
             return RETURN_OK;
-         }));;
+         }));
    EXPECT_CALL(*inp_mock, inp_get_all(_)).WillOnce(Invoke([&](INPUT_STATUS* status) -> RET_CODE
          {
             for (uint8_t i = 0; i < INPUTS_MAX_INPUT_LINES; i++)
@@ -1505,4 +1506,38 @@ TEST_F(cmdParserFixture, slm_cmds_test)
          }));
    EXPECT_CALL(*slm_mock, slm_set_current_program_id(SLM_PROGRAM2)).WillOnce(Return(RETURN_OK));
    cmd_handle_data("slm set_program 2");
+}
+
+/**
+ * @test Checks inputs board related command behavior
+ */
+TEST_F(cmdParserFixture, system_cmds_test)
+{
+   /**
+    * <b>scenario</b>: Get system version command received.<br>
+    * <b>expected</b>: Command executed, response sent.<br>
+    * ************************************************
+    */
+	std::string version_response;
+
+	EXPECT_CALL(*callMock, send_callback(_))
+		 .WillOnce(Invoke([&](const char* data) -> RET_CODE
+		 {
+			EXPECT_STREQ(data, "CMD: system version\n");
+			return RETURN_OK;
+		 }))
+		 .WillOnce(Invoke([&](const char* data) -> RET_CODE
+		 {
+			version_response = data;
+			return RETURN_OK;
+		 }))
+		 .WillOnce(Invoke([&](const char* data) -> RET_CODE
+		 {
+			EXPECT_STREQ(data, "OK\n");
+			return RETURN_OK;
+		 }));
+
+	cmd_handle_data("system version");
+
+	EXPECT_THAT(version_response, HasSubstr(SYSTEM_VERSION));
 }

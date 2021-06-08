@@ -56,15 +56,6 @@ typedef struct DHT_SENSOR
 	DHT_SENSOR_TYPE type;
 	DHT_SENSOR_DATA data;
 } DHT_SENSOR;
-/** Measuement status */
-typedef enum DHT_STATUS
-{
-	DHT_STATUS_OK, 				/**< Measurement performed successfully, data is valid */
-	DHT_STATUS_NO_RESPONSE, 	/**< No response from device in defined time */
-	DHT_STATUS_CHECKSUM_ERROR, /**< Transmission fault - checksum is incorrect */\
-	DHT_STATUS_ERROR,          /**< Common error */
-	DHT_STATUS_UNKNOWN,
-} DHT_STATUS;
 
 typedef void(*DHT_CALLBACK)(DHT_STATUS, DHT_SENSOR*);
 
