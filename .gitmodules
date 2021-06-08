@@ -1,3 +1,6 @@
 [submodule "sw/SmartHomeTypes"]
 	path = sw/SmartHomeTypes
 	url = git@github.com:JacSko/SmartHomeTypes.git
+[submodule "ext_lib/googletest"]
+	path = ext_lib/googletest
+	url = git@github.com:google/googletest.git
